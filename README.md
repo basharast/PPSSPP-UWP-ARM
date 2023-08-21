@@ -23,7 +23,7 @@ Supported by **[UWP2Win32](https://github.com/basharast/UWP2Win32)**
 I'm in progress to merge most of the UWP solution into the original project
 this will take time as my solution are not fit for production, they need to be reformed in much better state (as code quality)
 
-- [ ] Storage solution [PR](https://github.com/hrydgard/ppsspp/pull/17350)
+- [x] Storage solution [PR](https://github.com/hrydgard/ppsspp/pull/17350)
 - [ ] Dialogs input
 - [ ] Graphic adapters
 - [ ] Configs load
