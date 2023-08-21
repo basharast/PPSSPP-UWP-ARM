@@ -21,8 +21,10 @@ Supported by **[UWP2Win32](https://github.com/basharast/UWP2Win32)**
 
 ## Roadmap
 I'm in progress to merge most of the UWP solutions into the original project
+
 this will take time as my solution are not fit for production, they need to be reformed in much better state (as code quality)
-so some messy code solution wont be updated here
+
+so some messy code solutions wont be updated here
 
 - [x] Storage solution [PR](https://github.com/hrydgard/ppsspp/pull/17350)
 - [ ] Dialogs input
