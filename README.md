@@ -22,7 +22,9 @@ Supported by **[UWP2Win32](https://github.com/basharast/UWP2Win32)**
 ## Roadmap
 I'm in progress to merge most of the UWP solutions into the original project
 
-this will take time as my solution are not fit for production, they need to be reformed in much better state (as code quality)
+this will take time, the current state is not fit for production, 
+
+they need to be reformed in much better state (as code quality)
 
 so some messy code solutions wont be updated here
 
