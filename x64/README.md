@@ -1,7 +1,19 @@
-## Description
-Here you will find the x64 version temporary until an official release will be adopted in the main repo
+## Note
+Ther will be no further updates here
+please follow up at [this link](https://discord.com/invite/eYt92NNhNE) for the upcoming update
 
-## Download
+to help the community to have official release I'm working hard to merge most of the changes in the official repo
+
+until I finish you can enjoy using this unofficial release 
+
+(my main focus is on ARM architect but I will do my best to push a good support for the x64 version).
+- [x] Storage solution [PR](https://github.com/hrydgard/ppsspp/pull/17350)
+- [ ] Dialogs input
+- [ ] Graphic adapters
+- [ ] Configs load
+- [ ] Post shaders
+
+## Download (old)
 
 <a href="https://github.com/basharast/PPSSPP-UWP-ARM/raw/main/x64/PPSSPP%201.15.3.zip">Click here to download</a>
 
