@@ -60,5 +60,4 @@ This custom release has better performance than the offical release with higher 
 - Enabled Browse folder
 - Added DPI control (Settings)
 - Added support to launch by file or URI (ppsspp:) [LaunchPass, RetroPass supported]
-- Dropped RW/RX memory solution, now it works same as desktop
 - Enabled Network features like remote disc streaming
