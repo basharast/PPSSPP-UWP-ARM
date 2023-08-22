@@ -1,7 +1,7 @@
 # PPSSPP-UWP (ARM)
 PSP emulator with full UWP (ARM) support
 
-Legacy support with min build 14393
+Legacy support with min build 14393 with D3D Feature Level 9.3
 
 ## Overview:
 [PPSSPP](https://github.com/hrydgard/ppsspp) is PSP emulator by [Henrik Rydgård](https://github.com/hrydgard)
