@@ -1,6 +1,6 @@
 ## Note
 Ther will be no further updates here
-please follow up at [this link (Discor)](https://discord.com/invite/eYt92NNhNE) or ([GitHub](https://github.com/XboxRetroGaming/PPSSPP-UWP)) for the upcoming update
+please follow up at [this link (Discord)](https://discord.com/invite/eYt92NNhNE) or ([GitHub](https://github.com/XboxRetroGaming/PPSSPP-UWP)) for the upcoming update
 
 to help the community to have official release I'm working hard to merge most of the changes in the official repo
 
