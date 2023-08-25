@@ -24,11 +24,15 @@ My main focus is on ARM architect but I will do my best to push a good support f
 
 To help the community to have official release I'm working hard to merge most of the changes in the official repo
 
-- [x] Storage solution [PR](https://github.com/hrydgard/ppsspp/pull/17350)
-- [x] Dialogs input [PR](https://github.com/hrydgard/ppsspp/pull/17952)
-- [x] Graphic adapters [PR](https://github.com/hrydgard/ppsspp/pull/17952)
-- [x] Configs load [PR](https://github.com/hrydgard/ppsspp/pull/17952)
-- [x] Post shaders [PR](https://github.com/hrydgard/ppsspp/pull/17952)
+Phase 1 ([PR](https://github.com/hrydgard/ppsspp/pull/17350)) [Mereged]
+
+Phase 2 ([PR](https://github.com/hrydgard/ppsspp/pull/17952)) [Pending]
+
+- [x] Storage solution
+- [x] Dialogs input
+- [x] Graphic adapters
+- [x] Configs load
+- [x] Post shaders
 
 # Credits
 
