@@ -8,11 +8,16 @@ to help the community to have official release I'm working hard to merge most of
 until I finish you can enjoy using this unofficial release 
 
 (my main focus is on ARM architect but I will do my best to push a good support for the x64 version).
-- [x] Storage solution [PR](https://github.com/hrydgard/ppsspp/pull/17350)
-- [ ] Dialogs input
-- [ ] Graphic adapters
-- [ ] Configs load
-- [ ] Post shaders
+
+Phase 1 ([PR](https://github.com/hrydgard/ppsspp/pull/17350)) [Mereged]
+
+Phase 2 ([PR](https://github.com/hrydgard/ppsspp/pull/17952)) [Pending]
+
+- [x] Storage solution
+- [x] Dialogs input
+- [x] Graphic adapters
+- [x] Configs load
+- [x] Post shaders
 
 ## Download (old)
 
