@@ -11,7 +11,7 @@ until I finish you can enjoy using this unofficial release
 
 Phase 1 ([PR](https://github.com/hrydgard/ppsspp/pull/17350)) [Mereged]
 
-Phase 2 ([PR](https://github.com/hrydgard/ppsspp/pull/17952)) [Pending]
+Phase 2 ([PR](https://github.com/hrydgard/ppsspp/pull/17952)) [Mereged]
 
 - [x] Storage solution
 - [x] Dialogs input
