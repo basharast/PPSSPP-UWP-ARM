@@ -1,0 +1,133 @@
+# For MSVC
+*.lastcodeanalysissucceeded
+*.pdb
+*.ilk
+*.obj
+*.pch
+*.log
+*.dll
+*.rar
+*.exe
+*.map
+*.lib
+*.user
+*.sdf
+*.ncb
+*.opensdf
+*.suo
+*.aps
+*.exp
+*.qdact
+controls.ini
+desktop.ini
+Debug
+Release
+Windows/.vs
+Windows/x64
+Windows/ARM
+Windows/ARM64
+Windows/ipch
+Windows/bin-release
+Windows/win-version.h
+Windows/win-version-*.tmp
+android/assets
+ext/_Output
+android/lint.xml
+PPSSPPWindows64.exe.manifest
+PPSSPPWindows.exe.manifest
+PPSSPPWindowsARM64.exe.manifest
+PPSSPPWindowsARM.exe.manifest
+PPSSPPDebug64.exe.manifest
+PPSSPPDebug.exe.manifest
+PPSSPPDebugARM64.exe.manifest
+PPSSPPDebugARM.exe.manifest
+assets/flash0
+UWP/icph
+UWP/*.ipch
+UWP/Content/*
+!UWP/Content/.empty
+UWP/.vs
+.vs
+.vscode
+
+# For Mac
+.DS_Store
+PPSSPPSDL.app
+include/glslang/build_info.h
+
+# For ppsspp.ini, etc.
+ppsspp.ini
+PPSSPPControls.dat
+
+# Qt Linguist files
+*.qm
+
+# Gradle/Android Studio
+.gradle
+.idea
+*.iml
+build
+/build*/
+versionname.txt
+versioncode.txt
+android/.cxx
+
+# Temp file used by jenkins windows build (TODO: remove)
+desc.txt
+
+Logs
+Memstick
+/memstick*
+Cheats
+
+/git-version.cpp
+/git-version-*.tmp
+
+.pspsh.hist
+__testoutput.txt
+__testerror.txt
+__testfinish.txt
+__testfailure.bmp
+__testcompare.png
+GameLogNotes.txt
+screenshots
+android/assets/lang
+android/assets/flash0
+ui_atlas.zim.png
+font_atlas.zim.png
+asciifont_atlas.zim.png
+ppge_atlas.zim.png
+local.properties
+r.sh
+Windows/compileData*
+Windows/*.ipch
+
+# For vim
+*.swp
+tags
+
+# Other VCS
+.bzr/
+.bzrignore
+
+# Debian build
+debian/files
+debian/ppsspp.substvars
+debian/ppsspp/
+
+# Libretro build
+*.o
+
+# YouCompleteMe file
+.ycm_extra_conf.pyc
+
+# RenderDoc
+*.rdc
+
+# CMake stuff
+CMakeFiles
+
+# Clangd 
+.cache/
+build
+libretro/obj/local
