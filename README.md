@@ -6,6 +6,17 @@ Legacy support with min build 14393 and D3D Feature Level 9.3
 ## Overview:
 [PPSSPP](https://github.com/hrydgard/ppsspp) is PSP emulator by [Henrik Rydgård](https://github.com/hrydgard)
 
+## XBOX (x64)
+Please visit [XBOX DevStore](https://xboxdevstore.github.io/), I host only ARM releases
+
+the major part of the UWP improvements were merged already into the official repo.
+
+## ARM64 or Latest
+- This repo for ARM32, legacy support only
+- Refer to the official repo for ARM64 [Click here](https://www.ppsspp.org/download/)
+- Please don't ask or contact me for other than ARM32
+- This repo is not meant to be up-to date fork (nor redistribution)
+
 ## UWP Support
 Supported by **[UWP2Win32](https://github.com/basharast/UWP2Win32)**
 
@@ -18,16 +29,6 @@ Supported by **[UWP2Win32](https://github.com/basharast/UWP2Win32)**
 - Use and type into text fields (even on touch devices)
 - Use network features like remote play
 - Start games by launching the file directly
-
-## XBOX (x64)
-Please visit [XBOX DevStore](https://xboxdevstore.github.io/), I host only ARM releases
-
-the major part of the UWP improvements were merged already into the official repo.
-
-## Surface (ARM64)
-- Please note Qualcomm and Windows are no longer support ARM32 (which what I do)
-- Good news is the ARM64 is officially adopted [Click here](https://www.ppsspp.org/download/)
-- My work is focus on legacy support for older devices and ARM devices that still support ARM32
 
 ## Roadmap
 My main focus is on ARM architect but I will do my best to push a good support for the x64 version
