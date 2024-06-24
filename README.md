@@ -1,5 +1,5 @@
-# PPSSPP-UWP (ARM)
-PSP emulator with full UWP (ARM) support
+# PPSSPP-UWP (ARM32)
+PSP emulator with full-UWP (ARM32) support
 
 Legacy support with min build 14393 and D3D Feature Level 9.3
 
