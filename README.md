@@ -1,13 +1,15 @@
 # PPSSPP-UWP (ARM32)
 PSP emulator with full-UWP (ARM32) support
 
-Legacy support with min build 14393 and D3D Feature Level 9.3
+Legacy support:
+- Build 10586+ 
+- DirectX Feature Level 11, 9.3 (~9.1)
 
 ## Overview:
 [PPSSPP](https://github.com/hrydgard/ppsspp) is PSP emulator by [Henrik Rydgård](https://github.com/hrydgard)
 
 ## XBOX (x64)
-Please visit [XBOX DevStore](https://xboxdevstore.github.io/), I host only ARM releases
+Please visit [XBOX DevStore](https://xboxdevstore.github.io/), I host only ARM32 releases
 
 the major part of the UWP improvements were merged already into the official repo.
 

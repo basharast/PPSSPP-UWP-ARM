@@ -109,7 +109,7 @@ public:
 	void SetPopupOrigin(const UI::View *view);
 	void SetPopupOffset(float y);
 
-	void SetHasDropShadow(bool has) { hasDropShadow_ = has; }
+	void SetHasDropShadow(bool has) { hasDropShadow_ = false; }
 
 protected:
 	virtual bool FillVertical() const { return false; }
@@ -148,5 +148,5 @@ private:
 	Point popupOrigin_;
 	float offsetY_ = 0.0f;
 
-	bool hasDropShadow_ = true;
+	bool hasDropShadow_ = false;
 };

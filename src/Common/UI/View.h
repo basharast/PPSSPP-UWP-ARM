@@ -942,7 +942,7 @@ public:
 	std::string DescribeText() const override { return GetText(); }
 	void SetSmall(bool small) { small_ = small; }
 	void SetTextColor(uint32_t color) { textColor_ = color; hasTextColor_ = true; }
-	void SetShadow(bool shadow) { shadow_ = shadow; }
+	void SetShadow(bool shadow) { shadow_ = false; }
 	void SetFocusable(bool focusable) { focusable_ = focusable; }
 	void SetClip(bool clip) { clip_ = clip; }
 	void SetBullet(bool bullet) { bullet_ = bullet; }
@@ -956,7 +956,7 @@ private:
 	uint32_t textColor_;
 	bool hasTextColor_ = false;
 	bool small_;
-	bool shadow_;
+	bool shadow_ = false;
 	bool focusable_;
 	bool clip_;
 	bool bullet_ = false;

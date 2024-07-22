@@ -20,12 +20,14 @@
 
 #include <d3d11.h>
 #include <dxgi1_3.h>
+#ifndef BUILD14393
 #include <d2d1_3.h>
+#endif
 #include <dwrite_3.h>
 
 enum {
-	MAX_TEXT_WIDTH = 4096,
-	MAX_TEXT_HEIGHT = 512
+	MAX_TEXT_WIDTH = 512,
+	MAX_TEXT_HEIGHT = 256
 };
 
 class TextDrawerFontContext {
@@ -36,7 +38,7 @@ public:
 
 	void Create() {
 #if defined(BUILD14393)
-	g_Config.bBackwardCompatibility = true;
+		g_Config.bBackwardCompatibility = true;
 #endif
 		if (textFmt) {
 			Destroy();
@@ -51,6 +53,7 @@ public:
 #endif
 		}
 
+		dpiScale = 1.0;
 		if (g_Config.bBackwardCompatibility) {
 			HRESULT hr = factory2->CreateTextFormat(
 				fname.c_str(),
@@ -100,29 +103,29 @@ struct TextDrawerContext {
 	ID2D1Bitmap1* mirror_bmp;
 };
 
-TextDrawerUWP::TextDrawerUWP(Draw::DrawContext *draw) : TextDrawer(draw), ctx_(nullptr) {
+TextDrawerUWP::TextDrawerUWP(Draw::DrawContext* draw) : TextDrawer(draw), ctx_(nullptr) {
 #if defined(BUILD14393)
 	g_Config.bBackwardCompatibility = true;
 #endif
 	HRESULT hr;
 	// It's fine to assume we are using D3D11 in UWP
-	ID3D11Device* d3ddevice = (ID3D11Device *)draw->GetNativeObject(Draw::NativeObject::DEVICE);
+	ID3D11Device* d3ddevice = (ID3D11Device*)draw->GetNativeObject(Draw::NativeObject::DEVICE);
 
 	IDXGIDevice* dxgiDevice;
 	hr = d3ddevice->QueryInterface(__uuidof(IDXGIDevice), (void**)&dxgiDevice);
 	if (FAILED(hr)) _assert_msg_(false, "ID3DDevice QueryInterface IDXGIDevice failed");
-	
+
 	// Initialize the Direct2D Factory.
 	D2D1_FACTORY_OPTIONS options = {};
 
 	if (g_Config.bBackwardCompatibility) {
-		 D2D1CreateFactory(
+		D2D1CreateFactory(
 			D2D1_FACTORY_TYPE_SINGLE_THREADED,
 			__uuidof(ID2D1Factory3),
-			& options,
+			&options,
 			(void**)&m_d2dFactory2
 		);
-	} 
+	}
 	else {
 #if !defined(BUILD14393)
 		hr = D2D1CreateFactory(
@@ -139,7 +142,7 @@ TextDrawerUWP::TextDrawerUWP(Draw::DrawContext *draw) : TextDrawer(draw), ctx_(n
 
 	if (g_Config.bBackwardCompatibility) {
 		// Initialize the DirectWrite Factory.
-		 DWriteCreateFactory(
+		DWriteCreateFactory(
 			DWRITE_FACTORY_TYPE_SHARED,
 			__uuidof(IDWriteFactory3),
 			(IUnknown**)&m_dwriteFactory2
@@ -158,7 +161,7 @@ TextDrawerUWP::TextDrawerUWP(Draw::DrawContext *draw) : TextDrawer(draw), ctx_(n
 		}
 #endif
 	}
-	
+
 	// Create D2D Device and DeviceContext.
 	// TODO: We have one sitting right in DX::DeviceResource, there might be a way to use that instead.
 	if (g_Config.bBackwardCompatibility) {
@@ -204,7 +207,7 @@ TextDrawerUWP::TextDrawerUWP(Draw::DrawContext *draw) : TextDrawer(draw), ctx_(n
 		if (FAILED(hr)) ERROR_LOG(SYSTEM, "CreateFontSetBuilder failed");
 #endif
 	}
-	
+
 #if !defined(BUILD14393)
 	if (!g_Config.bBackwardCompatibility) {
 		hr = m_fontSetBuilder->AddFontFile(m_fontFile);
@@ -233,7 +236,7 @@ TextDrawerUWP::TextDrawerUWP(Draw::DrawContext *draw) : TextDrawer(draw), ctx_(n
 	}
 
 	ctx_ = new TextDrawerContext();
-	
+
 	D2D1_BITMAP_PROPERTIES1 properties;
 	properties.pixelFormat.format = DXGI_FORMAT_B8G8R8A8_UNORM;
 	properties.pixelFormat.alphaMode = D2D1_ALPHA_MODE_PREMULTIPLIED;
@@ -241,7 +244,7 @@ TextDrawerUWP::TextDrawerUWP(Draw::DrawContext *draw) : TextDrawer(draw), ctx_(n
 	properties.dpiY = 96.0f;
 	properties.bitmapOptions = D2D1_BITMAP_OPTIONS_CANNOT_DRAW | D2D1_BITMAP_OPTIONS_TARGET;
 	properties.colorContext = nullptr;
-	
+
 	if (g_Config.bBackwardCompatibility) {
 		// Create main drawing bitmap
 		m_d2dContext2->CreateBitmap(
@@ -266,7 +269,7 @@ TextDrawerUWP::TextDrawerUWP(Draw::DrawContext *draw) : TextDrawer(draw), ctx_(n
 		m_d2dContext->SetTarget(ctx_->bitmap);
 #endif
 	}
-	
+
 	if (g_Config.bBackwardCompatibility) {
 		// Create mirror bitmap for mapping
 		properties.bitmapOptions = D2D1_BITMAP_OPTIONS_CANNOT_DRAW | D2D1_BITMAP_OPTIONS_CPU_READ;
@@ -335,11 +338,11 @@ TextDrawerUWP::~TextDrawerUWP() {
 	delete ctx_;
 }
 
-uint32_t TextDrawerUWP::SetFont(const char *fontName, int size, int flags) {
+uint32_t TextDrawerUWP::SetFont(const char* fontName, int size, int flags) {
 #if defined(BUILD14393)
 	g_Config.bBackwardCompatibility = true;
 #endif
-	uint32_t fontHash = fontName ? hash::Adler32((const uint8_t *)fontName, strlen(fontName)) : 0;
+	uint32_t fontHash = fontName ? hash::Adler32((const uint8_t*)fontName, strlen(fontName)) : 0;
 	fontHash ^= size;
 	fontHash ^= flags << 10;
 
@@ -355,7 +358,7 @@ uint32_t TextDrawerUWP::SetFont(const char *fontName, int size, int flags) {
 	else
 		fname = L"Tahoma";
 
-	TextDrawerFontContext *font = new TextDrawerFontContext();
+	TextDrawerFontContext* font = new TextDrawerFontContext();
 	font->weight = DWRITE_FONT_WEIGHT_LIGHT;
 	font->height = size;
 	font->fname = fname;
@@ -390,17 +393,18 @@ void TextDrawerUWP::SetFont(uint32_t fontHandle) {
 	}
 }
 
-void TextDrawerUWP::MeasureString(const char *str, size_t len, float *w, float *h) {
+void TextDrawerUWP::MeasureString(const char* str, size_t len, float* w, float* h) {
 #if defined(BUILD14393)
 	g_Config.bBackwardCompatibility = true;
 #endif
 	CacheKey key{ std::string(str, len), fontHash_ };
-	
-	TextMeasureEntry *entry;
+
+	TextMeasureEntry* entry;
 	auto iter = sizeCache_.find(key);
 	if (iter != sizeCache_.end()) {
 		entry = iter->second.get();
-	} else {
+	}
+	else {
 		IDWriteTextFormat* format = nullptr;
 		auto iter = fontMap_.find(fontHash_);
 		if (iter != fontMap_.end()) {
@@ -411,7 +415,7 @@ void TextDrawerUWP::MeasureString(const char *str, size_t len, float *w, float *
 		std::wstring wstr = ConvertUTF8ToWString(ReplaceAll(ReplaceAll(std::string(str, len), "\n", "\r\n"), "&&", "&"));
 
 		format->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-		
+
 		IDWriteTextLayout* layout;
 		if (g_Config.bBackwardCompatibility) {
 			m_dwriteFactory2->CreateTextLayout(
@@ -454,11 +458,11 @@ void TextDrawerUWP::MeasureString(const char *str, size_t len, float *w, float *
 	*h = entry->height * fontScaleY_ * dpiScale_;
 }
 
-void TextDrawerUWP::MeasureStringRect(const char *str, size_t len, const Bounds &bounds, float *w, float *h, int align) {
+void TextDrawerUWP::MeasureStringRect(const char* str, size_t len, const Bounds& bounds, float* w, float* h, int align) {
 #if defined(BUILD14393)
 	g_Config.bBackwardCompatibility = true;
 #endif
-	IDWriteTextFormat *format = nullptr;
+	IDWriteTextFormat* format = nullptr;
 	auto iter = fontMap_.find(fontHash_);
 	if (iter != fontMap_.end()) {
 		format = iter->second->textFmt;
@@ -483,11 +487,12 @@ void TextDrawerUWP::MeasureStringRect(const char *str, size_t len, const Bounds 
 	for (size_t i = 0; i < lines.size(); i++) {
 		CacheKey key{ lines[i], fontHash_ };
 
-		TextMeasureEntry *entry;
+		TextMeasureEntry* entry;
 		auto iter = sizeCache_.find(key);
 		if (iter != sizeCache_.end()) {
 			entry = iter->second.get();
-		} else {
+		}
+		else {
 			std::wstring wstr = ConvertUTF8ToWString(lines[i].length() == 0 ? " " : ReplaceAll(lines[i], "&&", "&"));
 
 			if (align & ALIGN_HCENTER)
@@ -544,7 +549,7 @@ void TextDrawerUWP::MeasureStringRect(const char *str, size_t len, const Bounds 
 	*h = total_h * fontScaleY_ * dpiScale_;
 }
 
-void TextDrawerUWP::DrawStringBitmap(std::vector<uint8_t> &bitmapData, TextStringEntry &entry, Draw::DataFormat texFormat, const char *str, int align) {
+void TextDrawerUWP::DrawStringBitmap(std::vector<uint8_t>& bitmapData, TextStringEntry& entry, Draw::DataFormat texFormat, const char* str, int align) {
 #if defined(BUILD14393)
 	g_Config.bBackwardCompatibility = true;
 #endif
@@ -556,7 +561,7 @@ void TextDrawerUWP::DrawStringBitmap(std::vector<uint8_t> &bitmapData, TextStrin
 	std::wstring wstr = ConvertUTF8ToWString(ReplaceAll(ReplaceAll(str, "\n", "\r\n"), "&&", "&"));
 	SIZE size;
 
-	IDWriteTextFormat *format = nullptr;
+	IDWriteTextFormat* format = nullptr;
 	auto iter = fontMap_.find(fontHash_);
 	if (iter != fontMap_.end()) {
 		format = iter->second->textFmt;
@@ -656,9 +661,9 @@ void TextDrawerUWP::DrawStringBitmap(std::vector<uint8_t> &bitmapData, TextStrin
 	if (texFormat == Draw::DataFormat::R8G8B8A8_UNORM || texFormat == Draw::DataFormat::B8G8R8A8_UNORM) {
 		bitmapData.resize(entry.bmWidth * entry.bmHeight * sizeof(uint32_t));
 		bool swap = texFormat == Draw::DataFormat::R8G8B8A8_UNORM;
-		uint32_t *bitmapData32 = (uint32_t *)&bitmapData[0];
+		uint32_t* bitmapData32 = (uint32_t*)&bitmapData[0];
 		for (int y = 0; y < entry.bmHeight; y++) {
-			uint32_t *bmpLine = (uint32_t *)&map.bits[map.pitch * y];
+			uint32_t* bmpLine = (uint32_t*)&map.bits[map.pitch * y];
 			for (int x = 0; x < entry.bmWidth; x++) {
 				uint32_t v = bmpLine[x];
 				if (swap)
@@ -666,25 +671,28 @@ void TextDrawerUWP::DrawStringBitmap(std::vector<uint8_t> &bitmapData, TextStrin
 				bitmapData32[entry.bmWidth * y + x] = v;
 			}
 		}
-	} else if (texFormat == Draw::DataFormat::B4G4R4A4_UNORM_PACK16 || texFormat == Draw::DataFormat::R4G4B4A4_UNORM_PACK16) {
+	}
+	else if (texFormat == Draw::DataFormat::B4G4R4A4_UNORM_PACK16 || texFormat == Draw::DataFormat::R4G4B4A4_UNORM_PACK16) {
 		bitmapData.resize(entry.bmWidth * entry.bmHeight * sizeof(uint16_t));
-		uint16_t *bitmapData16 = (uint16_t *)&bitmapData[0];
+		uint16_t* bitmapData16 = (uint16_t*)&bitmapData[0];
 		for (int y = 0; y < entry.bmHeight; y++) {
 			for (int x = 0; x < entry.bmWidth; x++) {
 				uint8_t bAlpha = (uint8_t)((map.bits[map.pitch * y + x * 4] & 0xff) >> 4);
 				bitmapData16[entry.bmWidth * y + x] = (bAlpha) | 0xfff0;
 			}
 		}
-	} else if (texFormat == Draw::DataFormat::A4R4G4B4_UNORM_PACK16) {
+	}
+	else if (texFormat == Draw::DataFormat::A4R4G4B4_UNORM_PACK16) {
 		bitmapData.resize(entry.bmWidth * entry.bmHeight * sizeof(uint16_t));
-		uint16_t *bitmapData16 = (uint16_t *)&bitmapData[0];
+		uint16_t* bitmapData16 = (uint16_t*)&bitmapData[0];
 		for (int y = 0; y < entry.bmHeight; y++) {
 			for (int x = 0; x < entry.bmWidth; x++) {
 				uint8_t bAlpha = (uint8_t)((map.bits[map.pitch * y + x * 4] & 0xff) >> 4);
 				bitmapData16[entry.bmWidth * y + x] = (bAlpha << 12) | 0x0fff;
 			}
 		}
-	} else if (texFormat == Draw::DataFormat::R8_UNORM) {
+	}
+	else if (texFormat == Draw::DataFormat::R8_UNORM) {
 		bitmapData.resize(entry.bmWidth * entry.bmHeight);
 		for (int y = 0; y < entry.bmHeight; y++) {
 			for (int x = 0; x < entry.bmWidth; x++) {
@@ -692,14 +700,15 @@ void TextDrawerUWP::DrawStringBitmap(std::vector<uint8_t> &bitmapData, TextStrin
 				bitmapData[entry.bmWidth * y + x] = bAlpha;
 			}
 		}
-	} else {
+	}
+	else {
 		_assert_msg_(false, "Bad TextDrawer format");
 	}
 
 	ctx_->mirror_bmp->Unmap();
 }
 
-void TextDrawerUWP::DrawString(DrawBuffer &target, const char *str, float x, float y, uint32_t color, int align) {
+void TextDrawerUWP::DrawString(DrawBuffer& target, const char* str, float x, float y, uint32_t color, int align) {
 	using namespace Draw;
 	if (!strlen(str))
 		return;
@@ -707,13 +716,14 @@ void TextDrawerUWP::DrawString(DrawBuffer &target, const char *str, float x, flo
 	CacheKey key{ std::string(str), fontHash_ };
 	target.Flush(true);
 
-	TextStringEntry *entry;
+	TextStringEntry* entry;
 
 	auto iter = cache_.find(key);
 	if (iter != cache_.end()) {
 		entry = iter->second.get();
 		entry->lastUsedFrame = frameCount_;
-	} else {
+	}
+	else {
 		DataFormat texFormat;
 
 		// For our purposes these are equivalent, so just choose the supported one. D3D can emulate them.
@@ -765,14 +775,14 @@ void TextDrawerUWP::DrawString(DrawBuffer &target, const char *str, float x, flo
 }
 
 void TextDrawerUWP::RecreateFonts() {
-	for (auto &iter : fontMap_) {
+	for (auto& iter : fontMap_) {
 		iter.second->dpiScale = dpiScale_;
 		iter.second->Create();
 	}
 }
 
 void TextDrawerUWP::ClearCache() {
-	for (auto &iter : cache_) {
+	for (auto& iter : cache_) {
 		if (iter.second->texture)
 			iter.second->texture->Release();
 	}
@@ -783,12 +793,12 @@ void TextDrawerUWP::ClearCache() {
 void TextDrawerUWP::OncePerFrame() {
 	frameCount_++;
 	// If DPI changed (small-mode, future proper monitor DPI support), drop everything.
-	float newDpiScale = CalculateDPIScale();
+	/*float newDpiScale = CalculateDPIScale();
 	if (newDpiScale != dpiScale_) {
-		dpiScale_ = newDpiScale;
+		dpiScale_ = 1.0;
 		ClearCache();
 		RecreateFonts();
-	}
+	}*/
 
 	// Drop old strings. Use a prime number to reduce clashing with other rhythms
 	if (frameCount_ % 23 == 0) {
@@ -797,7 +807,8 @@ void TextDrawerUWP::OncePerFrame() {
 				if (iter->second->texture)
 					iter->second->texture->Release();
 				cache_.erase(iter++);
-			} else {
+			}
+			else {
 				iter++;
 			}
 		}
@@ -805,7 +816,8 @@ void TextDrawerUWP::OncePerFrame() {
 		for (auto iter = sizeCache_.begin(); iter != sizeCache_.end(); ) {
 			if (frameCount_ - iter->second->lastUsedFrame > 100) {
 				sizeCache_.erase(iter++);
-			} else {
+			}
+			else {
 				iter++;
 			}
 		}

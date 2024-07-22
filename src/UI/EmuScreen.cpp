@@ -461,8 +461,15 @@ static void AfterStateBoot(SaveState::Status status, const std::string &message,
 	System_Notify(SystemNotification::DISASSEMBLY);
 }
 
+extern void InitPadLayout(float xres, float yres, float globalScale);
 void EmuScreen::sendMessage(const char *message, const char *value) {
 	// External commands, like from the Windows UI.
+	if (!strcmp(message, "resetdpad")) {
+		g_Config.ResetControlLayout();
+		const Bounds& bounds = screenManager()->getUIContext()->GetBounds();
+		InitPadLayout(bounds.w, bounds.h, 1.15f);
+		RecreateViews();
+	}
 	if (!strcmp(message, "pause") && screenManager()->topScreen() == this) {
 		screenManager()->push(new GamePauseScreen(gamePath_));
 	} else if (!strcmp(message, "stop")) {

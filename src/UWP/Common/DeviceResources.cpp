@@ -162,7 +162,16 @@ void DX::DeviceResources::CreateDeviceResources(IDXGIAdapter* vAdapter, int forc
 		D3D_FEATURE_LEVEL_9_1
 	};
 	if (!forceAutoLange) {
-		if (g_Config.sShaderLanguage == "Level 9")
+		if (g_Config.sShaderLanguage == "Level 9.1")
+		{
+			featureLevels =
+			{
+				D3D_FEATURE_LEVEL_9_1
+			};
+			D3DFeatureLevelGlobal = true;
+		}
+		else
+		if (g_Config.sShaderLanguage == "Level 9.3")
 		{
 			featureLevels =
 			{

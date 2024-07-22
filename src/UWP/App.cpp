@@ -124,6 +124,7 @@ App::App() :
 		 
 #if defined(BUILD14393)
 		g_Config.bBackwardCompatibility = true;
+		build14393 = true;
 #else
 		if (IsLegacyWindows()) {
 			g_Config.bBackwardCompatibility = true;
@@ -305,18 +306,32 @@ void App::Load(Platform::String^ entryPoint) {
 
 // This method is called after the window becomes active.
 void App::Run() {
+	//Limiter
+	const std::chrono::milliseconds frameTime(33);
+	auto lastFrameTime = std::chrono::high_resolution_clock::now();
+	auto now = lastFrameTime;
+	std::chrono::nanoseconds deltaTime;
 	while (!m_windowClosed) {
 		if (m_windowVisible) {
-			CoreWindow::GetForCurrentThread()->Dispatcher->ProcessEvents(CoreProcessEventsOption::ProcessAllIfPresent);
-			m_main->Render();
-			if (g_Config.bDetectDeviceLose) {
-				m_deviceResources->Present();
+			bool skipActive = g_Config.iFrameSkip > 0;
+			if ((g_Config.bRenderSkip2 && skipActive)) {
+				now = std::chrono::high_resolution_clock::now();
+				deltaTime = now - lastFrameTime;
+			}
+			if (!(g_Config.bRenderSkip2 || !skipActive) || deltaTime >= frameTime) {
+				lastFrameTime = now;
+				CoreWindow::GetForCurrentThread()->Dispatcher->ProcessEvents(CoreProcessEventsOption::ProcessAllIfPresent);
+				m_main->Render();
+				if (g_Config.bDetectDeviceLose) {
+					m_deviceResources->Present();
+				}
 			}
 		}
 		else {
 			CoreWindow::GetForCurrentThread()->Dispatcher->ProcessEvents(CoreProcessEventsOption::ProcessOneAndAllPending);
 		}
 	}
+
 }
 
 // Required for IFrameworkView.
@@ -400,7 +415,7 @@ void App::OnWindowClosed(CoreWindow^ sender, CoreWindowEventArgs^ args) {
 	m_windowClosed = true;
 }
 
-// DisplayInformation event handlers.
+// DisplayInformation event handlers. 
 
 void App::OnDpiChanged(DisplayInformation^ sender, Object^ args) {
 	// Note: The value for LogicalDpi retrieved here may not match the effective DPI of the app

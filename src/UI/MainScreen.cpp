@@ -292,7 +292,7 @@ void GameButton::Draw(UIContext &dc) {
 			y += txOffset * 2;
 			overlayBounds.y += txOffset * 2;
 		}
-		if (HasFocus()) {
+		/*if (HasFocus()) {
 			dc.Draw()->Flush();
 			dc.RebindTexture();
 			float pulse = sin(time_now_d() * 7.0) * 0.25 + 0.8;
@@ -303,7 +303,7 @@ void GameButton::Draw(UIContext &dc) {
 			dc.RebindTexture();
 			dc.Draw()->DrawImage4Grid(dc.theme->dropShadow4Grid, x - dropsize, y - dropsize*0.5f, x+w + dropsize, y+h+dropsize*1.5, alphaMul(shadowColor, 0.5f), 1.0f);
 			dc.Draw()->Flush();
-		}
+		}*/
 
 		dc.Draw()->Flush();
 		dc.GetDrawContext()->BindTexture(0, texture);
@@ -422,7 +422,7 @@ void GameButton::Draw(UIContext &dc) {
 		dc.SetFontScale(1.0f, 1.0f);
 	}
 	if (overlayColor) {
-		dc.FillRect(Drawable(overlayColor), overlayBounds);
+		//dc.FillRect(Drawable(overlayColor), overlayBounds);
 	}
 	dc.RebindTexture();
 }
@@ -1344,6 +1344,7 @@ UI::EventReturn MainScreen::OnDismissUpgrade(UI::EventParams &e) {
 	return UI::EVENT_DONE;
 }
 
+extern void InitPadLayout(float xres, float yres, float globalScale);
 void MainScreen::sendMessage(const char *message, const char *value) {
 	// Always call the base class method first to handle the most common messages.
 	UIScreenWithBackground::sendMessage(message, value);
@@ -1351,6 +1352,11 @@ void MainScreen::sendMessage(const char *message, const char *value) {
 	if (screenManager()->topScreen() == this) {
 		if (!strcmp(message, "boot")) {
 			LaunchFile(screenManager(), Path(std::string(value)));
+
+			g_Config.ResetControlLayout();
+			const Bounds& bounds = screenManager()->getUIContext()->GetBounds();
+			InitPadLayout(bounds.w, bounds.h, 1.15f);
+			RecreateViews();
 		}
 		if (!strcmp(message, "createall")) {
 			screenManager()->RecreateAllViews();

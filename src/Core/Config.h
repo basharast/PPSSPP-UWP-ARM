@@ -87,6 +87,7 @@ public:
 	int bSwapFlags;
 	int bSwapFlagsTemp;
 	bool bRenderSkip;
+	bool bRenderSkip2;
 	bool bDetectDeviceLose;
 	bool bFogState;
 	bool bAssertTextureCache;
@@ -275,7 +276,9 @@ public:
 	float fGameGridScale;
 	bool bShowOnScreenMessages;
 	int iBackgroundAnimation;  // enum BackgroundAnimation
+	int iBackgroundAnimation2;  // enum BackgroundAnimation
 	float iAnimationSmooth;  // enum BackgroundAnimation
+	float iAnimationSmooth2;  // enum BackgroundAnimation
 	bool bTransparentBackground;
 
 	std::string sThemeName;
@@ -331,6 +334,7 @@ public:
 	int iTouchButtonStyle;
 	int iTouchButtonOpacity;
 	int iTouchButtonHideSeconds;
+	int iTouchButtonHideSeconds2;
 
 	// Snap touch control position
 	bool bTouchSnapToGrid;
@@ -363,6 +367,7 @@ public:
 	float fLeftStickHeadScale;
 	float fRightStickHeadScale;
 	bool bHideStickBackground;
+	bool bHideStickBackground2;
 
 	// Controls Visibility
 	bool bShowTouchControls;

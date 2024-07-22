@@ -75,7 +75,7 @@ float GamepadView::GetButtonOpacity() {
 		return 0.0f;
 	}
 
-	float fadeAfterSeconds = g_Config.iTouchButtonHideSeconds;
+	float fadeAfterSeconds = g_Config.iTouchButtonHideSeconds2;
 	float fadeTransitionSeconds = std::min(fadeAfterSeconds, 0.5f);
 	float opacity = g_Config.iTouchButtonOpacity / 100.0f;
 
@@ -145,12 +145,14 @@ void MultiTouchButton::Draw(UIContext &dc) {
 	uint32_t downBg = colorAlpha(0xFFFFFF, opacity * 0.5f);
 	uint32_t color = colorAlpha(0xFFFFFF, opacity);
 
-	if (IsDown() && g_Config.iTouchButtonStyle == 2) {
-		if (bgImg_ != bgDownImg_)
+	if (g_Config.iTouchButtonStyle == 2) {
+		if (IsDown() && bgImg_ != bgDownImg_)
 			dc.Draw()->DrawImageRotated(bgDownImg_, bounds_.centerX(), bounds_.centerY(), scale, bgAngle_ * (M_PI * 2 / 360.0f), downBg, flipImageH_);
 	}
 
-	dc.Draw()->DrawImageRotated(bgImg_, bounds_.centerX(), bounds_.centerY(), scale, bgAngle_ * (M_PI * 2 / 360.0f), colorBg, flipImageH_);
+	if (!g_Config.bHideStickBackground2) {
+		dc.Draw()->DrawImageRotated(bgImg_, bounds_.centerX(), bounds_.centerY(), scale, bgAngle_ * (M_PI * 2 / 360.0f), colorBg, flipImageH_);
+	}
 
 	int y = bounds_.centerY();
 	// Hack round the fact that the center of the rectangular picture the triangle is contained in
@@ -370,9 +372,15 @@ void PSPDpad::ProcessTouch(float x, float y, bool down) {
 }
 
 void PSPDpad::Draw(UIContext &dc) {
-	float opacity = GetButtonOpacity();
-	if (opacity <= 0.0f)
+	static float opacity = GetButtonOpacity();
+	if (opacity <= 0.0f) {
+		opacity = GetButtonOpacity();
 		return;
+	}
+
+	static float imgOpacity = opacity;
+	static uint32_t colorBg = colorAlpha(GetButtonColor(), imgOpacity);
+	static uint32_t color = colorAlpha(0xFFFFFF, imgOpacity);
 
 	static const float xoff[4] = {1, 0, -1, 0};
 	static const float yoff[4] = {0, 1, 0, -1};
@@ -388,21 +396,20 @@ void PSPDpad::Draw(UIContext &dc) {
 		float y2 = bounds_.centerY() + yoff[i] * (r + 10.f * scale_);
 		float angle = i * (M_PI / 2.0f);
 		float imgScale = isDown ? scale_ * TOUCH_SCALE_FACTOR : scale_;
-		float imgOpacity = opacity;
 
-		if (isDown && g_Config.iTouchButtonStyle == 2) {
-			imgScale = scale_;
-			imgOpacity *= 1.35f;
-
-			uint32_t downBg = colorAlpha(0x00FFFFFF, imgOpacity * 0.5f);
-			if (arrowIndex_ != arrowDownIndex_)
+		if (g_Config.iTouchButtonStyle == 2) {
+			if (isDown && arrowIndex_ != arrowDownIndex_) {
+				imgScale = scale_;
+				imgOpacity *= 1.35f;
+				uint32_t downBg = colorAlpha(0x00FFFFFF, imgOpacity * 0.5f);
 				dc.Draw()->DrawImageRotated(arrowDownIndex_, x, y, imgScale, angle + PI, downBg, false);
+			}
 		}
 
-		uint32_t colorBg = colorAlpha(GetButtonColor(), imgOpacity);
-		uint32_t color = colorAlpha(0xFFFFFF, imgOpacity);
+		if (!g_Config.bHideStickBackground2) {
+			dc.Draw()->DrawImageRotated(arrowIndex_, x, y, imgScale, angle + PI, colorBg, false);
+		}
 
-		dc.Draw()->DrawImageRotated(arrowIndex_, x, y, imgScale, angle + PI, colorBg, false);
 		if (overlayIndex_.isValid())
 			dc.Draw()->DrawImageRotated(overlayIndex_, x2, y2, imgScale, angle + PI, color);
 	}
@@ -442,7 +449,7 @@ void PSPStick::Draw(UIContext &dc) {
 	float dx, dy;
 	__CtrlPeekAnalog(stick_, &dx, &dy);
 
-	if (!g_Config.bHideStickBackground)
+	if (!g_Config.bHideStickBackground2)
 		dc.Draw()->DrawImage(bgImg_, stickX, stickY, 1.0f * scale_, colorBg, ALIGN_CENTER);
 	float headScale = stick_ ? g_Config.fRightStickHeadScale : g_Config.fLeftStickHeadScale;
 	if (dragPointerId_ != -1 && g_Config.iTouchButtonStyle == 2 && stickDownImg_ != stickImageIndex_)
@@ -551,7 +558,7 @@ void PSPCustomStick::Draw(UIContext &dc) {
 	dx = posX_;
 	dy = -posY_;
 
-	if (!g_Config.bHideStickBackground)
+	if (!g_Config.bHideStickBackground2)
 		dc.Draw()->DrawImage(bgImg_, stickX, stickY, 1.0f * scale_, colorBg, ALIGN_CENTER);
 	if (dragPointerId_ != -1 && g_Config.iTouchButtonStyle == 2 && stickDownImg_ != stickImageIndex_)
 		dc.Draw()->DrawImage(stickDownImg_, stickX + dx * stick_size_ * scale_, stickY - dy * stick_size_ * scale_, 1.0f*scale_*g_Config.fRightStickHeadScale, downBg, ALIGN_CENTER);

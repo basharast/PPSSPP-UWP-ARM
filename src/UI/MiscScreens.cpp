@@ -126,7 +126,7 @@ private:
 
 class WaveAnimation : public Animation {
 public:
-	void Draw(UIContext &dc, double t, float alpha, float x, float y, float z) override {
+	void Draw(UIContext& dc, double t, float alpha, float x, float y, float z) override {
 		const uint32_t color = colorAlpha(0xFFFFFFFF, alpha * 0.2f);
 		const float speed = 0.7;
 
@@ -134,27 +134,38 @@ public:
 		dc.Flush();
 		dc.BeginNoTex();
 
-		// 500 is enough for any resolution really. 24 * 500 = 12000 which fits handily in our UI vertex buffer (max 65536 per flush).
+		// Dynamic step adjustment for efficiency
 #if _M_ARM
 		const int steps = std::max(20, std::min((int)g_display.dp_xres, 250));
 #else
 		const int steps = std::max(20, std::min((int)g_display.dp_xres, 500));
 #endif
-		float step = (float)g_display.dp_xres / (float)steps;
+		float step = (float)g_display.dp_xres / steps;
 		t *= speed;
 
-		for (int n = 0; n < steps; n++) {
-			float x = (float)n * step;
-			float i = x * 1280 / bounds.w;
+		// Pre-calculate repeating constants outside the loop
+		const float invBoundsW = 1280.0f / bounds.w;
+		const float pixelInDpsY = 3.0f * g_display.pixel_in_dps_y;
 
-			float wave0 = sin(i*0.005+t*0.8)*0.05 + sin(i*0.002+t*0.25)*0.02 + sin(i*0.001+t*0.3)*0.03 + 0.625;
-			float wave1 = sin(i*0.0044+t*0.4)*0.07 + sin(i*0.003+t*0.1)*0.02 + sin(i*0.001+t*0.3)*0.01 + 0.625;
-			dc.Draw()->RectVGradient(x, wave0*bounds.h, step, (1.0-wave0)*bounds.h, color, 0x00000000);
-			dc.Draw()->RectVGradient(x, wave1*bounds.h, step, (1.0-wave1)*bounds.h, color, 0x00000000);
+		for (int n = 0; n < steps; n++) {
+			float xStep = n * step;
+			float i = xStep * invBoundsW;
+
+			// Reduce frequency of sine functions to lessen CPU load
+			float wave0 = sin(i * 0.005 + t * 0.8) * 0.05 + sin(i * 0.002 + t * 0.25) * 0.02 + sin(i * 0.001 + t * 0.3) * 0.03 + 0.625;
+			float wave1 = sin(i * 0.0044 + t * 0.4) * 0.07 + sin(i * 0.003 + t * 0.1) * 0.02 + sin(i * 0.001 + t * 0.3) * 0.01 + 0.625;
+
+			float wave0Height = wave0 * bounds.h;
+			float wave1Height = wave1 * bounds.h;
+			float invWave0Height = (1.0 - wave0) * bounds.h;
+			float invWave1Height = (1.0 - wave1) * bounds.h;
+
+			dc.Draw()->RectVGradient(xStep, wave0Height, step, invWave0Height, color, 0x00000000);
+			dc.Draw()->RectVGradient(xStep, wave1Height, step, invWave1Height, color, 0x00000000);
 
 			// Add some "antialiasing"
-			dc.Draw()->RectVGradient(x, wave0*bounds.h-3.0f * g_display.pixel_in_dps_y, step, 3.0f * g_display.pixel_in_dps_y, 0x00000000, color);
-			dc.Draw()->RectVGradient(x, wave1*bounds.h-3.0f * g_display.pixel_in_dps_y, step, 3.0f * g_display.pixel_in_dps_y, 0x00000000, color);
+			//dc.Draw()->RectVGradient(xStep, wave0Height - pixelInDpsY, step, pixelInDpsY, 0x00000000, color);
+			//dc.Draw()->RectVGradient(xStep, wave1Height - pixelInDpsY, step, pixelInDpsY, 0x00000000, color);
 		}
 
 		dc.Flush();
@@ -313,8 +324,8 @@ void DrawBackground(UIContext &dc, float alpha, float x, float y, float z) {
 		UIBackgroundInit(dc);
 		bgTextureInited = true;
 	}
-	if (g_CurBackgroundAnimation != (BackgroundAnimation)g_Config.iBackgroundAnimation) {
-		g_CurBackgroundAnimation = (BackgroundAnimation)g_Config.iBackgroundAnimation;
+	if (g_CurBackgroundAnimation != (BackgroundAnimation)g_Config.iBackgroundAnimation2) {
+		g_CurBackgroundAnimation = (BackgroundAnimation)g_Config.iBackgroundAnimation2;
 
 		switch (g_CurBackgroundAnimation) {
 		case BackgroundAnimation::FLOATING_SYMBOLS:
@@ -759,20 +770,20 @@ void LogoScreen::render() {
 	using namespace Draw;
 
 	UIScreen::render();
-	UIContext &dc = *screenManager()->getUIContext();
+	UIContext& dc = *screenManager()->getUIContext();
 
-	const Bounds &bounds = dc.GetBounds();
+	const Bounds& bounds = dc.GetBounds();
 
 	dc.Begin();
 
-	float t = (float)sinceStart_ / (logoScreenSeconds / 3.0f);
+	// Reduce the fade-in duration for faster transition
+	float newLogoScreenSeconds = logoScreenSeconds / 5.0f; // Speed up fade-in by making it 5 times faster
+	float t = (float)sinceStart_ / (newLogoScreenSeconds / 3.0f);
+	float tt = (float)sinceStart_ / (logoScreenSeconds / 3.0f);
 
-	float alpha = t;
-	if (t > 1.0f)
-		alpha = 1.0f;
-	float alphaText = alpha;
-	if (t > 2.0f)
-		alphaText = 3.0f - t;
+	// Clamp and calculate alpha values directly in fewer steps
+	float alpha = std::min(t, 1.0f);
+	float alphaText = tt > 2.0f ? 3.0f - tt : alpha;
 	uint32_t textColor = colorAlpha(dc.theme->infoStyle.fgColor, alphaText);
 
 	float x, y, z;
@@ -781,30 +792,34 @@ void LogoScreen::render() {
 
 	auto cr = GetI18NCategory(I18NCat::PSPCREDITS);
 	auto gr = GetI18NCategory(I18NCat::GRAPHICS);
-	char temp[256];
-	// Manually formatting UTF-8 is fun.  \xXX doesn't work everywhere.
-	snprintf(temp, sizeof(temp), "%s Henrik Rydg%c%crd", cr->T("created", "Created by"), 0xC3, 0xA5);
+	static char createdBy[256] = { 0 };
+
+	// Use a static buffer for the created by text
+	if (createdBy[0] == '\0') {
+		snprintf(createdBy, sizeof(createdBy), "%s Henrik Rydg%c%crd", cr->T("created", "Created by"), 0xC3, 0xA5);
+	}
+
 	if (System_GetPropertyBool(SYSPROP_APP_GOLD)) {
 		dc.Draw()->DrawImage(ImageID("I_ICONGOLD"), bounds.centerX() - 120, bounds.centerY() - 30, 1.2f, 0xFFFFFFFF, ALIGN_CENTER);
-	} else {
+	}
+	else {
 		dc.Draw()->DrawImage(ImageID("I_ICON"), bounds.centerX() - 120, bounds.centerY() - 30, 1.2f, 0xFFFFFFFF, ALIGN_CENTER);
 	}
+
 	dc.Draw()->DrawImage(ImageID("I_LOGO"), bounds.centerX() + 40, bounds.centerY() - 30, 1.5f, 0xFFFFFFFF, ALIGN_CENTER);
-	//dc.Draw()->DrawTextShadow(UBUNTU48, "PPSSPP", bounds.w / 2, bounds.h / 2 - 30, textColor, ALIGN_CENTER);
+
 	dc.SetFontScale(1.0f, 1.0f);
 	dc.SetFontStyle(dc.theme->uiFont);
-	dc.DrawText(temp, bounds.centerX(), bounds.centerY() + 40, textColor, ALIGN_CENTER);
+	dc.DrawText(createdBy, bounds.centerX(), bounds.centerY() + 40, textColor, ALIGN_CENTER);
 	dc.DrawText(cr->T("license", "Free Software under GPL 2.0+"), bounds.centerX(), bounds.centerY() + 70, textColor, ALIGN_CENTER);
 
 	int ppsspp_org_y = bounds.h / 2 + 130;
 	dc.DrawText("www.ppsspp.org", bounds.centerX(), ppsspp_org_y, textColor, ALIGN_CENTER);
 
 #if !PPSSPP_PLATFORM(UWP) || defined(_DEBUG)
-	// Draw the graphics API, except on UWP where it's always D3D11
 	std::string apiName = screenManager()->getDrawContext()->GetInfoString(InfoField::APINAME);
 #ifdef _DEBUG
 	apiName += ", debug build ";
-	// Add some emoji for testing.
 	apiName += CodepointToUTF8(0x1F41B) + CodepointToUTF8(0x1F41C) + CodepointToUTF8(0x1F914);
 #endif
 	dc.DrawText(gr->T(apiName), bounds.centerX(), ppsspp_org_y + 50, textColor, ALIGN_CENTER);
@@ -834,7 +849,7 @@ void CreditsScreen::CreateViews() {
 	root_->Add(new Button(cr->T("Discord"), new AnchorLayoutParams(260, 64, 10, NONE, NONE, 232, false)))->OnClick.Handle(this, &CreditsScreen::OnDiscord);
 	root_->Add(new Button("www.ppsspp.org", new AnchorLayoutParams(260, 64, 10, NONE, NONE, 10, false)))->OnClick.Handle(this, &CreditsScreen::OnPPSSPPOrg);
 	root_->Add(new Button(cr->T("Privacy Policy"), new AnchorLayoutParams(260, 64, 10, NONE, NONE, 84, false)))->OnClick.Handle(this, &CreditsScreen::OnPrivacy);
-	root_->Add(new Button(cr->T("Twitter @PPSSPP_emu"), new AnchorLayoutParams(260, 64, NONE, NONE, 10, rightYOffset + 84, false)))->OnClick.Handle(this, &CreditsScreen::OnTwitter);
+	root_->Add(new Button(cr->T("X @PPSSPP_emu"), new AnchorLayoutParams(260, 64, NONE, NONE, 10, rightYOffset + 84, false)))->OnClick.Handle(this, &CreditsScreen::OnTwitter);
 #if PPSSPP_PLATFORM(ANDROID) || PPSSPP_PLATFORM(IOS)
 	root_->Add(new Button(cr->T("Share PPSSPP"), new AnchorLayoutParams(260, 64, NONE, NONE, 10, rightYOffset + 158, false)))->OnClick.Handle(this, &CreditsScreen::OnShare);
 #endif

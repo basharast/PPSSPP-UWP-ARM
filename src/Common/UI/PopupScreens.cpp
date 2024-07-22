@@ -243,7 +243,7 @@ EventReturn PopupSliderChoiceFloat::HandleClick(EventParams &e) {
 
 	SliderFloatPopupScreen *popupScreen = new SliderFloatPopupScreen(value_, minValue_, maxValue_, defaultValue_, ChopTitle(text_), step_, units_, liveUpdate_, updateUI_);
 	popupScreen->OnChange.Handle(this, &PopupSliderChoiceFloat::HandleChange);
-	popupScreen->SetHasDropShadow(hasDropShadow_);
+	popupScreen->SetHasDropShadow(false);
 	if (e.v)
 		popupScreen->SetPopupOrigin(e.v);
 	popupScreen->SetPopupOffset(-80);

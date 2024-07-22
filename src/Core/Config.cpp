@@ -238,14 +238,20 @@ static const ConfigSetting generalSettings[] = {
 #endif
 	ConfigSetting("InternalScreenRotation", &g_Config.iInternalScreenRotation, ROTATION_LOCKED_HORIZONTAL, CfgFlag::PER_GAME),
 #if _M_ARM
-	ConfigSetting("AnimationSmooth", &g_Config.iAnimationSmooth, 1.10, CfgFlag::DEFAULT),
+	ConfigSetting("AnimationSmooth", &g_Config.iAnimationSmooth, 0.0, CfgFlag::DEFAULT),
 #else
 	ConfigSetting("AnimationSmooth", &g_Config.iAnimationSmooth, 4.0, CfgFlag::DEFAULT),
 #endif
-	ConfigSetting("BackgroundAnimation", &g_Config.iBackgroundAnimation, 3, CfgFlag::DEFAULT),
+#if _M_ARM
+	ConfigSetting("AnimationSmooth2", &g_Config.iAnimationSmooth2, 0.0, CfgFlag::DEFAULT),
+#else
+	ConfigSetting("AnimationSmooth2", &g_Config.iAnimationSmooth2, 4.0, CfgFlag::DEFAULT),
+#endif
+	ConfigSetting("BackgroundAnimation", &g_Config.iBackgroundAnimation, 0, CfgFlag::DEFAULT),
+	ConfigSetting("BackgroundAnimation2", &g_Config.iBackgroundAnimation2, 0, CfgFlag::DEFAULT),
 	ConfigSetting("TransparentBackground", &g_Config.bTransparentBackground, true, CfgFlag::DEFAULT),
 	ConfigSetting("MonitorsCount", &g_Config.bMonitorsCount, 1, CfgFlag::DEFAULT),
-	ConfigSetting("ScreenRefreshRate", &g_Config.iRefreshRate, 1, CfgFlag::DEFAULT),
+	ConfigSetting("ScreenRefreshRate", &g_Config.iRefreshRate, 0, CfgFlag::DEFAULT),
 	ConfigSetting("AudioFramesPerBuffer", &g_Config.bAudioFramesPerBuffer, 0, CfgFlag::DEFAULT),
 	ConfigSetting("DPIBoost", &g_Config.bDPIBoost, 96.0, CfgFlag::DEFAULT),
 	ConfigSetting("FrameRateState", &g_Config.iFpsLimit1State, false, CfgFlag::PER_GAME),
@@ -532,15 +538,24 @@ static const ConfigSetting graphicsSettings[] = {
 #endif
 
 #if defined(_M_ARM)
+#ifndef BUILD14393
 	ConfigSetting("bSwapFlags", &g_Config.bSwapFlags, 1, CfgFlag::DEFAULT),
+#else
+	ConfigSetting("bSwapFlags", &g_Config.bSwapFlags, 0, CfgFlag::DEFAULT),
+#endif
 #else
 	ConfigSetting("bSwapFlags", &g_Config.bSwapFlags, 0, CfgFlag::DEFAULT),
 #endif
 
 #if defined(_M_ARM)
-	ConfigSetting("bRenderSkip", &g_Config.bRenderSkip, false, CfgFlag::PER_GAME),
+	ConfigSetting("bRenderSkip", &g_Config.bRenderSkip, true, CfgFlag::PER_GAME),
 #else
 	ConfigSetting("bRenderSkip", &g_Config.bRenderSkip, false, CfgFlag::PER_GAME),
+#endif
+#if defined(_M_ARM)
+	ConfigSetting("bRenderSkip2", &g_Config.bRenderSkip2, true, CfgFlag::PER_GAME),
+#else
+	ConfigSetting("bRenderSkip2", &g_Config.bRenderSkip2, false, CfgFlag::PER_GAME),
 #endif
 	ConfigSetting("bRenderSkipCount", &g_Config.bRenderSkipCount, 1000, CfgFlag::PER_GAME),
 	ConfigSetting("bDetectDeviceLose", &g_Config.bDetectDeviceLose, false, CfgFlag::PER_GAME),
@@ -717,12 +732,13 @@ static const ConfigSetting controlSettings[] = {
 	ConfigSetting("TiltCircularInverseDeadzone", &g_Config.bTiltCircularInverseDeadzone, true, CfgFlag::PER_GAME),
 	ConfigSetting("TiltInputType", &g_Config.iTiltInputType, 0, CfgFlag::PER_GAME),
 #endif
-
+	 
 	ConfigSetting("DisableDpadDiagonals", &g_Config.bDisableDpadDiagonals, false, CfgFlag::PER_GAME),
 	ConfigSetting("GamepadOnlyFocused", &g_Config.bGamepadOnlyFocused, false, CfgFlag::PER_GAME),
 	ConfigSetting("TouchButtonStyle", &g_Config.iTouchButtonStyle, 1, CfgFlag::PER_GAME),
 	ConfigSetting("TouchButtonOpacity", &g_Config.iTouchButtonOpacity, 65, CfgFlag::PER_GAME),
 	ConfigSetting("TouchButtonHideSeconds", &g_Config.iTouchButtonHideSeconds, 20, CfgFlag::PER_GAME),
+	ConfigSetting("TouchButtonHideSeconds2", &g_Config.iTouchButtonHideSeconds2, 0, CfgFlag::PER_GAME),
 	ConfigSetting("AutoCenterTouchAnalog", &g_Config.bAutoCenterTouchAnalog, false, CfgFlag::PER_GAME),
 
 	// Snap touch control position
@@ -757,6 +773,7 @@ static const ConfigSetting controlSettings[] = {
 	ConfigSetting("LeftStickHeadScale", &g_Config.fLeftStickHeadScale, 1.0f, CfgFlag::PER_GAME),
 	ConfigSetting("RightStickHeadScale", &g_Config.fRightStickHeadScale, 1.0f, CfgFlag::PER_GAME),
 	ConfigSetting("HideStickBackground", &g_Config.bHideStickBackground, false, CfgFlag::PER_GAME),
+	ConfigSetting("HideStickBackground2", &g_Config.bHideStickBackground2, true, CfgFlag::PER_GAME),
 
 	ConfigSetting("UseMouse", &g_Config.bMouseControl, false, CfgFlag::PER_GAME),
 	ConfigSetting("MapMouse", &g_Config.bMapMouse, false, CfgFlag::PER_GAME),

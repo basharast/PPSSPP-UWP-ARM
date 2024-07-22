@@ -344,21 +344,21 @@ void PopupScreen::update() {
 	++frames_;
 	if (finishFrame_ >= 0) {
 #if _M_ARM
-		float leadOut = bezierEaseInOut((frames_ - finishFrame_) * (1.0f / (float)g_Config.iAnimationSmooth));
+		float leadOut = bezierEaseInOut((frames_ - finishFrame_) * (1.0f / (float)g_Config.iAnimationSmooth2));
 #else
-		float leadOut = bezierEaseInOut((frames_ - finishFrame_) * (1.0f / (float)g_Config.iAnimationSmooth));
+		float leadOut = bezierEaseInOut((frames_ - finishFrame_) * (1.0f / (float)g_Config.iAnimationSmooth2));
 #endif
 		animatePos = 1.0f - leadOut;
 
-		if (frames_ >= finishFrame_ + g_Config.iAnimationSmooth) {
+		if (frames_ >= finishFrame_ + g_Config.iAnimationSmooth2) {
 			// Actual finish happens here.
 			screenManager()->finishDialog(this, finishResult_);
 		}
-	} else if (frames_ < g_Config.iAnimationSmooth) {
+	} else if (frames_ < g_Config.iAnimationSmooth2) {
 #if _M_ARM
-		float leadIn = bezierEaseInOut(frames_ * (1.0f / (float)g_Config.iAnimationSmooth));
+		float leadIn = bezierEaseInOut(frames_ * (1.0f / (float)g_Config.iAnimationSmooth2));
 #else
-		float leadIn = bezierEaseInOut(frames_ * (1.0f / (float)g_Config.iAnimationSmooth));
+		float leadIn = bezierEaseInOut(frames_ * (1.0f / (float)g_Config.iAnimationSmooth2));
 #endif
 		animatePos = leadIn;
 	}
@@ -421,7 +421,7 @@ void PopupScreen::CreateViews() {
 
 	root_->Add(box_);
 	box_->SetBG(dc.theme->popupStyle.background);
-	box_->SetHasDropShadow(hasDropShadow_);
+	box_->SetHasDropShadow(false);
 	// Since we scale a bit, make the dropshadow bleed past the edges.
 	box_->SetDropShadowExpand(std::max(g_display.dp_xres, g_display.dp_yres));
 	box_->SetSpacing(0.0f);

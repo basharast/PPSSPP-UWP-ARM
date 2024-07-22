@@ -71,7 +71,7 @@ public:
 	void PersistData(PersistStatus status, std::string anonId, PersistMap &storage) override;
 	View *GetViewByIndex(int index) { return views_[index]; }
 	int GetNumSubviews() const { return (int)views_.size(); }
-	void SetHasDropShadow(bool has) { hasDropShadow_ = has; }
+	void SetHasDropShadow(bool has) { hasDropShadow_ = false; }
 	void SetDropShadowExpand(float s) { dropShadowExpand_ = s; }
 	void SetExclusiveTouch(bool exclusive) { exclusiveTouch_ = exclusive; }
 	void SetClickableBackground(bool clickableBackground) { clickableBackground_ = clickableBackground; }

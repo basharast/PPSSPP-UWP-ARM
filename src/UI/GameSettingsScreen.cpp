@@ -303,9 +303,9 @@ void GameSettingsScreen::CreateGraphicsSettings(UI::ViewGroup* graphicsSettings)
 	PopupMultiChoice* swapFlagsChanged = graphicsSettings->Add(new PopupMultiChoice(&g_Config.bSwapFlagsTemp, gr->T("SwapChain Flags"), swapFlags, 0, ARRAY_SIZE(swapFlags), I18NCat::GRAPHICS, screenManager()));
 	swapFlagsChanged->OnChoice.Handle(this, &GameSettingsScreen::OnSwapFlags);
 #endif
-#if !defined(BUILD14393)
+//#if !defined(BUILD14393)
 	g_Config.sShaderLanguageTemp = g_Config.sShaderLanguage;
-	static const std::vector<std::string> shaderLangauges = { "Auto", "Level 9", "Level 10", "Level 11", "Level 12" };
+	static const std::vector<std::string> shaderLangauges = { "Auto", "Level 9.1", "Level 9.3", "Level 10", "Level 11", "Level 12" };
 	PopupMultiChoiceDynamic* shaderLangaugesChoice = graphicsSettings->Add(new PopupMultiChoiceDynamic(&g_Config.sShaderLanguage, gr->T("Shading language"), shaderLangauges, I18NCat::NONE, screenManager()));
 	shaderLangaugesChoice->OnChoice.Handle(this, &GameSettingsScreen::OnD3DLevel);
 
@@ -313,7 +313,7 @@ void GameSettingsScreen::CreateGraphicsSettings(UI::ViewGroup* graphicsSettings)
 		// If we're not the first instance, can't save the setting, and it requires a restart, so...
 		shaderLangaugesChoice->SetEnabled(false);
 	}
-#endif
+//#endif
 
 #if !defined(BUILD14393) && _M_ARM
 	g_Config.bBackwardCompatibilityTemp = g_Config.bBackwardCompatibility;
@@ -424,10 +424,8 @@ void GameSettingsScreen::CreateGraphicsSettings(UI::ViewGroup* graphicsSettings)
 	frameSkipAuto_ = graphicsSettings->Add(new CheckBox(&g_Config.bAutoFrameSkip, gr->T("Auto FrameSkip")));
 	frameSkipAuto_->OnClick.Handle(this, &GameSettingsScreen::OnAutoFrameskip);
 
-	CheckBox* extraRenderSkip = graphicsSettings->Add(new CheckBox(&g_Config.bRenderSkip, gr->T("Render delay")));
-	PopupSliderChoice* extraRenderSkipCount = new PopupSliderChoice(&g_Config.bRenderSkipCount, 1, 50000, 1000, gr->T("Delay (Microseconds)"), 1, screenManager());
-	extraRenderSkipCount->SetEnabledPtr(&g_Config.bRenderSkip);
-	graphicsSettings->Add(extraRenderSkipCount);
+	CheckBox* extraRenderSkip = graphicsSettings->Add(new CheckBox(&g_Config.bRenderSkip2, gr->T("Limit 30FPS")));
+	extraRenderSkip->SetEnabled(g_Config.iFrameSkip > 0);
 
 	CheckBox* customSpeed1 = graphicsSettings->Add(new CheckBox(&g_Config.iFpsLimit1State, gr->T("Custom Speed 1 (unstable)")));
 	PopupSliderChoice* altSpeed1 = graphicsSettings->Add(new PopupSliderChoice(&iAlternateSpeedPercent1_, 0, 1000, NO_DEFAULT_INT, gr->T("Alternative Speed", "Alternative speed"), 5, screenManager(), gr->T("%, 0:unlimited")));
@@ -651,10 +649,15 @@ void GameSettingsScreen::CreateGraphicsSettings(UI::ViewGroup* graphicsSettings)
 		});
 
 	graphicsSettings->Add(new ItemHeader(gr->T("UI Customize")));
-#if _M_ARM
+/*#if _M_ARM
 	PopupSliderChoiceFloat* animationSmooth = new PopupSliderChoiceFloat(&g_Config.iAnimationSmooth, 0.0f, 10, 1.0f, gr->T("Popup smooth"), 0.1f, screenManager());
 #else
 	PopupSliderChoiceFloat* animationSmooth = new PopupSliderChoiceFloat(&g_Config.iAnimationSmooth, 0.0f, 10, 4.0f, gr->T("Popup smooth"), 0.1f, screenManager());
+#endif*/
+#if _M_ARM
+	PopupSliderChoiceFloat* animationSmooth = new PopupSliderChoiceFloat(&g_Config.iAnimationSmooth2, 0.0f, 10, 1.0f, gr->T("Popup smooth"), 0.1f, screenManager());
+#else
+	PopupSliderChoiceFloat* animationSmooth = new PopupSliderChoiceFloat(&g_Config.iAnimationSmooth2, 0.0f, 10, 4.0f, gr->T("Popup smooth"), 0.1f, screenManager());
 #endif
 	graphicsSettings->Add(animationSmooth);
 
@@ -795,14 +798,14 @@ void GameSettingsScreen::CreateControlsSettings(UI::ViewGroup* controlsSettings)
 
 		PopupSliderChoice* opacity = controlsSettings->Add(new PopupSliderChoice(&g_Config.iTouchButtonOpacity, 0, 100, 65, co->T("Button Opacity"), screenManager(), "%"));
 		opacity->SetEnabledPtr(&g_Config.bShowTouchControls);
-		opacity->SetFormat("%i%%");
-		PopupSliderChoice* autoHide = controlsSettings->Add(new PopupSliderChoice(&g_Config.iTouchButtonHideSeconds, 0, 300, 20, co->T("Auto-hide buttons after delay"), screenManager(), di->T("seconds, 0:off")));
+		opacity->SetFormat("%i%%"); 
+		PopupSliderChoice* autoHide = controlsSettings->Add(new PopupSliderChoice(&g_Config.iTouchButtonHideSeconds2, 0, 300, 20, co->T("Auto-hide buttons after delay"), screenManager(), di->T("seconds, 0:off")));
 		autoHide->SetEnabledPtr(&g_Config.bShowTouchControls);
 		autoHide->SetFormat(di->T("%d seconds"));
 		autoHide->SetZeroLabel(co->T("Off"));
 
 		// Hide stick background, useful when increasing the size
-		CheckBox* hideStickBackground = controlsSettings->Add(new CheckBox(&g_Config.bHideStickBackground, co->T("Hide touch analog stick background circle")));
+		CheckBox* hideStickBackground = controlsSettings->Add(new CheckBox(&g_Config.bHideStickBackground2, co->T("Hide touch background shapes")));
 		hideStickBackground->SetEnabledPtr(&g_Config.bShowTouchControls);
 
 		// Re-centers itself to the touch location on touch-down.
@@ -1070,7 +1073,7 @@ void GameSettingsScreen::CreateSystemSettings(UI::ViewGroup* systemSettings) {
 	systemSettings->Add(new CheckBox(&g_Config.bTransparentBackground, sy->T("Transparent UI background")));
 
 	static const char* backgroundAnimations[] = { "No animation", "Floating symbols", "Recent games", "Waves", "Moving background" };
-	systemSettings->Add(new PopupMultiChoice(&g_Config.iBackgroundAnimation, sy->T("UI background animation"), backgroundAnimations, 0, ARRAY_SIZE(backgroundAnimations), I18NCat::SYSTEM, screenManager()));
+	systemSettings->Add(new PopupMultiChoice(&g_Config.iBackgroundAnimation2, sy->T("UI background animation"), backgroundAnimations, 0, ARRAY_SIZE(backgroundAnimations), I18NCat::SYSTEM, screenManager()));
 
 	PopupMultiChoiceDynamic* theme = systemSettings->Add(new PopupMultiChoiceDynamic(&g_Config.sThemeName, sy->T("Theme"), GetThemeInfoNames(), I18NCat::THEMES, screenManager()));
 	theme->OnChoice.Add([=](EventParams& e) {

@@ -991,54 +991,24 @@ void TabHolder::AddTabContents(const std::string &title, View *tabContents) {
 
 void TabHolder::SetCurrentTab(int tab, bool skipTween) {
 	if (tab >= (int)tabs_.size()) {
-		// Ignore
+		// Ignore if the tab index is out of range
 		return;
 	}
 
-	auto setupTween = [&](View *view, AnchorTranslateTween *&tween) {
-		if (tween)
-			return;
-
-		tween = new AnchorTranslateTween(0.15f, bezierEaseInOut);
-		tween->Finish.Add([&](EventParams &e) {
-			e.v->SetVisibility(tabs_[currentTab_] == e.v ? V_VISIBLE : V_GONE);
-			return EVENT_DONE;
-		});
-		view->AddTween(tween)->Persist();
-	};
-
 	if (tab != currentTab_) {
-		Orientation orient = Opposite(orientation_);
-		// Direction from which the new tab will come.
-		float dir = tab < currentTab_ ? -1.0f : 1.0f;
-
-		// First, setup any missing tweens.
-		setupTween(tabs_[currentTab_], tabTweens_[currentTab_]);
-		setupTween(tabs_[tab], tabTweens_[tab]);
-
-		// Currently displayed, so let's reset it.
-		if (skipTween) {
+		// Directly switch tabs without any tween.
+		if (tabs_[currentTab_]) {
 			tabs_[currentTab_]->SetVisibility(V_GONE);
-			tabTweens_[tab]->Reset(Point(0.0f, 0.0f));
-			tabTweens_[tab]->Apply(tabs_[tab]);
-		} else {
-			tabTweens_[currentTab_]->Reset(Point(0.0f, 0.0f));
-
-			if (orient == ORIENT_HORIZONTAL) {
-				tabTweens_[tab]->Reset(Point(bounds_.w * dir, 0.0f));
-				tabTweens_[currentTab_]->Divert(Point(bounds_.w * -dir, 0.0f));
-			} else {
-				tabTweens_[tab]->Reset(Point(0.0f, bounds_.h * dir));
-				tabTweens_[currentTab_]->Divert(Point(0.0f, bounds_.h * -dir));
-			}
-			// Actually move it to the initial position now, just to avoid any flicker.
-			tabTweens_[tab]->Apply(tabs_[tab]);
-			tabTweens_[tab]->Divert(Point(0.0f, 0.0f));
 		}
-		tabs_[tab]->SetVisibility(V_VISIBLE);
+		if (tabs_[tab]) {
+			tabs_[tab]->SetVisibility(V_VISIBLE);
+		}
 
+		// Update the current tab index
 		currentTab_ = tab;
 	}
+
+	// Update the tab strip selection
 	tabStrip_->SetSelection(tab, false);
 }
 

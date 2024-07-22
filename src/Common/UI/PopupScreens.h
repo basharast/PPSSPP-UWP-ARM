@@ -347,7 +347,7 @@ public:
 		updateUI_ = updateUI;
 	}
 	void SetHasDropShadow(bool has) {
-		hasDropShadow_ = has;
+		hasDropShadow_ = false;
 	}
 
 	Event OnChange;
@@ -370,7 +370,7 @@ private:
 	bool restoreFocus_ = false;
 	bool liveUpdate_ = false;
 	bool updateUI_ = false;
-	bool hasDropShadow_ = true;
+	bool hasDropShadow_ = false;
 };
 
 // NOTE: This one will defer to a system-native dialog if possible.
