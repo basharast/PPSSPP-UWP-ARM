@@ -57,7 +57,7 @@ void GenerateDepalShader300(ShaderWriter &writer, const DepalConfig &config) {
 	// the bits around, but not sure how to handle 3x scaling. For now this is 1x-only (rough edges at higher resolutions).
 	if (config.bufferFormat == GE_FORMAT_DEPTH16) {
 		if (config.depthUpperBits == 0x2) {
-			if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9) {
+			if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9 || writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL93) {
 				writer.C(R"(
   int x = int((texcoord.x / scaleFactor) * texSize.x);
   int xclear = x % int(0x01F0);
@@ -101,7 +101,7 @@ void GenerateDepalShader300(ShaderWriter &writer, const DepalConfig &config) {
 		if (shiftedMask & 0xFF00) writer.C("  uint g = uint(abs(color.g) * 255.99);\n"); else writer.C("  uint g = 0;\n");
 		if (shiftedMask & 0xFF0000) writer.C("  uint b = uint(abs(color.b) * 255.99);\n"); else writer.C("  uint b = 0;\n");
 		if (shiftedMask & 0xFF000000) writer.C("  uint a = uint(abs(color.a) * 255.99);\n"); else writer.C("  uint a = 0;\n");
-		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9) {
+		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9 || writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL93) {
 			writer.C("  uint index = (a * 16777216) + (b * 65536) + (g * 256) + (r);\n");
 		}
 		else {
@@ -113,7 +113,7 @@ void GenerateDepalShader300(ShaderWriter &writer, const DepalConfig &config) {
 		if (shiftedMask & 0xF0) writer.C("  uint g = uint(abs(color.g) * 15.99);\n"); else writer.C("  uint g = 0;\n");
 		if (shiftedMask & 0xF00) writer.C("  uint b = uint(abs(color.b) * 15.99);\n"); else writer.C("  uint b = 0;\n");
 		if (shiftedMask & 0xF000) writer.C("  uint a = uint(abs(color.a) * 15.99);\n"); else writer.C("  uint a = 0;\n");
-		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9) {
+		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9 || writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL93) {
 			writer.C("  uint index = (a * 4096) + (b * 256) + (g * 16) + (r);\n");
 		}
 		else {
@@ -124,7 +124,7 @@ void GenerateDepalShader300(ShaderWriter &writer, const DepalConfig &config) {
 		if (shiftedMask & 0x1F) writer.C("  uint r = uint(abs(color.r) * 31.99);\n"); else writer.C("  uint r = 0;\n");
 		if (shiftedMask & 0x7E0) writer.C("  uint g = uint(abs(color.g) * 63.99);\n"); else writer.C("  uint g = 0;\n");
 		if (shiftedMask & 0xF800) writer.C("  uint b = uint(abs(color.b) * 31.99);\n"); else writer.C("  uint b = 0;\n");
-		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9) {
+		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9 || writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL93) {
 			writer.C("  uint index = (b * 2048) + (g * 32) + (r);\n");
 		}
 		else {
@@ -140,7 +140,7 @@ void GenerateDepalShader300(ShaderWriter &writer, const DepalConfig &config) {
 		if (shiftedMask & 0x3E0) writer.C("  uint g = uint(abs(color.g) * 31.99);\n"); else writer.C("  uint g = 0;\n");
 		if (shiftedMask & 0x7C00) writer.C("  uint b = uint(abs(color.b) * 31.99);\n"); else writer.C("  uint b = 0;\n");
 		if (shiftedMask & 0x8000) writer.C("  uint a = uint(abs(color.a));\n"); else writer.C("  uint a = 0;\n");
-		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9) {
+		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9 || writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL93) {
 			writer.C("  uint index = (a * 32768) + (b * 1024) + (g * 32) + (r);\n");
 		}
 		else {
@@ -150,7 +150,7 @@ void GenerateDepalShader300(ShaderWriter &writer, const DepalConfig &config) {
 		if (config.textureFormat == GE_TFMT_CLUT8) {
 			// SOCOM case. #16210
 			// To debug the issue, remove this shift to see the texture (check for clamping etc).
-			if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9) {
+			if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9 || writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL93) {
 				writer.C("  index /= 256;\n");
 			}
 			else {
@@ -166,7 +166,7 @@ void GenerateDepalShader300(ShaderWriter &writer, const DepalConfig &config) {
 		if (config.bufferFormat == GE_FORMAT_DEPTH16 && config.textureFormat == GE_TFMT_5650) {
 			// Convert depth to 565, without going through a CLUT.
 			// TODO: Make "depal without a CLUT" a separate concept, to avoid redundantly creating a CLUT texture.
-			if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9) {
+			if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9 || writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL93) {
 				writer.C("  int idepth = int(clamp(depth, 0.0, 65535.0));\n");
 				writer.C("  float r = float(idepth % 32) / 31.0;\n");
 				writer.C("  float g = float((idepth / 32) % 64) / 63.0;\n");
@@ -192,14 +192,14 @@ void GenerateDepalShader300(ShaderWriter &writer, const DepalConfig &config) {
 	float texturePixels = 512.0f;
 
 	if (shift) {
-		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9) {
+		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9 || writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL93) {
 			writer.F("  index = (uint(index / uint(%d)) %% uint(0x%02x))", shift, mask);
 		}
 		else {
 			writer.F("  index = (int(uint(index) >> uint(%d)) & 0x%02x)", shift, mask);
 		}
 	} else {
-		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9) {
+		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9 || writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL93) {
 			writer.F("  index = (index %% uint(0x%02x))", mask);
 		}
 		else {
@@ -207,7 +207,7 @@ void GenerateDepalShader300(ShaderWriter &writer, const DepalConfig &config) {
 		}
 	}
 	if (config.startPos) {
-		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9) {
+		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9 || writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL93) {
 			writer.F(" + %d;\n", config.startPos);  // '|' matches what we have in gstate.h
 		}
 		else {
@@ -435,6 +435,7 @@ void GenerateDepalFs(ShaderWriter &writer, const DepalConfig &config) {
 		case GLSL_3xx:
 		case HLSL_D3D11:
 		case HLSL_D3D11_LEVEL9:
+		case HLSL_D3D11_LEVEL93:
 			// Use the float shader for the SOCOM special.
 			if ((config.bufferFormat == GE_FORMAT_5551 && config.textureFormat == GE_TFMT_CLUT8)) {
 				GenerateDepalShaderFloat(writer, config);

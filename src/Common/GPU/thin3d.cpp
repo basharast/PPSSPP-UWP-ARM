@@ -189,6 +189,15 @@ static const std::vector<ShaderSource> fsTexCol = {
 	"  return col;\n"
 	"}\n"
 	},
+	{ShaderLanguage::HLSL_D3D11_LEVEL93,
+	"struct PS_INPUT { float4 color : COLOR0; float2 uv : TEXCOORD0; };\n"
+	"SamplerState samp : register(s0);\n"
+	"Texture2D<float4> tex : register(t0);\n"
+	"float4 main(PS_INPUT input) : SV_Target {\n"
+	"  float4 col = input.color * tex.Sample(samp, input.uv);\n"
+	"  return col;\n"
+	"}\n"
+	},
 	{ShaderLanguage::GLSL_VULKAN,
 	"#version 140\n"
 	"#extension GL_ARB_separate_shader_objects : enable\n"
@@ -242,6 +251,15 @@ static const std::vector<ShaderSource> fsTexColRBSwizzle = {
 	"  return col;\n"
 	"}\n"
 	},
+	{ShaderLanguage::HLSL_D3D11_LEVEL93,
+	"struct PS_INPUT { float4 color : COLOR0; float2 uv : TEXCOORD0; };\n"
+	"SamplerState samp : register(s0);\n"
+	"Texture2D<float4> tex : register(t0);\n"
+	"float4 main(PS_INPUT input) : SV_Target {\n"
+	"  float4 col = input.color * tex.Sample(samp, input.uv).bgra;\n"
+	"  return col;\n"
+	"}\n"
+	},
 	{ShaderLanguage::GLSL_VULKAN,
 	"#version 140\n"
 	"#extension GL_ARB_separate_shader_objects : enable\n"
@@ -280,6 +298,12 @@ static const std::vector<ShaderSource> fsCol = {
 	"}\n"
 	},
 	{ ShaderLanguage::HLSL_D3D11_LEVEL9,
+	"struct PS_INPUT { float4 color : COLOR0; };\n"
+	"float4 main(PS_INPUT input) : SV_Target {\n"
+	"  return input.color;\n"
+	"}\n"
+	},
+	{ ShaderLanguage::HLSL_D3D11_LEVEL93,
 	"struct PS_INPUT { float4 color : COLOR0; };\n"
 	"float4 main(PS_INPUT input) : SV_Target {\n"
 	"  return input.color;\n"
@@ -341,6 +365,20 @@ static const std::vector<ShaderSource> vsCol = {
 	"}\n"
 	},
 	{ ShaderLanguage::HLSL_D3D11_LEVEL9,
+	"struct VS_INPUT { float3 Position : POSITION; float4 Color0 : COLOR0; };\n"
+	"struct VS_OUTPUT { float4 Color0 : COLOR0; float4 Position : SV_Position; };\n"
+	"cbuffer ConstantBuffer : register(b0) {\n"
+	"  matrix WorldViewProj;\n"
+	"  float2 TintSaturation;\n"
+	"};\n"
+	"VS_OUTPUT main(VS_INPUT input) {\n"
+	"  VS_OUTPUT output;\n"
+	"  output.Position = mul(WorldViewProj, float4(input.Position, 1.0));\n"
+	"  output.Color0 = input.Color0;\n"
+	"  return output;\n"
+	"}\n"
+	},
+	{ ShaderLanguage::HLSL_D3D11_LEVEL93,
 	"struct VS_INPUT { float3 Position : POSITION; float4 Color0 : COLOR0; };\n"
 	"struct VS_OUTPUT { float4 Color0 : COLOR0; float4 Position : SV_Position; };\n"
 	"cbuffer ConstantBuffer : register(b0) {\n"
@@ -501,6 +539,38 @@ VS_OUTPUT main(VS_INPUT input) {
 )"
 	},
 	{ ShaderLanguage::HLSL_D3D11_LEVEL9,
+R"(
+struct VS_INPUT { float3 Position : POSITION; float2 Texcoord0 : TEXCOORD0; float4 Color0 : COLOR0; };
+struct VS_OUTPUT { float4 Color0 : COLOR0; float2 Texcoord0 : TEXCOORD0; float4 Position : SV_Position; };
+cbuffer ConstantBuffer : register(b0) {
+	matrix WorldViewProj;
+	float2 TintSaturation;
+};
+float3 rgb2hsv(float3 c) {
+	float4 K = float4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+	float4 p = lerp(float4(c.bg, K.wz), float4(c.gb, K.xy), step(c.b, c.g));
+	float4 q = lerp(float4(p.xyw, c.r), float4(c.r, p.yzx), step(p.x, c.r));
+	float d = q.x - min(q.w, q.y);
+	float e = 1.0e-10;
+	return float3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+}
+float3 hsv2rgb(float3 c) {
+	float4 K = float4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+	float3 p = abs(frac(c.xxx + K.xyz) * 6.0 - K.www);
+	return c.z * lerp(K.xxx, saturate(p - K.xxx), c.y);
+}
+VS_OUTPUT main(VS_INPUT input) {
+	VS_OUTPUT output;
+	float3 hsv = rgb2hsv(input.Color0.xyz);
+	hsv.x += TintSaturation.x;
+	hsv.y *= TintSaturation.y;
+    output.Color0 = float4(hsv2rgb(hsv), input.Color0.w);
+	output.Position = mul(WorldViewProj, float4(input.Position, 1.0));
+	output.Texcoord0 = input.Texcoord0;
+	return output;
+}
+)"
+	},{ ShaderLanguage::HLSL_D3D11_LEVEL93,
 R"(
 struct VS_INPUT { float3 Position : POSITION; float2 Texcoord0 : TEXCOORD0; float4 Color0 : COLOR0; };
 struct VS_OUTPUT { float4 Color0 : COLOR0; float2 Texcoord0 : TEXCOORD0; float4 Position : SV_Position; };

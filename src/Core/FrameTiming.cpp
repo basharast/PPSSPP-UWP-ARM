@@ -44,6 +44,10 @@ Draw::PresentMode ComputePresentMode(Draw::DrawContext* draw, int* interval) {
 		if (PSP_CoreParameter().fastForward) {
 			wantInstant = true;
 		}
+
+		if (g_Config.bRenderSkip3 && g_Config.iFpsLimit1State) {
+			wantInstant = true;
+		}else
 		if (PSP_CoreParameter().fpsLimit != FPSLimit::NORMAL) {
 			int limit;
 			if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM1 || g_Config.iFpsLimit1State)
@@ -55,7 +59,7 @@ Draw::PresentMode ComputePresentMode(Draw::DrawContext* draw, int* interval) {
 
 			// For an alternative speed that is a clean factor of 60, the user probably still wants vsync.
 			// TODO: Should take the user's display refresh rate into account...
-			if (limit == 0 || (limit >= 0 && limit != 15 && limit != 30 && limit != 60)) {
+			if (limit == 0 || (limit >= 0 && limit != 15 && limit != 30 && limit != 60 && limit != g_Config.iRefreshRate2)) {
 				wantInstant = true;
 			}
 		}

@@ -23,7 +23,7 @@ namespace DisplayMetrics
 	// games attempt to render at 60 frames per second at full fidelity.
 	// The decision to render at full fidelity across all platforms and form factors
 	// should be deliberate.
-	static const bool SupportHighResolutions = true;
+	static const bool SupportHighResolutions = false;
 
 	// The default thresholds that define a "high resolution" display. If the thresholds
 	// are exceeded and SupportHighResolutions is false, the dimensions will be scaled
@@ -32,6 +32,8 @@ namespace DisplayMetrics
 	static const float WidthThreshold = 1920.0f;	// 1080p width.
 	static const float HeightThreshold = 1080.0f;	// 1080p height.
 };
+
+D3D_FEATURE_LEVEL m_d3dGlobalFeatureLevel;
 
 // Constants used to calculate screen rotations
 namespace ScreenRotation
@@ -129,6 +131,8 @@ void DX::DeviceResources::CreateDeviceIndependentResources()
 std::vector <IDXGIAdapter*> vAdapters;
 bool forceAutoLang = false;
 bool D3DFeatureLevelGlobal = false;
+float scaleAmount = 1.5f;
+
 // Configures the Direct3D device, and stores handles to it and the device context.
 void DX::DeviceResources::CreateDeviceResources(IDXGIAdapter* vAdapter, int forceAutoLange)
 {
@@ -150,17 +154,23 @@ void DX::DeviceResources::CreateDeviceResources(IDXGIAdapter* vAdapter, int forc
 	// Don't forget to declare your application's minimum required feature level in its
 	// description.  All applications are assumed to support 9.1 unless otherwise stated.
 
+	scaleAmount = g_Config.bQualityControl;
+	if (scaleAmount < 1.0f || scaleAmount > 10.0f) {
+		scaleAmount = 1.5f;
+	}
+	SetQuality(scaleAmount, true);
 	std::vector<D3D_FEATURE_LEVEL> featureLevels = {
-		D3D_FEATURE_LEVEL_12_1,
-		D3D_FEATURE_LEVEL_12_0,
-		D3D_FEATURE_LEVEL_11_1,
-		D3D_FEATURE_LEVEL_11_0,
-		D3D_FEATURE_LEVEL_10_1,
-		D3D_FEATURE_LEVEL_10_0,
-		D3D_FEATURE_LEVEL_9_3,
-		D3D_FEATURE_LEVEL_9_2,
-		D3D_FEATURE_LEVEL_9_1
+			D3D_FEATURE_LEVEL_12_1,
+			D3D_FEATURE_LEVEL_12_0,
+			D3D_FEATURE_LEVEL_11_1,
+			D3D_FEATURE_LEVEL_11_0,
+			D3D_FEATURE_LEVEL_10_1,
+			D3D_FEATURE_LEVEL_10_0,
+			D3D_FEATURE_LEVEL_9_3,
+			D3D_FEATURE_LEVEL_9_2,
+			D3D_FEATURE_LEVEL_9_1
 	};
+
 	if (!forceAutoLange) {
 		if (g_Config.sShaderLanguage == "Level 9.1")
 		{
@@ -171,43 +181,43 @@ void DX::DeviceResources::CreateDeviceResources(IDXGIAdapter* vAdapter, int forc
 			D3DFeatureLevelGlobal = true;
 		}
 		else
-		if (g_Config.sShaderLanguage == "Level 9.3")
-		{
-			featureLevels =
-			{
-				D3D_FEATURE_LEVEL_9_3,
-				D3D_FEATURE_LEVEL_9_2,
-				D3D_FEATURE_LEVEL_9_1
-			};
-			D3DFeatureLevelGlobal = true;
-		}
-		else
-			if (g_Config.sShaderLanguage == "Level 10")
+			if (g_Config.sShaderLanguage == "Level 9.3")
 			{
 				featureLevels =
 				{
-					D3D_FEATURE_LEVEL_10_1,
-					D3D_FEATURE_LEVEL_10_0,
+					D3D_FEATURE_LEVEL_9_3,
+					D3D_FEATURE_LEVEL_9_2,
+					D3D_FEATURE_LEVEL_9_1
 				};
+				D3DFeatureLevelGlobal = true;
 			}
 			else
-				if (g_Config.sShaderLanguage == "Level 11")
+				if (g_Config.sShaderLanguage == "Level 10")
 				{
 					featureLevels =
 					{
-						D3D_FEATURE_LEVEL_11_1,
-						D3D_FEATURE_LEVEL_11_0,
+						D3D_FEATURE_LEVEL_10_1,
+						D3D_FEATURE_LEVEL_10_0,
 					};
 				}
 				else
-					if (g_Config.sShaderLanguage == "Level 12")
+					if (g_Config.sShaderLanguage == "Level 11")
 					{
 						featureLevels =
 						{
-							D3D_FEATURE_LEVEL_12_1,
-							D3D_FEATURE_LEVEL_12_0,
+							D3D_FEATURE_LEVEL_11_1,
+							D3D_FEATURE_LEVEL_11_0,
 						};
 					}
+					else
+						if (g_Config.sShaderLanguage == "Level 12")
+						{
+							featureLevels =
+							{
+								D3D_FEATURE_LEVEL_12_1,
+								D3D_FEATURE_LEVEL_12_0,
+							};
+						}
 	}
 
 	// Create the Direct3D 11 API device object and a corresponding context.
@@ -251,6 +261,7 @@ void DX::DeviceResources::CreateDeviceResources(IDXGIAdapter* vAdapter, int forc
 				&context
 			);
 
+			m_d3dGlobalFeatureLevel = m_d3dFeatureLevel;
 			if (FAILED(hr))
 			{
 				createWarp = true;
@@ -417,32 +428,6 @@ void DX::DeviceResources::CreateWindowSizeDependentResources(bool deviceLost)
 
 	DisplayInformation^ currentDisplayInformation = DisplayInformation::GetForCurrentView();
 
-#if !defined(_M_ARM) && !defined(BUILD14393)
-	if (Windows::System::Profile::AnalyticsInfo::VersionInfo->DeviceFamily == L"Windows.Xbox")
-	{
-		const auto hdi = Windows::Graphics::Display::Core::HdmiDisplayInformation::GetForCurrentView();
-		if (hdi)
-		{
-			try
-			{
-				const auto dm = hdi->GetCurrentDisplayMode();
-				const float hdmi_width = (float)dm->ResolutionWidthInRawPixels;
-				const float hdmi_height = (float)dm->ResolutionHeightInRawPixels;
-				// If we're running on Xbox, use the HDMI mode instead of the CoreWindow size.
-				// In UWP, the CoreWindow is always 1920x1080, even when running at 4K.
-
-				m_logicalSize = Windows::Foundation::Size(hdmi_width, hdmi_height);
-				m_dpi = currentDisplayInformation->LogicalDpi * 1.5f;
-			}
-			catch (const Platform::Exception^)
-			{
-				m_logicalSize = Windows::Foundation::Size(coreWindow->Bounds.Width, coreWindow->Bounds.Height);
-				m_dpi = currentDisplayInformation->LogicalDpi;
-			}
-		}
-	}
-	else
-#endif
 	{
 		m_logicalSize = Windows::Foundation::Size(coreWindow->Bounds.Width, coreWindow->Bounds.Height);
 		m_dpi = currentDisplayInformation->LogicalDpi;
@@ -462,15 +447,24 @@ void DX::DeviceResources::CreateWindowSizeDependentResources(bool deviceLost)
 
 	UpdateRenderTargetSize();
 
+	DXGI_MATRIX_3X2_F inverseScale = { 0 };
+	inverseScale._11 = m_scaleAmount; // Scale X by 2
+	inverseScale._22 = m_scaleAmount; // Scale Y by 2
+
 	// The width and height of the swap chain must be based on the window's
 	// natively-oriented width and height. If the window is not in the native
 	// orientation, the dimensions must be reversed.
 	DXGI_MODE_ROTATION displayRotation = ComputeDisplayRotation();
 
+	float fwidth = 1.f;
+	float fheight = 1.f;
 	bool swapDimensions = displayRotation == DXGI_MODE_ROTATION_ROTATE90 || displayRotation == DXGI_MODE_ROTATION_ROTATE270;
-	m_d3dRenderTargetSize.Width = swapDimensions ? m_outputSize.Height : m_outputSize.Width;
-	m_d3dRenderTargetSize.Height = swapDimensions ? m_outputSize.Width : m_outputSize.Height;
+	fwidth = swapDimensions ? m_outputSize.Height : m_outputSize.Width;
+	fheight = swapDimensions ? m_outputSize.Width : m_outputSize.Height;
+	m_d3dRenderTargetSize.Width = fwidth;
+	m_d3dRenderTargetSize.Height = fheight / 2;
 	UINT flags = 0;
+#ifndef BUILD14393
 	switch (g_Config.bSwapFlags) {
 	case 1:
 		flags = DXGI_SWAP_CHAIN_FLAG::DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
@@ -479,16 +473,19 @@ void DX::DeviceResources::CreateWindowSizeDependentResources(bool deviceLost)
 		flags = 0;
 		break;
 	}
+#endif
 	if (m_swapChain != nullptr && !deviceLost)
 	{
 		// If the swap chain already exists, resize it.
 		HRESULT hr = m_swapChain->ResizeBuffers(
 			2, // Double-buffered swap chain.
-			lround(m_d3dRenderTargetSize.Width),
-			lround(m_d3dRenderTargetSize.Height),
+			lround(fwidth),
+			lround(fheight),
 			DXGI_FORMAT_B8G8R8A8_UNORM,
 			flags
 		);
+
+		//m_swapChain->SetMatrixTransform(&inverseScale);
 
 		if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
 		{
@@ -507,17 +504,18 @@ void DX::DeviceResources::CreateWindowSizeDependentResources(bool deviceLost)
 	else
 	{
 		// Otherwise, create a new one using the same adapter as the existing Direct3D device.
-		DXGI_SCALING scaling = DisplayMetrics::SupportHighResolutions ? DXGI_SCALING_NONE : DXGI_SCALING_STRETCH;
+		DXGI_SCALING scaling = DXGI_SCALING_STRETCH;
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = { 0 };
 
-		swapChainDesc.Width = lround(m_d3dRenderTargetSize.Width);		// Match the size of the window.
-		swapChainDesc.Height = lround(m_d3dRenderTargetSize.Height);
+		swapChainDesc.Width = lround(fwidth);		// Match the size of the window.
+		swapChainDesc.Height = lround(fheight);
 		swapChainDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;				// This is the most common swap chain format.
 		swapChainDesc.Stereo = false;
 		swapChainDesc.SampleDesc.Count = 1;								// Don't use multi-sampling.
 		swapChainDesc.SampleDesc.Quality = 0;
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		swapChainDesc.BufferCount = 2;									// Use double-buffering to minimize latency.
+#ifndef BUILD14393
 		switch (g_Config.bSwapEffect)
 		{
 		case 0:
@@ -528,6 +526,9 @@ void DX::DeviceResources::CreateWindowSizeDependentResources(bool deviceLost)
 			swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;	// All Windows Store apps must use this SwapEffect.
 			break;
 		}
+#else
+		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+#endif
 
 		swapChainDesc.Flags = flags;
 
@@ -548,6 +549,8 @@ void DX::DeviceResources::CreateWindowSizeDependentResources(bool deviceLost)
 		if (SUCCEEDED(swapChainHR)) {
 			swapChain.As(&m_swapChain);
 		}
+
+		//m_swapChain->SetMatrixTransform(&inverseScale);
 
 		// Ensure that DXGI does not queue more than one frame at a time. This both reduces latency and
 		// ensures that the application will only render after each VSync, minimizing power consumption.
@@ -616,8 +619,8 @@ void DX::DeviceResources::CreateWindowSizeDependentResources(bool deviceLost)
 	m_screenViewport = CD3D11_VIEWPORT(
 		0.0f,
 		0.0f,
-		m_d3dRenderTargetSize.Width,
-		m_d3dRenderTargetSize.Height
+		fwidth,
+		fheight
 	);
 
 	m_d3dContext->RSSetViewports(1, &m_screenViewport);
@@ -655,30 +658,8 @@ void DX::DeviceResources::CreateWindowSizeDependentResources(bool deviceLost)
 // Determine the dimensions of the render target and whether it will be scaled down.
 void DX::DeviceResources::UpdateRenderTargetSize()
 {
-	m_effectiveDpi = m_dpi;
-	if (Windows::System::Profile::AnalyticsInfo::VersionInfo->DeviceFamily == L"Windows.Xbox")
-	{
-		m_effectiveDpi = 96.0f / static_cast<float>(m_logicalSize.Height) * 1080.0f;
-	}
-	else
-	{
-		// To improve battery life on high resolution devices, render to a smaller render target
-		// and allow the GPU to scale the output when it is presented.
-		if (!DisplayMetrics::SupportHighResolutions && m_dpi >= DisplayMetrics::DpiThreshold)
-		{
-			float width = DX::ConvertDipsToPixels(m_logicalSize.Width, m_dpi);
-			float height = DX::ConvertDipsToPixels(m_logicalSize.Height, m_dpi);
+	m_effectiveDpi = m_dpi / m_scaleAmount;
 
-			// When the device is in portrait orientation, height > width. Compare the
-			// larger dimension against the width threshold and the smaller dimension
-			// against the height threshold.
-			if (std::max(width, height) > DisplayMetrics::WidthThreshold && std::min(width, height) > DisplayMetrics::HeightThreshold)
-			{
-				// To scale the app we change the effective DPI. Logical size does not change.
-				//m_effectiveDpi /= 2.0f;
-			}
-		}
-	}
 	// Calculate the necessary render target size in pixels.
 	m_outputSize.Width = DX::ConvertDipsToPixels(m_logicalSize.Width, m_effectiveDpi);
 	m_outputSize.Height = DX::ConvertDipsToPixels(m_logicalSize.Height, m_effectiveDpi);
@@ -705,6 +686,16 @@ void DX::DeviceResources::SetDpi(float dpi)
 	{
 		m_dpi = dpi;
 		CreateWindowSizeDependentResources();
+	}
+}void DX::DeviceResources::SetQuality(float quality, bool initial)
+{
+	if (quality != m_scaleAmount)
+	{
+		if (quality < 1.0f || quality > 10.0f) {
+			quality = 1.5f;
+		}
+		m_scaleAmount = quality;
+		if (!initial)CreateWindowSizeDependentResources();
 	}
 }
 

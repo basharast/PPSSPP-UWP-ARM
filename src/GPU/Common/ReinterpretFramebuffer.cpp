@@ -37,10 +37,11 @@ Draw2DPipelineInfo GenerateReinterpretFragmentShader(ShaderWriter &writer, GEBuf
 			writer.C("  return color;\n");
 			writer.C("}\n");
 			break;
-		case GE_FORMAT_565:
+		case GE_FORMAT_565: {
 			writer.C("uint packColor(vec4 val) {\n");
 			writer.C("  return uint(val.r * 31.99) | (uint(val.g * 63.99) << 0x5u) | (uint(val.b * 31.99) << 0xBu);\n");
 			writer.C("}\n");
+			}
 			break;
 		case GE_FORMAT_8888:
 			writer.C("uint packColor(vec2 val) {\n");

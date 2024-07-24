@@ -38,6 +38,8 @@ public:
 	void updateScreenState();
 	bool Render();
 	void CompleteLoading();
+	void PPSSPPFrame();
+	void threadPPSSPPFrameRender();
 
 	// IDeviceNotify
 	virtual void OnDeviceLost();

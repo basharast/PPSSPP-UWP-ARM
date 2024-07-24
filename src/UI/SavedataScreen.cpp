@@ -167,10 +167,11 @@ private:
 	CompareFunc lessFunc_;
 };
 
+extern int targetFPS;
 void SortedLinearLayout::Update() {
 	if (prepFunc_) {
 		// Try to avoid dropping more than a frame, prefer items shift.
-		constexpr double ALLOWED_TIME = 0.95 / 60.0;
+		double ALLOWED_TIME = 0.95 / targetFPS;
 		double start_time = time_now_d();
 		for (; prepIndex_ < views_.size(); ++prepIndex_) {
 			prepFunc_(views_[prepIndex_]);

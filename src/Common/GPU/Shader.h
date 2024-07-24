@@ -20,6 +20,7 @@ enum ShaderLanguage {
 	HLSL_D3D9 = 8,
 	HLSL_D3D11 = 16,
 	HLSL_D3D11_LEVEL9 = 32,
+	HLSL_D3D11_LEVEL93 = 64,
 };
 
 inline bool ShaderLanguageIsOpenGL(ShaderLanguage lang) {

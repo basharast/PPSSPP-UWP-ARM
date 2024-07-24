@@ -180,6 +180,7 @@ static const ConfigSetting generalSettings[] = {
 
 	ConfigSetting("AutoLoadSaveState", &g_Config.iAutoLoadSaveState, 0, CfgFlag::PER_GAME),
 	ConfigSetting("EnableCheats", &g_Config.bEnableCheats, false, CfgFlag::PER_GAME | CfgFlag::REPORT),
+	ConfigSetting("EnableCheats2", &g_Config.bEnableCheats2, true, CfgFlag::PER_GAME | CfgFlag::REPORT),
 	ConfigSetting("CwCheatRefreshRate", &g_Config.iCwCheatRefreshRate, 77, CfgFlag::PER_GAME),
 	ConfigSetting("CwCheatScrollPosition", &g_Config.fCwCheatScrollPosition, 0.0f, CfgFlag::PER_GAME),
 	ConfigSetting("GameListScrollPosition", &g_Config.fGameListScrollPosition, 0.0f, CfgFlag::DEFAULT),
@@ -250,10 +251,13 @@ static const ConfigSetting generalSettings[] = {
 	ConfigSetting("BackgroundAnimation", &g_Config.iBackgroundAnimation, 0, CfgFlag::DEFAULT),
 	ConfigSetting("BackgroundAnimation2", &g_Config.iBackgroundAnimation2, 0, CfgFlag::DEFAULT),
 	ConfigSetting("TransparentBackground", &g_Config.bTransparentBackground, true, CfgFlag::DEFAULT),
+	ConfigSetting("LowRAMMode", &g_Config.bLowRAM, false, CfgFlag::PER_GAME),
 	ConfigSetting("MonitorsCount", &g_Config.bMonitorsCount, 1, CfgFlag::DEFAULT),
 	ConfigSetting("ScreenRefreshRate", &g_Config.iRefreshRate, 0, CfgFlag::DEFAULT),
+	ConfigSetting("ScreenRefreshRate2", &g_Config.iRefreshRate2, 0, CfgFlag::DEFAULT),
 	ConfigSetting("AudioFramesPerBuffer", &g_Config.bAudioFramesPerBuffer, 0, CfgFlag::DEFAULT),
 	ConfigSetting("DPIBoost", &g_Config.bDPIBoost, 96.0, CfgFlag::DEFAULT),
+	ConfigSetting("QualityControl", &g_Config.bQualityControl, 1.5, CfgFlag::DEFAULT),
 	ConfigSetting("FrameRateState", &g_Config.iFpsLimit1State, false, CfgFlag::PER_GAME),
 	ConfigSetting("FrameRate2State", &g_Config.iFpsLimit2State, false, CfgFlag::PER_GAME),
 	ConfigSetting("UITint", &g_Config.fUITint, 0.0, CfgFlag::DEFAULT),
@@ -473,13 +477,12 @@ static const ConfigSetting graphicsSettings[] = {
 	ConfigSetting("InternalResolution", &g_Config.iInternalResolution, &DefaultInternalResolution, CfgFlag::PER_GAME | CfgFlag::REPORT),
 	ConfigSetting("AndroidHwScale", &g_Config.iAndroidHwScale, &DefaultAndroidHwScale, CfgFlag::DEFAULT),
 	ConfigSetting("HighQualityDepth", &g_Config.bHighQualityDepth, true, CfgFlag::PER_GAME | CfgFlag::REPORT),
-#if defined(_M_ARM)
+
 	ConfigSetting("FrameSkip", &g_Config.iFrameSkip, 1, CfgFlag::PER_GAME | CfgFlag::REPORT),
-#else
-	ConfigSetting("FrameSkip", &g_Config.iFrameSkip, 0, CfgFlag::PER_GAME | CfgFlag::REPORT),
-#endif
+	ConfigSetting("FrameSkip2", &g_Config.iFrameSkip2, 1, CfgFlag::PER_GAME | CfgFlag::REPORT),
 	ConfigSetting("FrameSkipType", &g_Config.iFrameSkipType, 0, CfgFlag::PER_GAME | CfgFlag::REPORT),
 	ConfigSetting("AutoFrameSkip", &g_Config.bAutoFrameSkip, true, CfgFlag::PER_GAME | CfgFlag::REPORT),
+	ConfigSetting("AutoFrameSkip2", &g_Config.bAutoFrameSkip2, true, CfgFlag::PER_GAME | CfgFlag::REPORT),
 	ConfigSetting("StereoRendering", &g_Config.bStereoRendering, false, CfgFlag::PER_GAME),
 	ConfigSetting("StereoToMonoShader", &g_Config.sStereoToMonoShader, "RedBlue", CfgFlag::PER_GAME),
 	ConfigSetting("FrameRate", &g_Config.iFpsLimit1, 0, CfgFlag::PER_GAME),
@@ -547,16 +550,9 @@ static const ConfigSetting graphicsSettings[] = {
 	ConfigSetting("bSwapFlags", &g_Config.bSwapFlags, 0, CfgFlag::DEFAULT),
 #endif
 
-#if defined(_M_ARM)
-	ConfigSetting("bRenderSkip", &g_Config.bRenderSkip, true, CfgFlag::PER_GAME),
-#else
 	ConfigSetting("bRenderSkip", &g_Config.bRenderSkip, false, CfgFlag::PER_GAME),
-#endif
-#if defined(_M_ARM)
-	ConfigSetting("bRenderSkip2", &g_Config.bRenderSkip2, true, CfgFlag::PER_GAME),
-#else
 	ConfigSetting("bRenderSkip2", &g_Config.bRenderSkip2, false, CfgFlag::PER_GAME),
-#endif
+	ConfigSetting("bRenderSkip3", &g_Config.bRenderSkip3, false, CfgFlag::PER_GAME),
 	ConfigSetting("bRenderSkipCount", &g_Config.bRenderSkipCount, 1000, CfgFlag::PER_GAME),
 	ConfigSetting("bDetectDeviceLose", &g_Config.bDetectDeviceLose, false, CfgFlag::PER_GAME),
 #if defined(_M_ARM) || defined(BUILD14393)
@@ -1034,11 +1030,7 @@ void Config::SetAppendedConfigIni(const Path& path) {
 }
 
 void Config::UpdateAfterSettingAutoFrameSkip() {
-	if (bAutoFrameSkip && iFrameSkip == 0) {
-		iFrameSkip = 1;
-	}
-
-	if (bAutoFrameSkip && bSkipBufferEffects) {
+	if (bAutoFrameSkip2 && bSkipBufferEffects) {
 		bSkipBufferEffects = false;
 	}
 }
@@ -1200,6 +1192,8 @@ void Config::Load(const char* iniFileName, const char* controllerIniFilename, st
 	INFO_LOG(LOADER, "Config loaded: '%s'", iniFilename_.c_str());
 }
 
+extern int targetSpeed;
+extern int FPS30;
 bool Config::Save(const char* saveReason) {
 	if (!IsFirstInstance()) {
 		// TODO: Should we allow saving config if started from a different directory?
@@ -1305,6 +1299,7 @@ bool Config::Save(const char* saveReason) {
 	return true;
 }
 
+extern bool lowMemoryMode_;
 void Config::PostLoadCleanup(bool gameSpecific) {
 	// Override ppsspp.ini JIT value to prevent crashing
 	jitForcedOff = DefaultCpuCore() != (int)CPUCore::JIT && g_Config.iCpuCore == (int)CPUCore::JIT;
@@ -1321,9 +1316,21 @@ void Config::PostLoadCleanup(bool gameSpecific) {
 	if (sMACAddress.length() != 17)
 		sMACAddress = CreateRandMAC();
 
-	if (g_Config.bAutoFrameSkip && g_Config.bSkipBufferEffects) {
+	if (g_Config.bAutoFrameSkip2 && g_Config.bSkipBufferEffects) {
 		g_Config.bSkipBufferEffects = false;
 	}
+
+	if (g_Config.bRenderSkip3) {
+		g_Config.iRefreshRate2 = 0;
+		g_Config.iFpsLimit1 = (targetSpeed * 30) / 100;
+		g_Config.iFpsLimit1State = true;
+	}
+
+	lowMemoryMode_ = g_Config.bLowRAM;
+
+#if defined(BUILD14393)
+	g_Config.bBackwardCompatibility = true;
+#endif
 
 	// Automatically silence secondary instances. Could be an option I guess, but meh.
 	if (PPSSPP_ID > 1) {

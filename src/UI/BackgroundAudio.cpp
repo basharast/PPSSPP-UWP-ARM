@@ -294,6 +294,7 @@ void BackgroundAudio::SetGame(const Path &path) {
 	bgGamePath_ = path;
 }
 
+extern int targetFPS;
 bool BackgroundAudio::Play() {
 	if (GetUIState() == UISTATE_INGAME) {
 		return false;
@@ -309,7 +310,7 @@ bool BackgroundAudio::Play() {
 	}
 
 	double now = time_now_d();
-	int sz = 44100 / 60;
+	int sz = 44100 / targetFPS;
 	if (lastPlaybackTime_ > 0.0 && lastPlaybackTime_ <= now) {
 		sz = (int)((now - lastPlaybackTime_) * 44100);
 	}

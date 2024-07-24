@@ -138,12 +138,13 @@ static int Replace_memcpy() {
 		}
 	}
 	if (!skip && bytes != 0) {
-		u8 *dst = Memory::GetPointerWriteRange(destPtr, bytes);
-		const u8 *src = Memory::GetPointerRange(srcPtr, bytes);
+		u8* dst = Memory::GetPointerWriteRange(destPtr, bytes);
+		const u8* src = Memory::GetPointerRange(srcPtr, bytes);
 
 		if (!dst || !src) {
 			// Already logged.
-		} else if (std::min(destPtr, srcPtr) + bytes > std::max(destPtr, srcPtr)) {
+		}
+		else if (std::min(destPtr, srcPtr) + bytes > std::max(destPtr, srcPtr)) {
 			// Overlap.  Star Ocean breaks if it's not handled in 16 bytes blocks.
 			const u32 blocks = bytes & ~0x0f;
 			for (u32 offset = 0; offset < blocks; offset += 0x10) {
@@ -152,7 +153,8 @@ static int Replace_memcpy() {
 			for (u32 offset = blocks; offset < bytes; ++offset) {
 				dst[offset] = src[offset];
 			}
-		} else {
+		}
+		else {
 			memmove(dst, src, bytes);
 		}
 	}
@@ -191,11 +193,12 @@ static int Replace_memcpy_jak() {
 		}
 	}
 	if (!skip && bytes != 0) {
-		u8 *dst = Memory::GetPointerWriteRange(destPtr, bytes);
-		const u8 *src = Memory::GetPointerRange(srcPtr, bytes);
+		u8* dst = Memory::GetPointerWriteRange(destPtr, bytes);
+		const u8* src = Memory::GetPointerRange(srcPtr, bytes);
 
 		if (!dst || !src) {
-		} else {
+		}
+		else {
 			// Jak style overlap.
 			for (u32 i = 0; i < bytes; i++) {
 				dst[i] = src[i];
@@ -243,8 +246,8 @@ static int Replace_memcpy16() {
 		}
 	}
 	if (!skip && bytes != 0) {
-		u8 *dst = Memory::GetPointerWriteRange(destPtr, bytes);
-		const u8 *src = Memory::GetPointerRange(srcPtr, bytes);
+		u8* dst = Memory::GetPointerWriteRange(destPtr, bytes);
+		const u8* src = Memory::GetPointerRange(srcPtr, bytes);
 		if (dst && src) {
 			memmove(dst, src, bytes);
 		}
@@ -271,15 +274,15 @@ static int Replace_memcpy_swizzled() {
 			gpu->PerformReadbackToMemory(srcPtr, pitch * h);
 		}
 	}
-	u8 *dstp = Memory::GetPointerWriteRange(destPtr, pitch * h);
-	const u8 *srcp = Memory::GetPointerRange(srcPtr, pitch * h);
+	u8* dstp = Memory::GetPointerWriteRange(destPtr, pitch * h);
+	const u8* srcp = Memory::GetPointerRange(srcPtr, pitch * h);
 
 	if (dstp && srcp) {
-		const u8 *ysrcp = srcp;
+		const u8* ysrcp = srcp;
 		for (u32 y = 0; y < h; y += 8) {
-			const u8 *xsrcp = ysrcp;
+			const u8* xsrcp = ysrcp;
 			for (u32 x = 0; x < pitch; x += 16) {
-				const u8 *src = xsrcp;
+				const u8* src = xsrcp;
 				for (int n = 0; n < 8; ++n) {
 					memcpy(dstp, src, 16);
 					src += pitch;
@@ -317,8 +320,8 @@ static int Replace_memmove() {
 		}
 	}
 	if (!skip && bytes != 0) {
-		u8 *dst = Memory::GetPointerWriteRange(destPtr, bytes);
-		const u8 *src = Memory::GetPointerRange(srcPtr, bytes);
+		u8* dst = Memory::GetPointerWriteRange(destPtr, bytes);
+		const u8* src = Memory::GetPointerRange(srcPtr, bytes);
 		if (dst && src) {
 			memmove(dst, src, bytes);
 		}
@@ -344,7 +347,7 @@ static int Replace_memset() {
 		skip = gpu->PerformMemorySet(destPtr, value, bytes);
 	}
 	if (!skip && bytes != 0) {
-		u8 *dst = Memory::GetPointerWriteRange(destPtr, bytes);
+		u8* dst = Memory::GetPointerWriteRange(destPtr, bytes);
 		if (dst) {
 			memset(dst, value, bytes);
 		}
@@ -371,7 +374,7 @@ static int Replace_memset_jak() {
 		skip = gpu->PerformMemorySet(destPtr, value, bytes);
 	}
 	if (!skip && bytes != 0) {
-		u8 *dst = Memory::GetPointerWriteRange(destPtr, bytes);
+		u8* dst = Memory::GetPointerWriteRange(destPtr, bytes);
 		if (dst) {
 			memset(dst, value, bytes);
 		}
@@ -389,10 +392,10 @@ static int Replace_memset_jak() {
 
 static uint32_t SafeStringLen(const uint32_t ptr, uint32_t maxLen = 0x07FFFFFF) {
 	maxLen = Memory::ValidSize(ptr, 0x07FFFFFF);
-	const uint8_t *p = Memory::GetPointerRange(ptr, maxLen);
+	const uint8_t* p = Memory::GetPointerRange(ptr, maxLen);
 	if (!p)
 		return 0;
-	const uint8_t *end = (const uint8_t *)memchr(p, '\0', maxLen);
+	const uint8_t* end = (const uint8_t*)memchr(p, '\0', maxLen);
 	if (!end)
 		return 0;
 	return (uint32_t)(end - p);
@@ -409,8 +412,8 @@ static int Replace_strcpy() {
 	u32 destPtr = PARAM(0);
 	u32 srcPtr = PARAM(1);
 	u32 len = SafeStringLen(srcPtr);
-	char *dst = (char *)Memory::GetPointerWriteRange(destPtr, len);
-	const char *src = (const char *)Memory::GetPointerRange(srcPtr, len);
+	char* dst = (char*)Memory::GetPointerWriteRange(destPtr, len);
+	const char* src = (const char*)Memory::GetPointerRange(srcPtr, len);
 	if (dst && src && len != 0) {
 		strcpy(dst, src);
 	}
@@ -422,9 +425,9 @@ static int Replace_strncpy() {
 	u32 destPtr = PARAM(0);
 	u32 srcPtr = PARAM(1);
 	u32 bytes = PARAM(2);
-	char *dst = (char *)Memory::GetPointerRange(destPtr, bytes);
+	char* dst = (char*)Memory::GetPointerRange(destPtr, bytes);
 	u32 srcLen = SafeStringLen(srcPtr, bytes);
-	const char *src = (const char *)Memory::GetPointerRange(srcPtr, srcLen == 0 ? bytes : srcLen);
+	const char* src = (const char*)Memory::GetPointerRange(srcPtr, srcLen == 0 ? bytes : srcLen);
 	if (dst && src && bytes != 0) {
 		strncpy(dst, src, bytes);
 	}
@@ -434,12 +437,13 @@ static int Replace_strncpy() {
 
 static int Replace_strcmp() {
 	u32 aLen = SafeStringLen(PARAM(0));
-	const char *a = (const char *)Memory::GetPointerRange(PARAM(0), aLen);
+	const char* a = (const char*)Memory::GetPointerRange(PARAM(0), aLen);
 	u32 bLen = SafeStringLen(PARAM(1));
-	const char *b = (const char *)Memory::GetPointerRange(PARAM(1), bLen);
+	const char* b = (const char*)Memory::GetPointerRange(PARAM(1), bLen);
 	if (a && b && aLen != 0 && bLen != 0) {
 		RETURN(strcmp(a, b));
-	} else {
+	}
+	else {
 		RETURN(0);
 	}
 	return 10;  // approximation
@@ -448,12 +452,13 @@ static int Replace_strcmp() {
 static int Replace_strncmp() {
 	u32 bytes = PARAM(2);
 	u32 aLen = SafeStringLen(PARAM(0), bytes);
-	const char *a = (const char *)Memory::GetPointerRange(PARAM(0), aLen == 0 ? bytes : aLen);
+	const char* a = (const char*)Memory::GetPointerRange(PARAM(0), aLen == 0 ? bytes : aLen);
 	u32 bLen = SafeStringLen(PARAM(1), bytes);
-	const char *b = (const char *)Memory::GetPointerRange(PARAM(1), bLen == 0 ? bytes : bLen);
+	const char* b = (const char*)Memory::GetPointerRange(PARAM(1), bLen == 0 ? bytes : bLen);
 	if (a && b && bytes != 0) {
 		RETURN(strncmp(a, b, bytes));
-	} else {
+	}
+	else {
 		RETURN(0);
 	}
 	return 10 + bytes / 4;  // approximation
@@ -465,9 +470,9 @@ static int Replace_fabsf() {
 }
 
 static int Replace_vmmul_q_transp() {
-	float_le *out = (float_le *)Memory::GetPointerRange(PARAM(0), 16 * 4);
-	const float_le *a = (const float_le *)Memory::GetPointerRange(PARAM(1), 16 * 4);
-	const float_le *b = (const float_le *)Memory::GetPointerRange(PARAM(2), 16 * 4);
+	float_le* out = (float_le*)Memory::GetPointerRange(PARAM(0), 16 * 4);
+	const float_le* a = (const float_le*)Memory::GetPointerRange(PARAM(1), 16 * 4);
+	const float_le* b = (const float_le*)Memory::GetPointerRange(PARAM(2), 16 * 4);
 
 	// TODO: Actually use an optimized matrix multiply here...
 	if (out && b && a) {
@@ -492,8 +497,8 @@ static int Replace_vmmul_q_transp() {
 // a1 = matrix
 // a2 = source address
 static int Replace_gta_dl_write_matrix() {
-	u32_le *ptr = (u32_le *)Memory::GetPointerWriteRange(PARAM(0), 4);
-	const u32_le *src = (const u32_le *)Memory::GetPointerRange(PARAM(2), 16);
+	u32_le* ptr = (u32_le*)Memory::GetPointerWriteRange(PARAM(0), 4);
+	const u32_le* src = (const u32_le*)Memory::GetPointerRange(PARAM(2), 16);
 	u32 matrix = PARAM(1) << 24;
 
 	if (!ptr || !src) {
@@ -501,7 +506,7 @@ static int Replace_gta_dl_write_matrix() {
 		return 38;
 	}
 
-	u32_le *dest = (u32_le *)Memory::GetPointerWriteRange(ptr[0], 12 * 4);
+	u32_le* dest = (u32_le*)Memory::GetPointerWriteRange(ptr[0], 12 * 4);
 	if (!dest) {
 		RETURN(0);
 		return 38;
@@ -509,22 +514,22 @@ static int Replace_gta_dl_write_matrix() {
 
 #if PPSSPP_ARCH(X86) || PPSSPP_ARCH(AMD64)
 	__m128i topBytes = _mm_set1_epi32(matrix);
-	__m128i m0 = _mm_loadu_si128((const __m128i *)src);
-	__m128i m1 = _mm_loadu_si128((const __m128i *)(src + 4));
-	__m128i m2 = _mm_loadu_si128((const __m128i *)(src + 8));
-	__m128i m3 = _mm_loadu_si128((const __m128i *)(src + 12));
+	__m128i m0 = _mm_loadu_si128((const __m128i*)src);
+	__m128i m1 = _mm_loadu_si128((const __m128i*)(src + 4));
+	__m128i m2 = _mm_loadu_si128((const __m128i*)(src + 8));
+	__m128i m3 = _mm_loadu_si128((const __m128i*)(src + 12));
 	m0 = _mm_or_si128(_mm_srli_epi32(m0, 8), topBytes);
 	m1 = _mm_or_si128(_mm_srli_epi32(m1, 8), topBytes);
 	m2 = _mm_or_si128(_mm_srli_epi32(m2, 8), topBytes);
 	m3 = _mm_or_si128(_mm_srli_epi32(m3, 8), topBytes);
 	// These three stores overlap by a word, due to the offsets.
-	_mm_storeu_si128((__m128i *)dest, m0);
-	_mm_storeu_si128((__m128i *)(dest + 3), m1);
-	_mm_storeu_si128((__m128i *)(dest + 6), m2);
+	_mm_storeu_si128((__m128i*)dest, m0);
+	_mm_storeu_si128((__m128i*)(dest + 3), m1);
+	_mm_storeu_si128((__m128i*)(dest + 6), m2);
 	// Store the last one in parts to not overwrite forwards (probably mostly risk free though)
-	_mm_storel_epi64((__m128i *)(dest + 9), m3);
+	_mm_storel_epi64((__m128i*)(dest + 9), m3);
 	m3 = _mm_srli_si128(m3, 8);
-	_mm_store_ss((float *)(dest + 11), _mm_castsi128_ps(m3));
+	_mm_store_ss((float*)(dest + 11), _mm_castsi128_ps(m3));
 #else
 	// Bit tricky to SIMD (note the offsets) but should be doable if not perfect
 	dest[0] = matrix | (src[0] >> 8);
@@ -551,8 +556,8 @@ static int Replace_gta_dl_write_matrix() {
 // TODO: Inline into a few NEON or SSE instructions - especially if a1 is a known immediate!
 // Anyway, not sure if worth it. There's not that many matrices written per frame normally.
 static int Replace_dl_write_matrix() {
-	u32_le *dlStruct = (u32_le *)Memory::GetPointerWriteRange(PARAM(0), 3 * 4);
-	const u32_le *src = (const u32_le *)Memory::GetPointerRange(PARAM(2), 16 * 4);
+	u32_le* dlStruct = (u32_le*)Memory::GetPointerWriteRange(PARAM(0), 3 * 4);
+	const u32_le* src = (const u32_le*)Memory::GetPointerRange(PARAM(2), 16 * 4);
 
 	if (!dlStruct || !src) {
 		RETURN(0);
@@ -577,12 +582,12 @@ static int Replace_dl_write_matrix() {
 		break;
 	}
 
-	u32_le *dest = (u32_le *)Memory::GetPointerWriteRange(dlStruct[2], 4 + count * 4);
+	u32_le* dest = (u32_le*)Memory::GetPointerWriteRange(dlStruct[2], 4 + count * 4);
 	if (!dest) {
 		RETURN(0);
 		return 60;
 	}
-	
+
 	*dest++ = matrix;
 	matrix += 0x01000000;
 
@@ -591,18 +596,18 @@ static int Replace_dl_write_matrix() {
 		// no point in hand rolling.
 #if PPSSPP_ARCH(X86) || PPSSPP_ARCH(AMD64)
 		__m128i topBytes = _mm_set1_epi32(matrix);
-		__m128i m0 = _mm_loadu_si128((const __m128i *)src);
-		__m128i m1 = _mm_loadu_si128((const __m128i *)(src + 4));
-		__m128i m2 = _mm_loadu_si128((const __m128i *)(src + 8));
-		__m128i m3 = _mm_loadu_si128((const __m128i *)(src + 12));
+		__m128i m0 = _mm_loadu_si128((const __m128i*)src);
+		__m128i m1 = _mm_loadu_si128((const __m128i*)(src + 4));
+		__m128i m2 = _mm_loadu_si128((const __m128i*)(src + 8));
+		__m128i m3 = _mm_loadu_si128((const __m128i*)(src + 12));
 		m0 = _mm_or_si128(_mm_srli_epi32(m0, 8), topBytes);
 		m1 = _mm_or_si128(_mm_srli_epi32(m1, 8), topBytes);
 		m2 = _mm_or_si128(_mm_srli_epi32(m2, 8), topBytes);
 		m3 = _mm_or_si128(_mm_srli_epi32(m3, 8), topBytes);
-		_mm_storeu_si128((__m128i *)dest, m0);
-		_mm_storeu_si128((__m128i *)(dest + 4), m1);
-		_mm_storeu_si128((__m128i *)(dest + 8), m2);
-		_mm_storeu_si128((__m128i *)(dest + 12), m3);
+		_mm_storeu_si128((__m128i*)dest, m0);
+		_mm_storeu_si128((__m128i*)(dest + 4), m1);
+		_mm_storeu_si128((__m128i*)(dest + 8), m2);
+		_mm_storeu_si128((__m128i*)(dest + 12), m3);
 #else
 #if 0
 		//TODO: Finish NEON, make conditional somehow
@@ -624,25 +629,26 @@ static int Replace_dl_write_matrix() {
 			dest[i] = matrix | (src[i] >> 8);
 		}
 #endif
-	} else {
+	}
+	else {
 #if PPSSPP_ARCH(X86) || PPSSPP_ARCH(AMD64)
 		__m128i topBytes = _mm_set1_epi32(matrix);
-		__m128i m0 = _mm_loadu_si128((const __m128i *)src);
-		__m128i m1 = _mm_loadu_si128((const __m128i *)(src + 4));
-		__m128i m2 = _mm_loadu_si128((const __m128i *)(src + 8));
-		__m128i m3 = _mm_loadu_si128((const __m128i *)(src + 12));
+		__m128i m0 = _mm_loadu_si128((const __m128i*)src);
+		__m128i m1 = _mm_loadu_si128((const __m128i*)(src + 4));
+		__m128i m2 = _mm_loadu_si128((const __m128i*)(src + 8));
+		__m128i m3 = _mm_loadu_si128((const __m128i*)(src + 12));
 		m0 = _mm_or_si128(_mm_srli_epi32(m0, 8), topBytes);
 		m1 = _mm_or_si128(_mm_srli_epi32(m1, 8), topBytes);
 		m2 = _mm_or_si128(_mm_srli_epi32(m2, 8), topBytes);
 		m3 = _mm_or_si128(_mm_srli_epi32(m3, 8), topBytes);
 		// These three stores overlap by a word, due to the offsets.
-		_mm_storeu_si128((__m128i *)dest, m0);
-		_mm_storeu_si128((__m128i *)(dest + 3), m1);
-		_mm_storeu_si128((__m128i *)(dest + 6), m2);
+		_mm_storeu_si128((__m128i*)dest, m0);
+		_mm_storeu_si128((__m128i*)(dest + 3), m1);
+		_mm_storeu_si128((__m128i*)(dest + 6), m2);
 		// Store the last one in parts to not overwrite forwards (probably mostly risk free though)
-		_mm_storel_epi64((__m128i *)(dest + 9), m3);
+		_mm_storel_epi64((__m128i*)(dest + 9), m3);
 		m3 = _mm_srli_si128(m3, 8);
-		_mm_store_ss((float *)(dest + 11), _mm_castsi128_ps(m3));
+		_mm_store_ss((float*)(dest + 11), _mm_castsi128_ps(m3));
 #else
 		// Bit tricky to SIMD (note the offsets) but should be doable if not perfect
 		dest[0] = matrix | (src[0] >> 8);
@@ -669,7 +675,7 @@ static int Replace_dl_write_matrix() {
 	return 60;
 }
 
-static bool GetMIPSStaticAddress(u32 &addr, s32 lui_offset, s32 lw_offset) {
+static bool GetMIPSStaticAddress(u32& addr, s32 lui_offset, s32 lw_offset) {
 	const MIPSOpcode upper = Memory::Read_Instruction(currentMIPS->pc + lui_offset, true);
 	if (upper != MIPS_MAKE_LUI(MIPS_GET_RT(upper), upper & 0xffff)) {
 		return false;
@@ -684,7 +690,7 @@ static bool GetMIPSStaticAddress(u32 &addr, s32 lui_offset, s32 lw_offset) {
 	return true;
 }
 
-static bool GetMIPSGPAddress(u32 &addr, s32 offset) {
+static bool GetMIPSGPAddress(u32& addr, s32 offset) {
 	const MIPSOpcode loadOp = Memory::Read_Instruction(currentMIPS->pc + offset, true);
 	if (MIPS_GET_RS(loadOp) == MIPS_REG_GP) {
 		s16 gpoff = (s16)(u16)(loadOp & 0x0000FFFF);
@@ -1403,7 +1409,8 @@ static int Hook_gow_fps_hack() {
 	if (PSP_CoreParameter().compat.flags().GoWFramerateHack60 || PSP_CoreParameter().compat.flags().GoWFramerateHack30) {
 		if (PSP_CoreParameter().compat.flags().GoWFramerateHack30) {
 			__DisplayWaitForVblanks("vblank start waited", 2);
-		} else {
+		}
+		else {
 			__DisplayWaitForVblanks("vblank start waited", 1);
 		}
 	}
@@ -1559,9 +1566,14 @@ static std::unordered_map<std::string, std::vector<int> > replacementNameLookup;
 void Replacement_Init() {
 	for (int i = 0; i < (int)ARRAY_SIZE(entries); i++) {
 		const auto entry = &entries[i];
-		if (!entry->name || (entry->flags & REPFLAG_DISABLED) != 0)
-			continue;
-		replacementNameLookup[entry->name].push_back(i);
+		if (entry->name && g_Config.bRenderSkip3 && !_strcmpi("gow_fps_hack", entry->name)) {
+			replacementNameLookup[entry->name].push_back(i);
+		}
+		else {
+			if (!entry->name || (entry->flags & REPFLAG_DISABLED) != 0)
+				continue;
+			replacementNameLookup[entry->name].push_back(i);
+		}
 	}
 
 	skipGPUReplacements = 0;
@@ -1577,7 +1589,7 @@ int GetNumReplacementFuncs() {
 }
 
 std::vector<int> GetReplacementFuncIndexes(u64 hash, int funcSize) {
-	const char *name = MIPSAnalyst::LookupHash(hash, funcSize);
+	const char* name = MIPSAnalyst::LookupHash(hash, funcSize);
 	std::vector<int> emptyResult;
 	if (!name) {
 		return emptyResult;
@@ -1590,7 +1602,7 @@ std::vector<int> GetReplacementFuncIndexes(u64 hash, int funcSize) {
 	return emptyResult;
 }
 
-const ReplacementTableEntry *GetReplacementFunc(int i) {
+const ReplacementTableEntry* GetReplacementFunc(int i) {
 	return &entries[i];
 }
 
@@ -1629,11 +1641,13 @@ void WriteReplaceInstructions(u32 address, u64 hash, int size) {
 					}
 				}
 			}
-		} else if (entry->flags & REPFLAG_HOOKENTER) {
+		}
+		else if (entry->flags & REPFLAG_HOOKENTER) {
 			if (WriteReplaceInstruction(address + entry->hookOffset, index)) {
 				didReplace = true;
 			}
-		} else {
+		}
+		else {
 			if (WriteReplaceInstruction(address, index)) {
 				didReplace = true;
 			}
@@ -1650,7 +1664,8 @@ void RestoreReplacedInstruction(u32 address) {
 	if (MIPS_IS_REPLACEMENT(curInstr)) {
 		Memory::Write_U32(replacedInstructions[address], address);
 		NOTICE_LOG(HLE, "Restored replaced func at %08x", address);
-	} else {
+	}
+	else {
 		NOTICE_LOG(HLE, "Replaced func changed at %08x", address);
 	}
 	replacedInstructions.erase(address);
@@ -1691,7 +1706,7 @@ std::map<u32, u32> SaveAndClearReplacements() {
 	return saved;
 }
 
-void RestoreSavedReplacements(const std::map<u32, u32> &saved) {
+void RestoreSavedReplacements(const std::map<u32, u32>& saved) {
 	for (auto it = saved.begin(), end = saved.end(); it != end; ++it) {
 		const u32 addr = it->first;
 		// Just put the replacements back.
@@ -1699,21 +1714,22 @@ void RestoreSavedReplacements(const std::map<u32, u32> &saved) {
 	}
 }
 
-bool GetReplacedOpAt(u32 address, u32 *op) {
+bool GetReplacedOpAt(u32 address, u32* op) {
 	u32 instr = Memory::Read_Opcode_JIT(address).encoding;
 	if (MIPS_IS_REPLACEMENT(instr)) {
 		auto iter = replacedInstructions.find(address);
 		if (iter != replacedInstructions.end()) {
 			*op = iter->second;
 			return true;
-		} else {
+		}
+		else {
 			return false;
 		}
 	}
 	return false;
 }
 
-bool CanReplaceJalTo(u32 dest, const ReplacementTableEntry **entry, u32 *funcSize) {
+bool CanReplaceJalTo(u32 dest, const ReplacementTableEntry** entry, u32* funcSize) {
 	MIPSOpcode op(Memory::Read_Opcode_JIT(dest));
 	if (!MIPS_IS_REPLACEMENT(op.encoding))
 		return false;
@@ -1725,7 +1741,8 @@ bool CanReplaceJalTo(u32 dest, const ReplacementTableEntry **entry, u32 *funcSiz
 			return false;
 		}
 		*funcSize = (u32)sizeof(u32);
-	} else {
+	}
+	else {
 		if (CBreakPoints::RangeContainsBreakPoint(dest, *funcSize)) {
 			return false;
 		}

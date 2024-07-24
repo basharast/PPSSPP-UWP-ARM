@@ -55,6 +55,8 @@
 #endif
 #endif
 
+extern bool lowMemoryMode_;
+
 // Videos should be updated every few frames, so we forget quickly.
 #define VIDEO_DECIMATE_AGE 4
 
@@ -1569,7 +1571,7 @@ ReplacedTexture *TextureCacheCommon::FindReplacement(TexCacheEntry *entry, int *
 
 void TextureCacheCommon::PollReplacement(TexCacheEntry *entry, int *w, int *h, int *d) {
 	// Allow some delay to reduce pop-in.
-	constexpr double MAX_BUDGET_PER_TEX = 0.25 / 60.0;
+	double MAX_BUDGET_PER_TEX = 0.25 / (targetFPS * 1.0);
 
 	double budget = std::min(MAX_BUDGET_PER_TEX, replacementFrameBudget_ - replacementTimeThisFrame_);
 

@@ -472,6 +472,7 @@ void SystemInfoScreen::update() {
 	g_OSD.NudgeSidebar();
 }
 
+extern std::string vertexModelGlobal;
 void SystemInfoScreen::CreateTabs() {
 	using namespace Draw;
 	using namespace UI;
@@ -551,6 +552,7 @@ void SystemInfoScreen::CreateTabs() {
 	if (draw->GetInfoString(InfoField::SHAMEME) != "0"){
 		gpuInfo->Add(new InfoItem(si->T("Shared Memory"), StringFromFormat("%s MB", draw->GetInfoString(InfoField::SHAMEME).c_str())));
 	}
+	
 #ifdef _WIN32
 	//if (GetGPUBackend() != GPUBackend::VULKAN)
 		//gpuInfo->Add(new InfoItem(si->T("Driver Version"), System_GetProperty(SYSPROP_GPUDRIVER_VERSION)));
@@ -654,6 +656,7 @@ void SystemInfoScreen::CreateTabs() {
 	}
 	versionInfo->Add(new InfoItem(si->T("API Version"), apiVersion));
 	versionInfo->Add(new InfoItem(si->T("Shading Language"), draw->GetInfoString(InfoField::SHADELANGVERSION)));
+	versionInfo->Add(new InfoItem(si->T("Shading Model"), vertexModelGlobal));
 
 #if PPSSPP_PLATFORM(ANDROID)
 	std::string moga = System_GetProperty(SYSPROP_MOGA_VERSION);

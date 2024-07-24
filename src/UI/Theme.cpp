@@ -48,7 +48,7 @@ struct ThemeInfo {
 	uint32_t uHeaderStyleFg = 0xFFFFFFFF;
 	uint32_t uInfoStyleFg = 0xFFFFFFFF;
 	uint32_t uInfoStyleBg = 0x00000000;
-	uint32_t uPopupStyleBg = 0xFF303030;
+	uint32_t uPopupStyleBg = 0xFF181818;
 	uint32_t uBackgroundColor = 0xFF754D24;
 
 	std::string sUIAtlas = "ui_atlas";

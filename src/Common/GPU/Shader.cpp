@@ -92,7 +92,8 @@ void ShaderLanguageDesc::Init(ShaderLanguage lang) {
 	case HLSL_D3D9:
 	case HLSL_D3D11:
 	case HLSL_D3D11_LEVEL9:
-		if (lang == HLSL_D3D11 || lang == HLSL_D3D11_LEVEL9) {
+	case HLSL_D3D11_LEVEL93:
+		if (lang == HLSL_D3D11 || lang == HLSL_D3D11_LEVEL9 || lang == HLSL_D3D11_LEVEL93) {
 			fragColor0 = "outfragment.target";
 			fragColor1 = "outfragment.target1";
 			if (lang == HLSL_D3D11) {

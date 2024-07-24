@@ -13,6 +13,8 @@
 #include "Common/System/Request.h"
 #include <UWP/UWPHelpers/UIHelpers.h>
 
+extern int targetFPS;
+
 namespace UI {
 
 	static std::mutex focusLock;
@@ -193,8 +195,8 @@ namespace UI {
 
 	static std::set<HeldKey> heldKeys;
 
-	const double repeatDelay = 15 * (1.0 / 60.0f);  // 15 frames like before.
-	const double repeatInterval = 5 * (1.0 / 60.0f);  // 5 frames like before.
+	const double repeatDelay = 15 * (1.0 / (targetFPS * 1.0f));  // 15 frames like before.
+	const double repeatInterval = 5 * (1.0 / (targetFPS * 1.0f));  // 5 frames like before.
 
 	bool IsScrollKey(const KeyInput& input) {
 		switch (input.keyCode) {

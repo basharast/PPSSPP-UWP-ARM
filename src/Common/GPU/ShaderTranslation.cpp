@@ -122,13 +122,13 @@ float u_video : register(c6);
 // Should probably do it in the source shader instead and then back translate to old style GLSL, but
 // SPIRV-Cross currently won't compile with the Android NDK so I can't be bothered.
 std::string Postprocess(std::string code, ShaderLanguage lang, ShaderStage stage) {
-	if (lang != HLSL_D3D11 && lang != HLSL_D3D11_LEVEL9  && lang != HLSL_D3D9)
+	if (lang != HLSL_D3D11 && lang != HLSL_D3D11_LEVEL9  && lang != HLSL_D3D11_LEVEL93 && lang != HLSL_D3D9)
 		return code;
 
 	std::stringstream out;
 
 	// Output the uniform buffer.
-	if (lang == HLSL_D3D11 || lang == HLSL_D3D11_LEVEL9)
+	if (lang == HLSL_D3D11 || lang == HLSL_D3D11_LEVEL9 || lang == HLSL_D3D11_LEVEL93)
 		out << cbufferDecl;
 	else if (lang == HLSL_D3D9)
 		out << d3d9RegisterDecl;

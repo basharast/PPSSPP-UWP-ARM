@@ -32,10 +32,9 @@ Supported by **[UWP2Win32](https://github.com/basharast/UWP2Win32)**
 - Use network features like remote play
 - Start games by launching the file directly
 
-## Roadmap
-My main focus is on ARM architect but I will do my best to push a good support for the x64 version
+## Official?
 
-To help the community to have official release I'm working hard to merge most of the changes in the official repo
+Major part of the UWP improvements already merged in the official repo except for the stuff that related to legacy hardware
 
 Phase 1 ([PR](https://github.com/hrydgard/ppsspp/pull/17350)) [Mereged]
 
@@ -56,6 +55,16 @@ Phase 2 ([PR](https://github.com/hrydgard/ppsspp/pull/17952)) [Mereged]
 - Open `PPSSPP_UWP.sln` 
 - Tests made on `Release` and `UWP Gold`
 - Build
+
+## Build Legacy
+
+To build PPSSPP for `10586`
+
+- You need as extra SDKs: `19041`
+- Ensure `CommonUWP` set at `19041` not `22621`
+- Ensure `PPSSPP_UWP` set at `19041` not `22621`
+- Add Preprocessors `HTTPS_NOT_AVAILABLE` & `NO_RAC`
+- Build using `UWP Gold 14393` configuration only
 
 ## Important
 

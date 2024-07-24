@@ -226,6 +226,7 @@ private:
 	bool hovering_ = false;
 };
 
+extern int targetFPS;
 void GameButton::Draw(UIContext &dc) {
 	std::shared_ptr<GameInfo> ginfo = g_gameInfoCache->GetInfo(dc.GetDrawContext(), gamePath_, 0);
 	Draw::Texture *texture = 0;
@@ -309,8 +310,8 @@ void GameButton::Draw(UIContext &dc) {
 		dc.GetDrawContext()->BindTexture(0, texture);
 		if (holdStart_ != 0.0) {
 			double time_held = time_now_d() - holdStart_;
-			int holdFrameCount = (int)(time_held * 60.0f);
-			if (holdFrameCount > 60) {
+			int holdFrameCount = (int)(time_held * (targetFPS * 1.0));
+			if (holdFrameCount > targetFPS) {
 				// Blink before launching by holding
 				if (((holdFrameCount >> 3) & 1) == 0)
 					color = darkenColor(color);

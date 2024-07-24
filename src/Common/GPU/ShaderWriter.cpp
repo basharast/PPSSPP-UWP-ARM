@@ -137,6 +137,7 @@ void ShaderWriter::Preamble(Slice<const char *> extensions) {
 		break;
 	case HLSL_D3D11:
 	case HLSL_D3D11_LEVEL9:
+	case HLSL_D3D11_LEVEL93:
 	case HLSL_D3D9:
 		switch (stage_) {
 		case ShaderStage::Vertex:
@@ -207,20 +208,23 @@ void ShaderWriter::BeginVSMain(Slice<InputDef> inputs, Slice<UniformDef> uniform
 	switch (lang_.shaderLanguage) {
 	case HLSL_D3D11:
 	case HLSL_D3D11_LEVEL9:
+	case HLSL_D3D11_LEVEL93:
 	case HLSL_D3D9:
 	{
 		C("struct VS_OUTPUT {\n");
 		for (auto &varying : varyings) {
 			F("  %s %s : %s;\n", varying.type, varying.name, semanticNames[varying.semantic]);
 		}
-		F("  vec4 pos : %s;\n", (lang_.shaderLanguage == HLSL_D3D11 || lang_.shaderLanguage == HLSL_D3D11_LEVEL9) ? "SV_Position" : "POSITION");
+		F("  vec4 pos : %s;\n", (lang_.shaderLanguage == HLSL_D3D11 || lang_.shaderLanguage == HLSL_D3D11_LEVEL9 || lang_.shaderLanguage == HLSL_D3D11_LEVEL93) ? "SV_Position" : "POSITION");
 		C("};\n");
 
 		C("VS_OUTPUT main(  ");  // 2 spaces for the rewind
-		if (lang_.shaderLanguage == HLSL_D3D11) {
+		
+		if(lang_.shaderLanguage == HLSL_D3D11){
 			C("uint gl_VertexIndex : SV_VertexID, ");
-		}else if (lang_.shaderLanguage == HLSL_D3D11_LEVEL9) {
-			//C("uint gl_VertexIndex : SV_VertexID, ");
+		}
+		else {
+			// Not supported in feature level 9.x
 		}
 
 		// List the inputs.
@@ -265,6 +269,7 @@ void ShaderWriter::BeginFSMain(Slice<UniformDef> uniforms, Slice<VaryingDef> var
 	switch (lang_.shaderLanguage) {
 	case HLSL_D3D11:
 	case HLSL_D3D11_LEVEL9:
+	case HLSL_D3D11_LEVEL93:
 		if (!uniforms.is_empty()) {
 			C("cbuffer base : register(b0) {\n");
 
@@ -361,12 +366,13 @@ void ShaderWriter::BeginGSMain(Slice<VaryingDef> varyings, Slice<VaryingDef> out
 	switch (lang_.shaderLanguage) {
 	case HLSL_D3D11:
 	case HLSL_D3D11_LEVEL9:
+	case HLSL_D3D11_LEVEL93:
 		// Untested, but should work.
 		C("\nstruct GS_OUTPUT {\n");
 		for (auto &varying : outVaryings) {
 			F("  %s %s : %s;\n", varying.type, varying.name, semanticNames[varying.semantic]);
 		}
-		F("  vec4 pos : %s;\n", (lang_.shaderLanguage == HLSL_D3D11 || lang_.shaderLanguage == HLSL_D3D11_LEVEL9) ? "SV_Position" : "POSITION");
+		F("  vec4 pos : %s;\n", (lang_.shaderLanguage == HLSL_D3D11 || lang_.shaderLanguage == HLSL_D3D11_LEVEL9|| lang_.shaderLanguage == HLSL_D3D11_LEVEL93) ? "SV_Position" : "POSITION");
 		C("};\n");
 		C("#define EmitVertex() emit.Append(gsout)\n");
 
@@ -399,6 +405,7 @@ void ShaderWriter::EndVSMain(Slice<VaryingDef> varyings) {
 	switch (lang_.shaderLanguage) {
 	case HLSL_D3D11:
 	case HLSL_D3D11_LEVEL9:
+	case HLSL_D3D11_LEVEL93:
 	case HLSL_D3D9:
 		C("  VS_OUTPUT vs_out;\n");
 		if (strlen(lang_.viewportYSign)) {
@@ -422,6 +429,7 @@ void ShaderWriter::EndFSMain(const char *vec4_color_variable) {
 	switch (lang_.shaderLanguage) {
 	case HLSL_D3D11:
 	case HLSL_D3D11_LEVEL9:
+	case HLSL_D3D11_LEVEL93:
 	case HLSL_D3D9:
 		F("  ps_out.target = %s;\n", vec4_color_variable);
 		if (flags_ & ShaderWriterFlags::FS_WRITE_DEPTH) {
@@ -458,6 +466,7 @@ void ShaderWriter::ConstFloat(const char *name, float value) {
 	switch (lang_.shaderLanguage) {
 	case HLSL_D3D11:
 	case HLSL_D3D11_LEVEL9:
+	case HLSL_D3D11_LEVEL93:
 	case HLSL_D3D9:
 		F("static const float %s = %f;\n", name, value);
 		break;
@@ -483,6 +492,7 @@ void ShaderWriter::DeclareTexture2D(const SamplerDef &def) {
 	switch (lang_.shaderLanguage) {
 	case HLSL_D3D11:
 	case HLSL_D3D11_LEVEL9:
+	case HLSL_D3D11_LEVEL93:
 		F("Texture2D<float4> %s : register(t%d);\n", def.name, def.binding);
 		break;
 	case HLSL_D3D9:
@@ -507,6 +517,7 @@ void ShaderWriter::DeclareSampler2D(const SamplerDef &def) {
 	switch (lang_.shaderLanguage) {
 	case HLSL_D3D11:
 	case HLSL_D3D11_LEVEL9:
+	case HLSL_D3D11_LEVEL93:
 		F("SamplerState %sSamp : register(s%d);\n", def.name, def.binding);
 		break;
 	default:
@@ -519,6 +530,7 @@ ShaderWriter &ShaderWriter::SampleTexture2D(const char *sampName, const char *uv
 	switch (lang_.shaderLanguage) {
 	case HLSL_D3D11:
 	case HLSL_D3D11_LEVEL9:
+	case HLSL_D3D11_LEVEL93:
 		F("%s.Sample(%sSamp, %s)", sampName, sampName, uv);
 		break;
 	case HLSL_D3D9:
@@ -543,6 +555,7 @@ ShaderWriter &ShaderWriter::SampleTexture2DOffset(const char *sampName, const ch
 	switch (lang_.shaderLanguage) {
 	case HLSL_D3D11:
 	case HLSL_D3D11_LEVEL9:
+	case HLSL_D3D11_LEVEL93:
 		F("%s.Sample(%sSamp, %s, int2(%d, %d))", sampName, sampName, uv, offX, offY);
 		break;
 	case HLSL_D3D9:
@@ -568,6 +581,7 @@ ShaderWriter &ShaderWriter::LoadTexture2D(const char *sampName, const char *uv, 
 	switch (lang_.shaderLanguage) {
 	case HLSL_D3D11:
 	case HLSL_D3D11_LEVEL9:
+	case HLSL_D3D11_LEVEL93:
 		F("%s.Load(ivec3(%s, %d))", sampName, uv, level);
 		break;
 	case HLSL_D3D9:
@@ -591,6 +605,7 @@ ShaderWriter &ShaderWriter::GetTextureSize(const char *szVariable, const char *t
 	switch (lang_.shaderLanguage) {
 	case HLSL_D3D11:
 	case HLSL_D3D11_LEVEL9:
+	case HLSL_D3D11_LEVEL93:
 		F("  float2 %s; %s.GetDimensions(%s.x, %s.y);", szVariable, texName, szVariable, szVariable);
 		break;
 	case HLSL_D3D9:

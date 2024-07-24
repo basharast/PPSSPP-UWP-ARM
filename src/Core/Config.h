@@ -75,7 +75,9 @@ public:
 	bool bPauseWhenMinimized;
 
 	float bDPIBoost;
+	float bQualityControl;
 	int iRefreshRate;
+	int iRefreshRate2;
 	int bMonitorsCount;
 	int bAudioFramesPerBuffer;
 	bool bSensorsMove;
@@ -88,6 +90,7 @@ public:
 	int bSwapFlagsTemp;
 	bool bRenderSkip;
 	bool bRenderSkip2;
+	bool bRenderSkip3;
 	bool bDetectDeviceLose;
 	bool bFogState;
 	bool bAssertTextureCache;
@@ -180,9 +183,11 @@ public:
 	bool bVSync;
 
 	int iFrameSkip;
+	int iFrameSkip2;
 	int iFrameSkipType;
 	int iFastForwardMode; // See FastForwardMode in ConfigValues.h.
 	bool bAutoFrameSkip;
+	bool bAutoFrameSkip2;
 
 	bool bEnableCardboardVR; // Cardboard Master Switch
 	int iCardboardScreenSize; // Screen Size (in %)
@@ -231,6 +236,7 @@ public:
 	int iStateUndoLastSaveSlot;
 	int iAutoLoadSaveState; // 0 = off, 1 = oldest, 2 = newest, >2 = slot number + 3
 	bool bEnableCheats;
+	bool bEnableCheats2;
 	bool bReloadCheats;
 	int iCwCheatRefreshRate;
 	float fCwCheatScrollPosition;
@@ -280,6 +286,7 @@ public:
 	float iAnimationSmooth;  // enum BackgroundAnimation
 	float iAnimationSmooth2;  // enum BackgroundAnimation
 	bool bTransparentBackground;
+	bool bLowRAM;
 
 	std::string sThemeName;
 

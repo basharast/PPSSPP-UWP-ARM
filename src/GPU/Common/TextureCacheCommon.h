@@ -31,6 +31,8 @@
 #include "GPU/Common/TextureShaderCommon.h"
 #include "GPU/Common/TextureReplacer.h"
 
+extern int targetFPS;
+
 class Draw2D;
 
 enum FramebufferNotification {
@@ -460,14 +462,13 @@ protected:
 	ShaderManagerCommon *shaderManager_;
 
 	bool clearCacheNextFrame_ = false;
-	bool lowMemoryMode_ = false;
 
 	int decimationCounter_;
 	int texelsScaledThisFrame_ = 0;
 	int timesInvalidatedAllThisFrame_ = 0;
 	double replacementTimeThisFrame_ = 0;
 	// TODO: Maybe vary by FPS...
-	double replacementFrameBudget_ = 0.5 / 60.0;
+	double replacementFrameBudget_ = 0.5 / (targetFPS * 1.0);
 
 	TexCache cache_;
 	u32 cacheSizeEstimate_ = 0;

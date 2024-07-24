@@ -101,6 +101,7 @@ private:
 	UI::EventReturn OnRenderingBackend(UI::EventParams &e);
 	UI::EventReturn OnD3DLevel(UI::EventParams &e);
 	UI::EventReturn OnLegacy(UI::EventParams &e);
+	UI::EventReturn OnFPSChanged(UI::EventParams &e);
 	UI::EventReturn OnRenderingDevice(UI::EventParams &e);
 	UI::EventReturn OnSwapEffect(UI::EventParams &e);
 	UI::EventReturn OnSwapFlags(UI::EventParams &e);

@@ -343,6 +343,7 @@ void UIContext::DrawRectDropShadow(const Bounds &bounds, float radius, float alp
 	if (alpha <= 0.0f)
 		return;
 
+	return;
 	color = colorAlpha(color, alpha);
 
 	// Bias the shadow downwards a bit.

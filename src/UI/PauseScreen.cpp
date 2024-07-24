@@ -373,7 +373,7 @@ void GamePauseScreen::CreateViews() {
 		screenManager()->push(new DisplayLayoutScreen(gamePath_));
 		return UI::EVENT_DONE;
 	});
-	if (g_Config.bEnableCheats) {
+	if (g_Config.bEnableCheats2) {
 		rightColumnItems->Add(new Choice(pa->T("Cheats")))->OnClick.Add([&](UI::EventParams &e) {
 			screenManager()->push(new CwCheatScreen(gamePath_));
 			return UI::EVENT_DONE;

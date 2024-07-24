@@ -63,6 +63,7 @@ std::string langRegion;
 std::list<std::unique_ptr<InputDevice>> g_input;
 
 bool mainMenuVisible = false;
+extern float scaleAmount;
 extern DisplayOrientations currentOrientation;
 // TODO: Use Microsoft::WRL::ComPtr<> for D3D11 objects?
 // TODO: See https://github.com/Microsoft/Windows-universal-samples/tree/master/Samples/WindowsAudioSession for WASAPI with UWP
@@ -221,6 +222,7 @@ void PPSSPP_UWPMain::CreateWindowSizeDependentResources() {
 bool startupDone = false;
 bool updateScreen = true;
 bool recreateView = false;
+bool resizeBufferRequested = false;
 static bool hasSetThreadName = false;
 
 void PPSSPP_UWPMain::updateScreenState() {
@@ -238,8 +240,8 @@ void PPSSPP_UWPMain::updateScreenState() {
 	// Reset the viewport to target the whole screen.
 	auto viewport = m_deviceResources->GetScreenViewport();
 
-	g_display.pixel_xres = viewport.Width;
-	g_display.pixel_yres = viewport.Height;
+	g_display.pixel_xres = lround(viewport.Width);
+	g_display.pixel_yres = lround(viewport.Height);
 
 	if (g_display.rotation == DisplayRotation::ROTATE_90 || g_display.rotation == DisplayRotation::ROTATE_270) {
 		// We need to swap our width/height.
@@ -248,20 +250,13 @@ void PPSSPP_UWPMain::updateScreenState() {
 
 	g_display.dpi = m_deviceResources->GetActualDpi();
 
-	if (System_GetPropertyInt(SYSPROP_DEVICE_TYPE) == DEVICE_TYPE_MOBILE)
-	{
-		// Boost DPI a bit to look better.
-		if (g_Config.bDPIBoost > 0) {
-			g_display.dpi *= g_Config.bDPIBoost / 136.0f;
-		}
+	// Boost DPI a bit to look better.
+	if (g_Config.bDPIBoost > 0) {
+		g_display.dpi *= g_Config.bDPIBoost / (136.0f);
 	}
-	else {
-		if (g_Config.bDPIBoost > 0) {
-			g_display.dpi *= g_Config.bDPIBoost / 96.0f;
-		}
-	}
-	g_display.dpi_scale_x = 96.0f / g_display.dpi;
-	g_display.dpi_scale_y = 96.0f / g_display.dpi;
+
+	g_display.dpi_scale_x = (96.0f / g_display.dpi);
+	g_display.dpi_scale_y = (96.0f / g_display.dpi);
 
 	g_display.pixel_in_dps_x = 1.0f / g_display.dpi_scale_x;
 	g_display.pixel_in_dps_y = 1.0f / g_display.dpi_scale_y;
@@ -275,13 +270,26 @@ void PPSSPP_UWPMain::updateScreenState() {
 // Returns true if the frame was rendered and is ready to be displayed.
 volatile int skip = 0;
 volatile bool release = false;
-bool PPSSPP_UWPMain::Render() {
+
+bool isThreadRenderRunning = false;
+void PPSSPP_UWPMain::PPSSPPFrame() {
+	if (resizeBufferRequested) {
+		resizeBufferRequested = false;
+		scaleAmount = g_Config.bQualityControl;
+		m_deviceResources->SetQuality(scaleAmount);
+		CreateWindowSizeDependentResources();
+		updateScreen = true;
+	}
 	if (!mainMenuVisible) {
 		System_NotifyUIState("resize");
 	}
 
 	if (updateScreen) {
 		PPSSPP_UWPMain::updateScreenState();
+		concurrency::create_task([&] {
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			System_PostUIMessage("resetdpad", "");
+			});
 		updateScreen = !mainMenuVisible;
 	}
 
@@ -290,7 +298,7 @@ bool PPSSPP_UWPMain::Render() {
 		concurrency::create_task([&] {
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 			System_PostUIMessage("createall", "");
-		});
+			});
 	}
 
 	if (!hasSetThreadName) {
@@ -298,22 +306,30 @@ bool PPSSPP_UWPMain::Render() {
 		hasSetThreadName = true;
 	}
 
-	if (!g_Config.bRenderSkip || skip == 0 || !mainMenuVisible) {
-		if (!m_deviceResources->deviceLost) {
-			NativeFrame(ctx_.get());
-		}
-		skip = 1;
+	if (!m_deviceResources->deviceLost) {
+		NativeFrame(ctx_.get());
 	}
-	else {
-		if (mainMenuVisible && !release) {
-			release = true;
-			concurrency::create_task([&] {
-				std::this_thread::sleep_for(std::chrono::microseconds(g_Config.bRenderSkipCount));
-			skip = 0;
-			release = false;
-				});
+}
+extern bool m_windowClosed;
+extern bool m_windowVisible;
+void PPSSPP_UWPMain::threadPPSSPPFrameRender() {
+	/*concurrency::create_task([&] {
+		isThreadRenderRunning = true;
+
+		while (!m_windowClosed) {
+			if (m_windowVisible) {
+				PPSSPPFrame();
+			}
 		}
+
+		isThreadRenderRunning = false;
+		});*/
+}
+bool PPSSPP_UWPMain::Render() {
+	if (!isThreadRenderRunning) {
+		PPSSPPFrame();
 	}
+
 	return true;
 }
 
@@ -509,14 +525,14 @@ int System_GetPropertyInt(SystemProperty prop) {
 	{
 		CoreWindow^ corewindow = CoreWindow::GetForCurrentThread();
 		if (corewindow) {
-			return  (int)corewindow->Bounds.Width;
+			return  (int)lround(corewindow->Bounds.Width);
 		}
 	}
 	case SYSPROP_DISPLAY_YRES:
 	{
 		CoreWindow^ corewindow = CoreWindow::GetForCurrentThread();
 		if (corewindow) {
-			return (int)corewindow->Bounds.Height;
+			return (int)lround(corewindow->Bounds.Height);
 		}
 	}
 	case SYSPROP_DISPLAY_COUNT:
@@ -529,8 +545,14 @@ int System_GetPropertyInt(SystemProperty prop) {
 std::vector<float> refreshrates = { 30.0f, 60.0f, 120.0f, 240.0f };
 float System_GetPropertyFloat(SystemProperty prop) {
 	switch (prop) {
-	case SYSPROP_DISPLAY_REFRESH_RATE:
-		return refreshrates[g_Config.iRefreshRate];
+	case SYSPROP_DISPLAY_REFRESH_RATE: {
+		if (g_Config.bRenderSkip3) {
+			return 30.0f;
+		}
+		else {
+			return refreshrates[g_Config.iRefreshRate2];
+		}
+	}
 	case SYSPROP_DISPLAY_SAFE_INSET_LEFT:
 	case SYSPROP_DISPLAY_SAFE_INSET_RIGHT:
 	case SYSPROP_DISPLAY_SAFE_INSET_TOP:
@@ -628,6 +650,9 @@ void System_Notify(SystemNotification notification) {
 	}
 }
 
+extern void setTo30State(int target);
+extern int FPS30;
+extern bool NotInGame;
 bool System_MakeRequest(SystemRequestType type, int requestId, const std::string& param1, const std::string& param2, int param3) {
 	switch (type) {
 
@@ -726,7 +751,11 @@ bool System_MakeRequest(SystemRequestType type, int requestId, const std::string
 		if (!param1.empty()) {
 			if (!strcmp(param1.c_str(), "menu")) {
 				mainMenuVisible = true;
+				NotInGame = true;
 				System_NotifyUIState("resize");
+				if (g_Config.bRenderSkip3) {
+					setTo30State(FPS30);
+				}
 				CloseLaunchItem();
 #ifdef _M_ARM
 				System_Notify(SystemNotification::ROTATE_UPDATED);
@@ -743,9 +772,9 @@ bool System_MakeRequest(SystemRequestType type, int requestId, const std::string
 					ref new Windows::UI::Core::DispatchedHandler([]()
 						{
 							NativeResized();
-				System_PostUIMessage("gpu_renderResized", "");
+							System_PostUIMessage("gpu_renderResized", "");
 						}));
-				}
+			}
 			else if (!strcmp(param1.c_str(), "skeyboard")) {
 				Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(
 					CoreDispatcherPriority::Normal,
@@ -762,9 +791,9 @@ bool System_MakeRequest(SystemRequestType type, int requestId, const std::string
 							HideInputKeyboard();
 						}));
 			}
-			}
-		return true;
 		}
+		return true;
+	}
 	case SystemRequestType::COPY_TO_CLIPBOARD:
 	{
 		auto dataPackage = ref new DataPackage();
@@ -798,7 +827,7 @@ bool System_MakeRequest(SystemRequestType type, int requestId, const std::string
 	default:
 		return false;
 	}
-	}
+}
 
 void System_ShowFileInFolder(const char* path) {
 	OpenFolder(std::string(path));

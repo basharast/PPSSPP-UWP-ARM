@@ -19,6 +19,7 @@
 #include <Common/LogManager.h>
 #include <Common/File/FileUtil.h>
 #include <Common/OSVersion.h>
+#include <GPU/GPUState.h>
 
 using namespace UWP;
 
@@ -32,6 +33,9 @@ using namespace Windows::System;
 using namespace Windows::Foundation;
 using namespace Windows::Graphics::Display;
 using namespace Windows::Storage;
+
+bool m_windowClosed;
+bool m_windowVisible;
 
 // The main function is only used to initialize our IFrameworkView class.
 [Platform::MTAThread]
@@ -76,74 +80,75 @@ extern "C" {
 }
 #endif
 bool appStarted = false;
-App::App() :
-	m_windowClosed(false),
-	m_windowVisible(true)
+App::App()
 {
+	m_windowClosed = false;
+	m_windowVisible = true;
 	if (!appStarted) {
 #if _M_ARM || defined(BUILD14393)
 		concurrency::create_task([&] {
 #endif
-		std::wstring internalDataFolderW = ApplicationData::Current->LocalFolder->Path->Data();
-		g_Config.internalDataDirectory = Path(internalDataFolderW);
-		g_Config.memStickDirectory = g_Config.internalDataDirectory;
+			std::wstring internalDataFolderW = ApplicationData::Current->LocalFolder->Path->Data();
+			g_Config.internalDataDirectory = Path(internalDataFolderW);
+			g_Config.memStickDirectory = g_Config.internalDataDirectory;
 
-		// On Win32 it makes more sense to initialize the system directories here
-		// because the next place it was called was in the EmuThread, and it's too late by then.
-		InitSysDirectories();
-
-		LogManager::Init(&g_Config.bEnableLogging);
-
-		// Load config up here, because those changes below would be overwritten
-		// if it's not loaded here first.
-		g_Config.SetSearchPath(GetSysDirectory(DIRECTORY_SYSTEM));
-		g_Config.Load();
-
-		if (g_Config.bFirstRun) {
-			g_Config.memStickDirectory.clear();
-		}
-		else {
-			updateMemStickLocation();
+			// On Win32 it makes more sense to initialize the system directories here
+			// because the next place it was called was in the EmuThread, and it's too late by then.
 			InitSysDirectories();
-		}
-		
-		bool debugLogLevel = false;
 
-		g_Config.iGPUBackend = (int)GPUBackend::DIRECT3D11;
+			LogManager::Init(&g_Config.bEnableLogging);
 
-		if (debugLogLevel) {
-			LogManager::GetInstance()->SetAllLogLevels(LogTypes::LDEBUG);
-		}
+			// Load config up here, because those changes below would be overwritten
+			// if it's not loaded here first.
+			g_Config.SetSearchPath(GetSysDirectory(DIRECTORY_SYSTEM));
+			g_Config.Load();
+
+			if (g_Config.bFirstRun) {
+				g_Config.memStickDirectory.clear();
+			}
+			else {
+				updateMemStickLocation();
+				InitSysDirectories();
+			}
+
+			bool debugLogLevel = false;
+
+			g_Config.iGPUBackend = (int)GPUBackend::DIRECT3D11;
+
+			if (debugLogLevel) {
+				LogManager::GetInstance()->SetAllLogLevels(LogTypes::LDEBUG);
+			}
 #if _M_ARM || defined(BUILD14393)
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 #endif
-		// Set log file location
-		if (g_Config.bEnableLogging) {
-			LogManager::GetInstance()->ChangeFileLog(GetLogFile().c_str());
-		}
-		 
+			// Set log file location
+			if (g_Config.bEnableLogging) {
+				LogManager::GetInstance()->ChangeFileLog(GetLogFile().c_str());
+			}
+
+#if defined(BUILD14393)
+			g_Config.bBackwardCompatibility = true;
+			build14393 = true;
+#else
+			if (IsLegacyWindows()) {
+				g_Config.bBackwardCompatibility = true;
+				build14393 = true;
+			}
+#endif
+			appStarted = true;
+#if _M_ARM || defined(BUILD14393)
+			return 0;
+			});
+#endif
 #if defined(BUILD14393)
 		g_Config.bBackwardCompatibility = true;
-		build14393 = true;
 #else
 		if (IsLegacyWindows()) {
 			g_Config.bBackwardCompatibility = true;
 			build14393 = true;
 		}
 #endif
-		appStarted = true;
-#if _M_ARM || defined(BUILD14393)
-		return 0;
-		});
-#endif
-#if defined(BUILD14393)
-		g_Config.bBackwardCompatibility = true;
-#else
-		if (IsLegacyWindows()) {
-			g_Config.bBackwardCompatibility = true;
-			build14393 = true;
-		}
-#endif
+
 		// At this point we have access to the device.
 		// We can create the device-dependent resources.
 #if _M_ARM || defined(BUILD14393)
@@ -304,21 +309,108 @@ void App::Load(Platform::String^ entryPoint) {
 	}
 }
 
+int base = 1001;
+int FPS30 = 30;
+int framerate = 60;
+int targetFPS = 60;
+int targetSpeed = 200;
+float framePerSec = 59.9400599f;
+double frameMs = 1001.0 / (double)framerate;
+double timePerVblank = 1.001f / (float)framerate;
+double vblankMs = 0.7315;
+double vsyncStartMs = 0.5925;
+double vsyncEndMs = 0.7265;
+int numSkippedFrames;
+extern GPUStateCache gstate_c;
+extern void DoFrameIdleTiming();
+extern void __DisplayWaitForVblanks(const char* reason, int vblanks, bool callbacks);
+extern void __DisplayGetFPS(float* out_vps, float* out_fps, float* out_actual_fps);
+extern void DisplayFireActualFlip();
 // This method is called after the window becomes active.
+void generalCalculations() {
+	
+}
+void setTo30State(int target = FPS30) {
+	framerate = target;
+	base = 1001 / 2;
+	frameMs = (base * 1.0) / (double)framerate;
+	framePerSec = 59.9400599f / 2;
+	targetFPS = FPS30;
+
+	timePerVblank = ((base * 0.001f) * 2) / (float)framerate;
+	vblankMs = 0.7315 / 2;
+	vsyncStartMs = 0.5925 / 2;
+	vsyncEndMs = 0.7265 / 2;
+
+	g_Config.iRefreshRate2 = 0;
+	g_Config.iFpsLimit1 = (targetSpeed * 30) / 100;
+	g_Config.iFpsLimit1State = true;
+}
+void setTo60State(int target = 60) {
+	framerate = target;
+	base = 1001;
+	frameMs = (base * 1.0) / (double)framerate;
+	framePerSec = 59.9400599f;
+	targetFPS = 60;
+	
+	timePerVblank = (base * 0.001f) / (float)framerate;
+	vblankMs = 0.7315;
+	vsyncStartMs = 0.5925;
+	vsyncEndMs = 0.7265;
+
+	g_Config.iFpsLimit1 = 0;
+	g_Config.iFpsLimit1 = (targetSpeed * 60) / 100;
+	g_Config.iFpsLimit1State = false;
+}
+
+bool NotInGame = true;
 void App::Run() {
 	//Limiter
 	const std::chrono::milliseconds frameTime(33);
 	auto lastFrameTime = std::chrono::high_resolution_clock::now();
 	auto now = lastFrameTime;
 	std::chrono::nanoseconds deltaTime;
+	bool limitWasActive = false;
+	bool limitChangedBySpeed = false;
+	int fpsTracker = 0;
+	m_main->threadPPSSPPFrameRender();
 	while (!m_windowClosed) {
 		if (m_windowVisible) {
-			bool skipActive = g_Config.iFrameSkip > 0;
-			if ((g_Config.bRenderSkip2 && skipActive)) {
+			bool skipRequired = g_Config.bRenderSkip3 || NotInGame;
+			if ((skipRequired)) {
 				now = std::chrono::high_resolution_clock::now();
 				deltaTime = now - lastFrameTime;
+
+				if (g_Config.bRenderSkip3) {
+					if (!limitWasActive && !limitChangedBySpeed) {
+						setTo30State();
+						limitWasActive = true;
+					}
+				}
+				// Call it each full rate
+				/*if (fpsTracker > framerate) {
+					float vps, fps, actual_fps;
+					__DisplayGetFPS(&vps, &fps, &actual_fps);
+
+					if (fps > 0) {
+						float speed60Base = vps / (60 / 100.0f);
+						if (speed60Base <= 50) {
+							// Double the speed
+						}
+					}
+					fpsTracker = 0;
+				}
+				else {
+					fpsTracker++;
+				}*/
 			}
-			if (!(g_Config.bRenderSkip2 || !skipActive) || deltaTime >= frameTime) {
+			else {
+				if (limitWasActive) {
+					setTo60State();
+					limitWasActive = false;
+				}
+			}
+			if ((!skipRequired) || deltaTime >= frameTime) {
 				lastFrameTime = now;
 				CoreWindow::GetForCurrentThread()->Dispatcher->ProcessEvents(CoreProcessEventsOption::ProcessAllIfPresent);
 				m_main->Render();
@@ -368,8 +460,8 @@ void App::OnSuspending(Platform::Object^ sender, SuspendingEventArgs^ args) {
 
 	create_task([app, deferral]() {
 		g_Config.Save("App::OnSuspending");
-	app->m_deviceResources->Trim();
-	deferral->Complete();
+		app->m_deviceResources->Trim();
+		deferral->Complete();
 		});
 }
 

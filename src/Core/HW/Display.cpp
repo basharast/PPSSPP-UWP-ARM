@@ -69,7 +69,7 @@ static constexpr int frameTimeHistorySize = (int)ARRAY_SIZE(frameTimeHistory);
 static int frameTimeHistoryPos = 0;
 static int frameTimeHistoryValid = 0;
 static double lastFrameTimeHistory = 0.0;
-
+extern int targetFPS;
 static void CalculateFPS() {
 	double now = time_now_d();
 
@@ -78,7 +78,7 @@ static void CalculateFPS() {
 		actualFps = (float)(actualFlips - lastActualFlips);
 
 		fps = frames / (now - lastFpsTime);
-		flips = (float)(60.0 * (double)(gpuStats.numFlips - lastNumFlips) / frames);
+		flips = (float)(targetFPS * (double)(gpuStats.numFlips - lastNumFlips) / frames);
 
 		lastFpsFrame = numVBlanks;
 		lastNumFlips = gpuStats.numFlips;
@@ -148,7 +148,7 @@ uint64_t DisplayFrameStartTicks() {
 
 uint32_t __DisplayGetCurrentHcount() {
 	const int ticksIntoFrame = (int)(CoreTiming::GetTicks() - frameStartTicks);
-	const int ticksPerVblank = CoreTiming::GetClockFrequencyHz() / 60 / hCountPerVblank;
+	const int ticksPerVblank = CoreTiming::GetClockFrequencyHz() / targetFPS / hCountPerVblank;
 	// Can't seem to produce a 0 on real hardware, offsetting by 1 makes things look right.
 	return 1 + (ticksIntoFrame / ticksPerVblank);
 }
@@ -205,11 +205,7 @@ void __DisplayGetDebugStats(char *stats, size_t bufsize) {
 // framerates if they're close to 60.
 static float FramerateTarget() {
 	float target = System_GetPropertyFloat(SYSPROP_DISPLAY_REFRESH_RATE);
-	if (target < 57.0 || target > 63.0f) {
-		return 60.0f;
-	} else {
-		return target;
-	}
+	return target;
 }
 
 bool DisplayIsRunningSlow() {
@@ -295,10 +291,10 @@ int DisplayCalculateFrameSkip() {
 	int frameSkipNum;
 	if (g_Config.iFrameSkipType == 1) {
 		// Calculate the frames to skip dynamically using the set percentage of the current fps
-		frameSkipNum = (int)ceil(flips * (static_cast<double>(g_Config.iFrameSkip) / 100.00));
+		frameSkipNum = (int)ceil(flips * (static_cast<double>(g_Config.iFrameSkip2) / 100.00));
 	} else {
 		// Use the set number of frames to skip
-		frameSkipNum = g_Config.iFrameSkip;
+		frameSkipNum = g_Config.iFrameSkip2;
 	}
 	return frameSkipNum;
 }

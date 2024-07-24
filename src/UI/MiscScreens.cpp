@@ -909,6 +909,7 @@ void CreditsScreen::update() {
 	UpdateUIState(UISTATE_MENU);
 }
 
+extern int targetFPS;
 void CreditsScreen::render() {
 	UIScreen::render();
 
@@ -1072,7 +1073,7 @@ void CreditsScreen::render() {
 	int itemHeight = 36;
 	int totalHeight = numItems * itemHeight + bounds.h + 200;
 
-	float t = (float)(time_now_d() - startTime_) * 60.0;
+	float t = (float)(time_now_d() - startTime_) * (targetFPS * 1.0);
 
 	float y = bounds.y2() - fmodf(t, (float)totalHeight);
 	for (int i = 0; i < numItems; i++) {

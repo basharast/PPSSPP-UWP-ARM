@@ -99,7 +99,7 @@ bool GenerateFragmentShader(const FShaderID &id, char *buffer, const ShaderLangu
 
 	bool lmode = id.Bit(FS_BIT_LMODE);
 	bool doTexture = id.Bit(FS_BIT_DO_TEXTURE);
-	bool enableFog = id.Bit(FS_BIT_ENABLE_FOG) && (compat.shaderLanguage != HLSL_D3D11_LEVEL9 && g_Config.bFogState);
+	bool enableFog = id.Bit(FS_BIT_ENABLE_FOG) && ((compat.shaderLanguage != HLSL_D3D11_LEVEL9 && compat.shaderLanguage != HLSL_D3D11_LEVEL93) && g_Config.bFogState);
 	bool enableAlphaTest = id.Bit(FS_BIT_ALPHA_TEST);
 
 	bool alphaTestAgainstZero = id.Bit(FS_BIT_ALPHA_AGAINST_ZERO);
@@ -233,7 +233,7 @@ bool GenerateFragmentShader(const FShaderID &id, char *buffer, const ShaderLangu
 		if (stencilToAlpha == REPLACE_ALPHA_DUALSOURCE) {
 			WRITE(p, "layout (location = 0, index = 1) out vec4 fragColor1;\n");
 		}
-	} else if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D9) {
+	} else if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9  || compat.shaderLanguage == HLSL_D3D11_LEVEL93 || compat.shaderLanguage == HLSL_D3D9) {
 		if (compat.shaderLanguage == HLSL_D3D9) {
 			if (doTexture)
 				WRITE(p, "sampler tex : register(s0);\n");
@@ -316,7 +316,7 @@ bool GenerateFragmentShader(const FShaderID &id, char *buffer, const ShaderLangu
 		}
 
 		WRITE(p, "struct PS_IN {\n");
-		if (doTexture || compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9) {
+		if (doTexture || compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D11_LEVEL93) {
 			// In D3D11, if we always have a texcoord in the VS, we always need it in the PS too for the structs to match.
 			WRITE(p, "  vec3 v_texcoord: TEXCOORD0;\n");
 		}
@@ -327,7 +327,7 @@ bool GenerateFragmentShader(const FShaderID &id, char *buffer, const ShaderLangu
 		}
 		WRITE(p, "  float v_fogdepth: TEXCOORD1;\n");
 		if (needFragCoord) {
-			if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9) {
+			if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D11_LEVEL93) {
 				WRITE(p, "  vec4 pixelPos : SV_POSITION;\n");
 			} else if (compat.shaderLanguage == HLSL_D3D9) {
 				WRITE(p, "  vec4 pixelPos : VPOS;\n");  // VPOS is only supported for Shader Model 3.0, but we can probably forget about D3D9 SM2.0 at this point...
@@ -335,7 +335,7 @@ bool GenerateFragmentShader(const FShaderID &id, char *buffer, const ShaderLangu
 		}
 		WRITE(p, "};\n");
 
-		if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9) {
+		if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D11_LEVEL93) {
 			WRITE(p, "struct PS_OUT {\n");
 			if (stencilToAlpha == REPLACE_ALPHA_DUALSOURCE) {
 				WRITE(p, "  vec4 target : SV_Target0;\n");
@@ -531,7 +531,7 @@ bool GenerateFragmentShader(const FShaderID &id, char *buffer, const ShaderLangu
 		WRITE(p, "float mymod(float a, float b) { return a - b * floor(a / b); }\n");
 	}
 
-	if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9) {
+	if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D11_LEVEL93) {
 		WRITE(p, "PS_OUT main( PS_IN In ) {\n");
 		WRITE(p, "  PS_OUT outfragment;\n");
 		if (needFragCoord) {
@@ -550,7 +550,7 @@ bool GenerateFragmentShader(const FShaderID &id, char *buffer, const ShaderLangu
 		WRITE(p, "void main() {\n");
 	}
 
-	if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D9) {
+	if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9  || compat.shaderLanguage == HLSL_D3D11_LEVEL93 || compat.shaderLanguage == HLSL_D3D9) {
 		WRITE(p, "  vec4 v_color0 = In.v_color0;\n");
 		if (lmode) {
 			WRITE(p, "  vec3 v_color1 = In.v_color1;\n");
@@ -565,7 +565,7 @@ bool GenerateFragmentShader(const FShaderID &id, char *buffer, const ShaderLangu
 
 	// Two things read from the old framebuffer - shader replacement blending and bit-level masking.
 	if (readFramebufferTex) {
-		if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9) {
+		if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D11_LEVEL93) {
 			WRITE(p, "  vec4 destColor = fbotex.Load(int3((int)gl_FragCoord.x, (int)gl_FragCoord.y, 0));\n");
 		} else if (compat.shaderLanguage == HLSL_D3D9) {
 			WRITE(p, "  vec4 destColor = tex2D(fbotex, gl_FragCoord.xy * u_fbotexSize.xy);\n", compat.texture);
@@ -610,7 +610,7 @@ bool GenerateFragmentShader(const FShaderID &id, char *buffer, const ShaderLangu
 			if (terriblePrecision && (!id.Bit(FS_BIT_CLAMP_S) || !id.Bit(FS_BIT_CLAMP_T))) {
 				clampDisabled = true;
 			}
-			if (compat.shaderLanguage == HLSL_D3D11_LEVEL9) {
+			if (compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D11_LEVEL93) {
 				clampDisabled = true;
 			}
 			if (needShaderTexClamp && !clampDisabled) {
@@ -626,7 +626,7 @@ bool GenerateFragmentShader(const FShaderID &id, char *buffer, const ShaderLangu
 
 				std::string modulo = (gl_extensions.bugs & BUG_PVR_SHADER_PRECISION_BAD) ? "mymod" : "mod";
 
-				/*if (compat.shaderLanguage == HLSL_D3D11_LEVEL9) {
+				/*if (compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D11_LEVEL93) {
 					WRITE(p, "  vec2 fixedcoord = vec2((frac(v_texcoord.x) * u_texclamp.x + u_texclampoff.x), (frac(v_texcoord.y) * u_texclamp.y + u_texclampoff.y));\n");
 				}
 				else */
@@ -656,7 +656,7 @@ bool GenerateFragmentShader(const FShaderID &id, char *buffer, const ShaderLangu
 
 			switch (shaderDepalMode) {
 			case ShaderDepalMode::OFF:
-				if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9) {
+				if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D11_LEVEL93) {
 					if (texture3D) {
 						if (doTextureProjection) {
 							WRITE(p, "  vec4 t = tex.Sample(texSamp, vec3(v_texcoord.xy / v_texcoord.z, u_mipBias))%s;\n", bgraTexture ? ".bgra" : "");
@@ -862,7 +862,7 @@ bool GenerateFragmentShader(const FShaderID &id, char *buffer, const ShaderLangu
 
 			if (texFunc != GE_TEXFUNC_REPLACE) {
 				if (ubershader) {
-					if (compat.shaderLanguage == HLSL_D3D11_LEVEL9) {
+					if (compat.shaderLanguage == HLSL_D3D11_LEVEL9  && compat.shaderLanguage == HLSL_D3D11_LEVEL93) {
 						WRITE(p, "  t.a = (t.a > u_texNoAlphaMul.x) ? t.a : u_texNoAlphaMul.x;\n");
 					}
 					else 
@@ -971,7 +971,7 @@ bool GenerateFragmentShader(const FShaderID &id, char *buffer, const ShaderLangu
 							WRITE(p, "  if (roundTo255thf(v.a) %s u_alphacolorref.a) %s\n", alphaTestFuncs[alphaTestFunc], discardStatement);
 						}
 					} else {
-						if (compat.shaderLanguage == HLSL_D3D11_LEVEL9) {
+						if (compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D11_LEVEL93) {
 							WRITE(p, "  if (roundAndScaleTo255f(v.a) %s u_alphacolorref.a) %s\n", "<", discardStatement);
 							//if (alphaTestFunc == GE_COMP_NOTEQUAL || alphaTestFunc == GE_COMP_GREATER) {
 							//	WRITE(p, "  if (roundAndScaleTo255f(v.a) %s u_alphacolorref.a) %s\n", "<", discardStatement);
@@ -1291,7 +1291,7 @@ bool GenerateFragmentShader(const FShaderID &id, char *buffer, const ShaderLangu
 		WRITE(p, "  gl_FragDepth = gl_FragCoord.z;\n");
 	}
 
-	if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D9) {
+	if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9  || compat.shaderLanguage == HLSL_D3D11_LEVEL93 || compat.shaderLanguage == HLSL_D3D9) {
 		if (writeDepth) {
 			WRITE(p, "  outfragment.depth = gl_FragDepth;\n");
 		}

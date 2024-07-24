@@ -62,7 +62,7 @@ bool GenerateGeometryShader(const GShaderID &id, char *buffer, const ShaderLangu
 	if (compat.shaderLanguage == GLSL_VULKAN) {
 		WRITE(p, "\n");
 		WRITE(p, "layout (std140, set = 0, binding = 3) uniform baseVars {\n%s};\n", compat.shaderLanguage == HLSL_D3D11 ? ub_baseStr : ub_baseStr2);
-	} else if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9) {
+	} else if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D11_LEVEL93) {
 		WRITE(p, "cbuffer base : register(b0) {\n%s};\n", compat.shaderLanguage == HLSL_D3D11 ? ub_baseStr : ub_baseStr2);
 	}
 
@@ -278,8 +278,8 @@ bool GenerateGeometryShader(const GShaderID &id, char *buffer, const ShaderLangu
 
 		p.C("  }\n");
 	} else {
-		const char *clipSuffix0 = (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9) ? ".x" : "[0]";
-		const char *clipSuffix1 = (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9) ? ".y" : "[1]";
+		const char *clipSuffix0 = (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D11_LEVEL93) ? ".x" : "[0]";
+		const char *clipSuffix1 = (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D11_LEVEL93) ? ".y" : "[1]";
 
 		p.C("  for (int i = 0; i < 3; i++) {\n");   // TODO: 3 or gl_in.length()? which will be faster?
 		p.C("    vec4 outPos = gl_in[i].gl_Position;\n");

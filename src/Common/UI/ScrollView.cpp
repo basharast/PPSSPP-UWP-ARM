@@ -461,30 +461,17 @@ void ScrollView::Update() {
 
 	Gesture gesture = orientation_ == ORIENT_VERTICAL ? GESTURE_DRAG_VERTICAL : GESTURE_DRAG_HORIZONTAL;
 	gesture_.UpdateFrame();
+
+	// Directly set the scroll position to the target without easing.
 	if (scrollToTarget_) {
 		float target = ClampedScrollPos(scrollTarget_);
-
+		scrollPos_ = target;
+		scrollToTarget_ = false;
 		inertia_ = 0.0f;
-		if (fabsf(target - scrollPos_) < 0.5f) {
-			scrollPos_ = target;
-			scrollToTarget_ = false;
-		} else {
-			scrollPos_ += (target - scrollPos_) * 0.3f;
-		}
-	} else if (inertia_ != 0.0f && !gesture_.IsGestureActive(gesture, scrollTouchId_)) {
-		scrollPos_ -= inertia_;
-		inertia_ *= friction;
-		if (fabsf(inertia_) < stop_threshold)
-			inertia_ = 0.0f;
 	}
-
-	if (!gesture_.IsGestureActive(gesture, scrollTouchId_)) {
+	else if (!gesture_.IsGestureActive(gesture, scrollTouchId_)) {
 		scrollPos_ = ClampedScrollPos(scrollPos_);
-
-		pull_ *= friction;
-		if (fabsf(pull_) < 0.01f) {
-			pull_ = 0.0f;
-		}
+		pull_ = 0.0f; // Stop any pulling effects immediately.
 	}
 
 	if (oldPos != scrollPos_)

@@ -29,6 +29,9 @@
 #endif
 #include <GPU/D3D11/D3D11Util.h>
 
+extern float scaleAmount;
+std::string vertexModelGlobal;
+
 namespace Draw {
 
 static constexpr int MAX_BOUND_TEXTURES = 8;
@@ -387,8 +390,11 @@ D3D11DrawContext::D3D11DrawContext(ID3D11Device *device, ID3D11DeviceContext *de
 	hr = device_->CreateTexture2D(&packDesc, nullptr, &packTexture_);
 	_assert_(SUCCEEDED(hr));
 
-	if (featureLevel_ <= D3D_FEATURE_LEVEL_9_3) {
+	if (featureLevel_ <= D3D_FEATURE_LEVEL_9_1) {
 		shaderLanguageDesc_.Init(HLSL_D3D11_LEVEL9);
+	}
+	else if (featureLevel_ <= D3D_FEATURE_LEVEL_9_3) {
+		shaderLanguageDesc_.Init(HLSL_D3D11_LEVEL93);
 	}
 	else {
 		shaderLanguageDesc_.Init(HLSL_D3D11);
@@ -430,9 +436,9 @@ void D3D11DrawContext::HandleEvent(Event ev, int width, int height, void *param1
 			curRenderTargetView_ = nullptr;
 			curDepthStencilView_ = nullptr;
 		}
-		bbDepthStencilView_->Release();
+		//bbDepthStencilView_->Release();
 		bbDepthStencilView_ = nullptr;
-		bbDepthStencilTex_->Release();
+		//bbDepthStencilTex_->Release();
 		bbDepthStencilTex_ = nullptr;
 		curRTWidth_ = 0;
 		curRTHeight_ = 0;
@@ -449,7 +455,7 @@ void D3D11DrawContext::HandleEvent(Event ev, int width, int height, void *param1
 		// Create matching depth stencil texture. This is not really needed for PPSSPP though,
 		// and probably not for most other renderers either as you're usually rendering to other render targets and
 		// then blitting them with a shader to the screen.
-		D3D11_TEXTURE2D_DESC descDepth{};
+		/*D3D11_TEXTURE2D_DESC descDepth{};
 		descDepth.Width = width;
 		descDepth.Height = height;
 		descDepth.MipLevels = 1;
@@ -468,7 +474,7 @@ void D3D11DrawContext::HandleEvent(Event ev, int width, int height, void *param1
 		descDSV.Format = descDepth.Format;
 		descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 		descDSV.Texture2D.MipSlice = 0;
-		hr = device_->CreateDepthStencilView(bbDepthStencilTex_, &descDSV, &bbDepthStencilView_);
+		hr = device_->CreateDepthStencilView(bbDepthStencilTex_, &descDSV, &bbDepthStencilView_);*/
 
 		context_->OMSetRenderTargets(1, &bbRenderTargetView_, bbDepthStencilView_);
 
@@ -1085,7 +1091,7 @@ void D3D11DrawContext::UpdateTextureLevels(Texture *texture, const uint8_t **dat
 }
 
 ShaderModule *D3D11DrawContext::CreateShaderModule(ShaderStage stage, ShaderLanguage language, const uint8_t *data, size_t dataSize, const char *tag) {
-	if (language != ShaderLanguage::HLSL_D3D11 && language != ShaderLanguage::HLSL_D3D11_LEVEL9) {
+	if (language != ShaderLanguage::HLSL_D3D11 && language != ShaderLanguage::HLSL_D3D11_LEVEL9 && language != ShaderLanguage::HLSL_D3D11_LEVEL93) {
 		ERROR_LOG(G3D, "Unsupported shader language");
 		return nullptr;
 	}
@@ -1093,11 +1099,20 @@ ShaderModule *D3D11DrawContext::CreateShaderModule(ShaderStage stage, ShaderLang
 	const char *vertexModel = "vs_4_0";
 	const char *fragmentModel = "ps_4_0";
 	const char *geometryModel = "gs_4_0";
-	if (featureLevel_ <= D3D_FEATURE_LEVEL_9_3) {
+	vertexModelGlobal = "4_0";
+	if (featureLevel_ <= D3D_FEATURE_LEVEL_9_1) {
 		vertexModel = "vs_4_0_level_9_1";
 		fragmentModel = "ps_4_0_level_9_1";
+		vertexModelGlobal = "4_0_level_9_1";
+		geometryModel = nullptr;
+	}else
+	if (featureLevel_ <= D3D_FEATURE_LEVEL_9_3) {
+		vertexModel = "vs_4_0_level_9_3";
+		fragmentModel = "ps_4_0_level_9_3";
+		vertexModelGlobal = "4_0_level_9_3";
 		geometryModel = nullptr;
 	}
+	 
 
 	std::string compiled;
 	std::string errors;

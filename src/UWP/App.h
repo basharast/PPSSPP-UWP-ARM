@@ -99,8 +99,6 @@ namespace UWP {
 		std::shared_ptr<DX::DeviceResources> m_deviceResources;
 		std::set<HardwareButton> m_hardwareButtons;
 		std::unique_ptr<PPSSPP_UWPMain> m_main;
-		bool m_windowClosed;
-		bool m_windowVisible;
 
 		bool m_isPhone = false;
 		TouchMapper touchMap_;

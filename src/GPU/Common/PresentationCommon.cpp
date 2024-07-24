@@ -38,6 +38,7 @@
 #include "GPU/GPUState.h"
 #include "Common/GPU/ShaderTranslation.h"
 
+extern int targetFPS;
 struct Vertex {
 	float x, y, z;
 	float u, v;
@@ -208,7 +209,7 @@ void PresentationCommon::CalculatePostShaderUniforms(int bufferWidth, int buffer
 	float v_pixel_delta = 1.0f / targetHeight;
 	int flipCount = __DisplayGetFlipCount();
 	int vCount = __DisplayGetVCount();
-	float time[4] = { (float)time_now_d(), (vCount % 60) * 1.0f / 60.0f, (float)vCount, (float)(flipCount % 60) };
+	float time[4] = { (float)time_now_d(), (vCount % targetFPS) * 1.0f / (targetFPS * 1.0f), (float)vCount, (float)(flipCount % targetFPS) };
 
 	uniforms->texelDelta[0] = u_delta;
 	uniforms->texelDelta[1] = v_delta;
@@ -216,7 +217,7 @@ void PresentationCommon::CalculatePostShaderUniforms(int bufferWidth, int buffer
 	uniforms->pixelDelta[1] = v_pixel_delta;
 	memcpy(uniforms->time, time, 4 * sizeof(float));
 	uniforms->timeDelta[0] = time[0] - previousUniforms_.time[0];
-	uniforms->timeDelta[1] = (time[2] - previousUniforms_.time[2]) * (1.0f / 60.0f);
+	uniforms->timeDelta[1] = (time[2] - previousUniforms_.time[2]) * (1.0f / (targetFPS * 1.0f));
 	uniforms->timeDelta[2] = time[2] - previousUniforms_.time[2];
 	uniforms->timeDelta[3] = time[3] != previousUniforms_.time[3] ? 1.0f : 0.0f;
 	uniforms->video = hasVideo_ ? 1.0f : 0.0f;
@@ -473,7 +474,7 @@ Draw::Pipeline *PresentationCommon::CreatePipeline(std::vector<Draw::ShaderModul
 	Semantic pos = SEM_POSITION;
 	Semantic tc = SEM_TEXCOORD0;
 	// Shader translation marks these both as "TEXCOORDs" on HLSL...
-	if (postShader && (lang_ == HLSL_D3D11 || lang_ == HLSL_D3D9 || lang_ == HLSL_D3D11_LEVEL9)) {
+	if (postShader && (lang_ == HLSL_D3D11 || lang_ == HLSL_D3D9 || lang_ == HLSL_D3D11_LEVEL9 || lang_ == HLSL_D3D11_LEVEL93)) {
 		pos = SEM_TEXCOORD0;
 		tc = SEM_TEXCOORD1;
 	}

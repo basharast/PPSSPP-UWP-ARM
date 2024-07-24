@@ -635,6 +635,7 @@ void GPUCommon::NotifySteppingExit() {
 	}
 }
 
+extern int targetFPS;
 bool GPUCommon::InterpretList(DisplayList& list) {
 	// Initialized to avoid a race condition with bShowDebugStats changing.
 	double start = 0.0;
@@ -659,7 +660,7 @@ bool GPUCommon::InterpretList(DisplayList& list) {
 	}
 
 	cycleLastPC = list.pc;
-	cyclesExecuted += 60;
+	cyclesExecuted += targetFPS;
 	downcount = list.stall == 0 ? 0x0FFFFFFF : (list.stall - list.pc) / 4;
 	list.state = PSP_GE_DL_STATE_RUNNING;
 	list.interrupted = false;
@@ -992,7 +993,7 @@ void GPUCommon::Execute_End(u32 op, u32 diff) {
 	const u32 prev = Memory::ReadUnchecked_U32(currentList->pc - 4);
 	UpdatePC(currentList->pc, currentList->pc);
 	// Count in a few extra cycles on END.
-	cyclesExecuted += 60;
+	cyclesExecuted += targetFPS;
 
 	switch (prev >> 24) {
 	case GE_CMD_SIGNAL:

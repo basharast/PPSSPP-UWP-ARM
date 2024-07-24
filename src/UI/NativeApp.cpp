@@ -1137,6 +1137,8 @@ static Matrix4x4 ComputeOrthoMatrix(float xres, float yres) {
 	return ortho;
 }
 
+int tempW = g_display.pixel_xres;
+int tempH = g_display.pixel_yres;
 void NativeFrame(GraphicsContext *graphicsContext) {
 	PROFILE_END_FRAME();
 
@@ -1223,30 +1225,37 @@ void NativeFrame(GraphicsContext *graphicsContext) {
 	if (resized) {
 		INFO_LOG(G3D, "Resized flag set - recalculating bounds");
 		resized = false;
+		if (tempW != g_display.pixel_xres || tempH != g_display.pixel_yres) {
+			tempW = g_display.pixel_xres;
+			tempH = g_display.pixel_yres;
 
-		if (uiContext) {
-			// Modifying the bounds here can be used to "inset" the whole image to gain borders for TV overscan etc.
-			// The UI now supports any offset but not the EmuScreen yet.
-			uiContext->SetBounds(Bounds(0, 0, g_display.dp_xres, g_display.dp_yres));
+			if (uiContext) {
+				// Modifying the bounds here can be used to "inset" the whole image to gain borders for TV overscan etc.
+				// The UI now supports any offset but not the EmuScreen yet.
+				uiContext->SetBounds(Bounds(0, 0, g_display.dp_xres, g_display.dp_yres));
 
-			// OSX 10.6 and SDL 1.2 bug.
+				// OSX 10.6 and SDL 1.2 bug.
 #if defined(__APPLE__) && !defined(USING_QT_UI)
-			static int dp_xres_old = g_display.dp_xres;
-			if (g_display.dp_xres != dp_xres_old) {
-				dp_xres_old = g_display.dp_xres;
+				static int dp_xres_old = g_display.dp_xres;
+				if (g_display.dp_xres != dp_xres_old) {
+					dp_xres_old = g_display.dp_xres;
+				}
+#endif
 			}
+
+			graphicsContext->Resize();
+			g_screenManager->resized();
+
+			// TODO: Move this to the GraphicsContext objects for each backend.
+#if !PPSSPP_PLATFORM(WINDOWS) && !defined(ANDROID)
+			PSP_CoreParameter().pixelWidth = g_display.pixel_xres;
+			PSP_CoreParameter().pixelHeight = g_display.pixel_yres;
+			System_PostUIMessage("gpu_displayResized", "");
 #endif
 		}
-
-		graphicsContext->Resize();
-		g_screenManager->resized();
-
-		// TODO: Move this to the GraphicsContext objects for each backend.
-#if !PPSSPP_PLATFORM(WINDOWS) && !defined(ANDROID)
-		PSP_CoreParameter().pixelWidth = g_display.pixel_xres;
-		PSP_CoreParameter().pixelHeight = g_display.pixel_yres;
-		System_PostUIMessage("gpu_displayResized", "");
-#endif
+		else {
+			INFO_LOG(G3D, "Same temp size detected, no changes");
+		}
 	} else {
 		// INFO_LOG(G3D, "Polling graphics context");
 		graphicsContext->Poll();

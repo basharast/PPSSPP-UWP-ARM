@@ -294,9 +294,9 @@ bool GenerateVertexShader(const VShaderID &id, char *buffer, const ShaderLanguag
 		WRITE(p, "layout (location = 3) out highp float v_fogdepth;\n");
 
 		WRITE(p, "invariant gl_Position;\n");
-	} else if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D9) {
+	} else if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9  || compat.shaderLanguage == HLSL_D3D11_LEVEL93 || compat.shaderLanguage == HLSL_D3D9) {
 		// Note: These two share some code after this hellishly large if/else.
-		if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9) {
+		if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D11_LEVEL93) {
 			WRITE(p, "cbuffer base : register(b0) {\n%s};\n", compat.shaderLanguage == HLSL_D3D11 ? ub_baseStr : ub_baseStr2);
 			WRITE(p, "cbuffer lights: register(b1) {\n%s};\n", compat.shaderLanguage == HLSL_D3D11 ? ub_vs_lightsStr : ub_vs_lightsStr2);
 			WRITE(p, "cbuffer bones : register(b2) {\n%s};\n", compat.shaderLanguage == HLSL_D3D11 ? ub_vs_bonesStr : ub_vs_bonesStr2);
@@ -375,7 +375,7 @@ bool GenerateVertexShader(const VShaderID &id, char *buffer, const ShaderLanguag
 		// And the "varyings".
 		if (useHWTransform) {
 			WRITE(p, "struct VS_IN {                              \n");
-			if ((doSpline || doBezier) && (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9)) {
+			if ((doSpline || doBezier) && (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D11_LEVEL93)) {
 				WRITE(p, "  uint instanceId : SV_InstanceID;\n");
 			}
 			if (enableBones) {
@@ -647,7 +647,7 @@ bool GenerateVertexShader(const VShaderID &id, char *buffer, const ShaderLanguag
 			WRITE(p, "uniform sampler2D u_tess_weights_v;\n");
 
 			WRITE(p, "uniform int u_spline_counts;\n");
-		} else if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9) {
+		} else if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D11_LEVEL93) {
 			WRITE(p, "struct TessData {\n");
 			WRITE(p, "  vec3 pos; float pad1;\n");
 			WRITE(p, "  vec2 tex; vec2 pad2;\n");
@@ -683,7 +683,7 @@ bool GenerateVertexShader(const VShaderID &id, char *buffer, const ShaderLanguag
 			WRITE(p, "mat4 outerProduct(vec4 u, vec4 v) {\n");
 			WRITE(p, "  return mat4(u * v[0], u * v[1], u * v[2], u * v[3]);\n");
 			WRITE(p, "}\n");
-		} else if (compat.shaderLanguage == HLSL_D3D9 || compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9) {
+		} else if (compat.shaderLanguage == HLSL_D3D9 || compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D11_LEVEL93) {
 			WRITE(p, "mat4 outerProduct(vec4 u, vec4 v) {\n");
 			WRITE(p, "  return mul((float4x1)v, (float1x4)u);\n");
 			WRITE(p, "}\n");
@@ -697,7 +697,7 @@ bool GenerateVertexShader(const VShaderID &id, char *buffer, const ShaderLanguag
 			WRITE(p, "  vec3 nrm;\n");
 		WRITE(p, "};\n");
 
-		if (compat.shaderLanguage == HLSL_D3D9 || compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9) {
+		if (compat.shaderLanguage == HLSL_D3D9 || compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D11_LEVEL93) {
 			WRITE(p, "void tessellate(in VS_IN In, out Tess tess) {\n");
 			WRITE(p, "  vec3 position = In.position;\n");
 			WRITE(p, "  vec3 normal = In.normal;\n");
@@ -784,7 +784,7 @@ bool GenerateVertexShader(const VShaderID &id, char *buffer, const ShaderLanguag
 
 	if (ShaderLanguageIsOpenGL(compat.shaderLanguage) || compat.shaderLanguage == GLSL_VULKAN) {
 		WRITE(p, "void main() {\n");
-	} else if (compat.shaderLanguage == HLSL_D3D9 || compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9) {
+	} else if (compat.shaderLanguage == HLSL_D3D9 || compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D11_LEVEL93) {
 		WRITE(p, "VS_OUT main(VS_IN In) {\n");
 		WRITE(p, "  VS_OUT Out;\n");
 		if (hasTexcoord) {
@@ -865,7 +865,7 @@ bool GenerateVertexShader(const VShaderID &id, char *buffer, const ShaderLanguag
 			if (doBezier || doSpline) {
 				// Hardware tessellation
 				WRITE(p, "  Tess tess;\n");
-				if (compat.shaderLanguage == HLSL_D3D9 || compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9) {
+				if (compat.shaderLanguage == HLSL_D3D9 || compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D11_LEVEL93) {
 					WRITE(p, "  tessellate(In, tess);\n");
 				} else {
 					WRITE(p, "  tessellate(tess);\n");
@@ -1018,7 +1018,7 @@ bool GenerateVertexShader(const VShaderID &id, char *buffer, const ShaderLanguag
 			}
 		}
 
-		bool useIndexing = compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == GLSL_VULKAN;
+		bool useIndexing = compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9  || compat.shaderLanguage == HLSL_D3D11_LEVEL93 || compat.shaderLanguage == GLSL_VULKAN;
 
 		char iStr[4];
 
@@ -1334,8 +1334,8 @@ bool GenerateVertexShader(const VShaderID &id, char *buffer, const ShaderLanguag
 			WRITE(p, "  }\n");
 		}
 
-		const char *cull0 = (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9) ? ".x" : "[0]";
-		const char *cull1 = (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9) ? ".y" : "[1]";
+		const char *cull0 = (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D11_LEVEL93) ? ".x" : "[0]";
+		const char *cull1 = (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D11_LEVEL93) ? ".y" : "[1]";
 		if (gstate_c.Use(GPU_USE_CLIP_DISTANCE)) {
 			// TODO: Ignore triangles from GE_PRIM_RECTANGLES in transform mode, which should not clip to neg z.
 			// We add a small amount to prevent error as in #15816 (PSP Z is only 16-bit fixed point, anyway.)
@@ -1380,7 +1380,7 @@ bool GenerateVertexShader(const VShaderID &id, char *buffer, const ShaderLanguag
 			compat.vsOutPrefix, compat.vsOutPrefix, compat.vsOutPrefix);
 	}
 
-	if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9 || compat.shaderLanguage == HLSL_D3D9) {
+	if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D11_LEVEL9  || compat.shaderLanguage == HLSL_D3D11_LEVEL93 || compat.shaderLanguage == HLSL_D3D9) {
 		WRITE(p, "  return Out;\n");
 	}
 	WRITE(p, "}\n");

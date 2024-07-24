@@ -804,6 +804,7 @@ void EmuScreen::onVKey(int virtualKeyCode, bool down) {
 	}
 }
 
+extern int targetFPS;
 void EmuScreen::onVKeyAnalog(int virtualKeyCode, float value) {
 	if (virtualKeyCode != VIRTKEY_SPEED_ANALOG) {
 		return;
@@ -829,11 +830,11 @@ void EmuScreen::onVKeyAnalog(int virtualKeyCode, float value) {
 
 	// If target is above 60, value is how much to speed up over 60.  Otherwise, it's how much slower.
 	// So normalize the target.
-	int target = g_Config.iAnalogFpsLimit - 60;
-	PSP_CoreParameter().analogFpsLimit = 60 + (int)(target * value);
+	int target = g_Config.iAnalogFpsLimit - targetFPS;
+	PSP_CoreParameter().analogFpsLimit = targetFPS + (int)(target * value);
 
 	// If we've reset back to normal, turn it off.
-	limitMode = PSP_CoreParameter().analogFpsLimit == 60 ? FPSLimit::NORMAL : FPSLimit::ANALOG;
+	limitMode = PSP_CoreParameter().analogFpsLimit == targetFPS ? FPSLimit::NORMAL : FPSLimit::ANALOG;
 }
 
 bool EmuScreen::UnsyncKey(const KeyInput &key) {
@@ -1070,6 +1071,7 @@ UI::EventReturn EmuScreen::OnReset(UI::EventParams &params) {
 	return UI::EVENT_DONE;
 }
 
+extern bool NotInGame;
 void EmuScreen::update() {
 	using namespace UI;
 
@@ -1126,9 +1128,11 @@ void EmuScreen::update() {
 
 	controlMapper_.Update();
 
+	if(NotInGame)NotInGame = false;
 	if (pauseTrigger_) {
 		pauseTrigger_ = false;
 		screenManager()->push(new GamePauseScreen(gamePath_));
+		NotInGame = true;
 	}
 
 	if (saveStatePreview_ && !bootPending_) {
@@ -1325,6 +1329,7 @@ Invalid / Unknown (%d)
 	ctx->RebindTexture();
 }
 
+extern float framePerSec;
 static void DrawFPS(UIContext *ctx, const Bounds &bounds) {
 	FontID ubuntu24("UBUNTU24");
 	float vps, fps, actual_fps;
@@ -1332,13 +1337,13 @@ static void DrawFPS(UIContext *ctx, const Bounds &bounds) {
 
 	char fpsbuf[256]{};
 	if (g_Config.iShowStatusFlags == ((int)ShowStatusFlags::FPS_COUNTER | (int)ShowStatusFlags::SPEED_COUNTER)) {
-		snprintf(fpsbuf, sizeof(fpsbuf), "%0.0f/%0.0f (%0.1f%%)", actual_fps, fps, vps / (59.94f / 100.0f));
+		snprintf(fpsbuf, sizeof(fpsbuf), "%0.0f/%0.0f (%0.1f%%)", actual_fps, fps, vps / (framePerSec / 100.0f));
 	} else {
 		if (g_Config.iShowStatusFlags & (int)ShowStatusFlags::FPS_COUNTER) {
 			snprintf(fpsbuf, sizeof(fpsbuf), "FPS: %0.1f", actual_fps);
 		}
 		if (g_Config.iShowStatusFlags & (int)ShowStatusFlags::SPEED_COUNTER) {
-			snprintf(fpsbuf, sizeof(fpsbuf), "%s Speed: %0.1f%%", fpsbuf, vps / (59.94f / 100.0f));
+			snprintf(fpsbuf, sizeof(fpsbuf), "%s Speed: %0.1f%%", fpsbuf, vps / (framePerSec / 100.0f));
 		}
 	}
 
