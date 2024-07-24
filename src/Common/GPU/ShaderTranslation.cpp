@@ -64,14 +64,14 @@ static EShLanguage GetShLanguageFromStage(const ShaderStage stage) {
 
 void ShaderTranslationInit() {
 	// TODO: We have TLS issues on UWP
-//#if !PPSSPP_PLATFORM(UWP)
+#if !PPSSPP_PLATFORM(UWP)
 	glslang::InitializeProcess();
-//#endif
+#endif
 }
 void ShaderTranslationShutdown() {
-//#if !PPSSPP_PLATFORM(UWP)
+#if !PPSSPP_PLATFORM(UWP)
 	glslang::FinalizeProcess();
-//#endif
+#endif
 }
 
 struct Builtin {
@@ -230,8 +230,8 @@ bool TranslateShader(std::string *dest, ShaderLanguage destLang, const ShaderLan
 	}
 
 #if PPSSPP_PLATFORM(UWP)
-	//*errorMessage = "No shader translation available (UWP)";
-	//return false;
+	*errorMessage = "No shader translation available (UWP)";
+	return false;
 #endif
 
 	errorMessage->clear();

@@ -63,6 +63,8 @@ To build PPSSPP for `10586`
 - You need as extra SDKs: `19041`
 - Ensure `CommonUWP` set at `19041` not `22621`
 - Ensure `PPSSPP_UWP` set at `19041` not `22621`
+- Set `CommonUWP` min target to `10240` or `10586`
+- Set `PPSSPP_UWP` min target to `10240` or `10586`
 - Add Preprocessors `HTTPS_NOT_AVAILABLE` & `NO_RAC`
 - Build using `UWP Gold 14393` configuration only
 

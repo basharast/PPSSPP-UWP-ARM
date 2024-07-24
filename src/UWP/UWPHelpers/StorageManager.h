@@ -46,6 +46,7 @@
  
 #if defined(_M_ARM) || defined(BUILD14393)
 #include <list>
+#include <ctime>
 
 #include "StoragePath.h"
 #include "StorageInfo.h"

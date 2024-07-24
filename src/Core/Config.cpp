@@ -133,8 +133,6 @@ std::string CreateRandMAC() {
 
 static int DefaultCpuCore() {
 #if PPSSPP_ARCH(ARM) || PPSSPP_ARCH(ARM64) || PPSSPP_ARCH(X86) || PPSSPP_ARCH(AMD64) || PPSSPP_ARCH(RISCV64)
-	if (System_GetPropertyBool(SYSPROP_CAN_JIT))
-		return (int)CPUCore::JIT;
 	return (int)CPUCore::IR_JIT;
 #else
 	return (int)CPUCore::IR_JIT;
@@ -728,7 +726,7 @@ static const ConfigSetting controlSettings[] = {
 	ConfigSetting("TiltCircularInverseDeadzone", &g_Config.bTiltCircularInverseDeadzone, true, CfgFlag::PER_GAME),
 	ConfigSetting("TiltInputType", &g_Config.iTiltInputType, 0, CfgFlag::PER_GAME),
 #endif
-	 
+
 	ConfigSetting("DisableDpadDiagonals", &g_Config.bDisableDpadDiagonals, false, CfgFlag::PER_GAME),
 	ConfigSetting("GamepadOnlyFocused", &g_Config.bGamepadOnlyFocused, false, CfgFlag::PER_GAME),
 	ConfigSetting("TouchButtonStyle", &g_Config.iTouchButtonStyle, 1, CfgFlag::PER_GAME),
@@ -1016,7 +1014,7 @@ bool Config::LoadAppendedConfig() {
 
 	IterateSettings(iniFile, [&iniFile](Section* section, const ConfigSetting& setting) {
 		if (iniFile.Exists(section->name().c_str(), setting.iniKey_))
-		setting.Get(section);
+			setting.Get(section);
 		});
 
 	INFO_LOG(LOADER, "Loaded appended config '%s'.", appendedConfigFileName_.c_str());
@@ -1465,41 +1463,41 @@ void Config::CleanRecent() {
 	private_->SetRecentIsosThread([this] {
 		SetCurrentThreadName("RecentISOs");
 
-	AndroidJNIThreadContext jniContext;  // destructor detaches
+		AndroidJNIThreadContext jniContext;  // destructor detaches
 
-	double startTime = time_now_d();
+		double startTime = time_now_d();
 
-	std::lock_guard<std::mutex> guard(private_->recentIsosLock);
-	std::vector<std::string> cleanedRecent;
-	for (size_t i = 0; i < recentIsos.size(); i++) {
-		bool exists = false;
-		Path path = Path(recentIsos[i]);
-		switch (path.Type()) {
-		case PathType::CONTENT_URI:
-		case PathType::NATIVE:
-			exists = File::Exists(path);
-			break;
-		default:
-			FileLoader* loader = ConstructFileLoader(path);
-			exists = loader->ExistsFast();
-			delete loader;
-			break;
-		}
+		std::lock_guard<std::mutex> guard(private_->recentIsosLock);
+		std::vector<std::string> cleanedRecent;
+		for (size_t i = 0; i < recentIsos.size(); i++) {
+			bool exists = false;
+			Path path = Path(recentIsos[i]);
+			switch (path.Type()) {
+			case PathType::CONTENT_URI:
+			case PathType::NATIVE:
+				exists = File::Exists(path);
+				break;
+			default:
+				FileLoader* loader = ConstructFileLoader(path);
+				exists = loader->ExistsFast();
+				delete loader;
+				break;
+			}
 
-		if (exists) {
-			// Make sure we don't have any redundant items.
-			auto duplicate = std::find(cleanedRecent.begin(), cleanedRecent.end(), recentIsos[i]);
-			if (duplicate == cleanedRecent.end()) {
-				cleanedRecent.push_back(recentIsos[i]);
+			if (exists) {
+				// Make sure we don't have any redundant items.
+				auto duplicate = std::find(cleanedRecent.begin(), cleanedRecent.end(), recentIsos[i]);
+				if (duplicate == cleanedRecent.end()) {
+					cleanedRecent.push_back(recentIsos[i]);
+				}
 			}
 		}
-	}
 
-	double recentTime = time_now_d() - startTime;
-	if (recentTime > 0.1) {
-		INFO_LOG(SYSTEM, "CleanRecent took %0.2f", recentTime);
-	}
-	recentIsos = cleanedRecent;
+		double recentTime = time_now_d() - startTime;
+		if (recentTime > 0.1) {
+			INFO_LOG(SYSTEM, "CleanRecent took %0.2f", recentTime);
+		}
+		recentIsos = cleanedRecent;
 		});
 }
 
@@ -1752,7 +1750,7 @@ void Config::ResetControlLayout() {
 		pos.x = defaultTouchPosShow.x;
 		pos.y = defaultTouchPosShow.y;
 		pos.scale = defaultTouchPosShow.scale;
-	};
+		};
 	reset(g_Config.touchActionButtonCenter);
 	g_Config.fActionButtonSpacing = 1.0f;
 	reset(g_Config.touchDpad);

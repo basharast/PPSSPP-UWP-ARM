@@ -925,19 +925,3 @@ std::string GetCPUBrandString() {
 	}
 }
 
-// Emulation of TlsAlloc for Windows 10. Used by glslang. Doesn't actually seem to work, other than fixing the linking errors?
-
-extern "C" {
-	DWORD WINAPI __imp_TlsAlloc() {
-		return FlsAlloc(nullptr);
-	}
-	BOOL WINAPI __imp_TlsFree(DWORD index) {
-		return FlsFree(index);
-	}
-	BOOL WINAPI __imp_TlsSetValue(DWORD dwTlsIndex, LPVOID lpTlsValue) {
-		return FlsSetValue(dwTlsIndex, lpTlsValue);
-	}
-	LPVOID WINAPI __imp_TlsGetValue(DWORD dwTlsIndex) {
-		return FlsGetValue(dwTlsIndex);
-	}
-}

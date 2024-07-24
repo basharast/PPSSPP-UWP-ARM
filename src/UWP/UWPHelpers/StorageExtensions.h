@@ -44,6 +44,7 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <cctype>
 
 typedef struct {
 	DWORD dwDesiredAccess;

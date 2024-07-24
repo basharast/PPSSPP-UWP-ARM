@@ -15,14 +15,14 @@
 // Official git repository and contact information can be found at
 // https://github.com/hrydgard/ppsspp and http://www.ppsspp.org/.
 
-#include <string>
+#include <string> 
  
 using namespace Platform;
 using namespace Windows::Storage;
 using namespace Windows::UI::Core;
 using namespace Windows::ApplicationModel;
 using namespace Windows::ApplicationModel::Activation;
-
+ 
 // LaunchItem can detect launch items in two cases
 // 1- StorageFile
 // 2- URI [ppsspp:?cmd="fullpath"&launchOnExit=customURI]

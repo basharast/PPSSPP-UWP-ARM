@@ -16,12 +16,12 @@
 // https://github.com/hrydgard/ppsspp and http://www.ppsspp.org/.
 
 #include "pch.h"
-#include <io.h>
+#include <io.h> 
 #include <fcntl.h>
 #include <regex>
 
 #include "LaunchItem.h"
-
+ 
 #include "Common/Log.h"
 #include <Common/System/System.h>
 #include <Common/File/Path.h>
@@ -63,7 +63,7 @@ public:
 				if (arg->Name == "cmd")
 				{
 					auto command = FromPlatformString(arg->Value);
-					DEBUG_LOG(FILESYS, "Launch command %s", command.c_str());
+					//DEBUG_LOG(FILESYS, "Launch command %s", command.c_str());
 
 					std::regex rgx("\"(.+[^\\/]+)\"");
 					std::smatch match;
@@ -76,12 +76,12 @@ public:
 						catch (...) {
 							launchPath = match[0];
 						}
-						DEBUG_LOG(FILESYS, "Launch target %s", launchPath.c_str());
+						//DEBUG_LOG(FILESYS, "Launch target %s", launchPath.c_str());
 					}
 				}
 				else if (arg->Name == "launchOnExit") {
 					launchOnExit = FromPlatformString(arg->Value);
-					DEBUG_LOG(FILESYS, "On exit URI %s", launchOnExit.c_str());
+					//DEBUG_LOG(FILESYS, "On exit URI %s", launchOnExit.c_str());
 				}
 			}
 		}
@@ -129,12 +129,12 @@ public:
 
 		if (!launchOnExit.empty()) {
 			if (callLaunchOnExit) {
-				DEBUG_LOG(FILESYS, "Calling back %s", launchOnExit.c_str());
+				//DEBUG_LOG(FILESYS, "Calling back %s", launchOnExit.c_str());
 				auto uri = ref new Windows::Foundation::Uri(ToPlatformString(launchOnExit));
 				Windows::System::Launcher::LaunchUriAsync(uri);
 			}
 			else {
-				DEBUG_LOG(FILESYS, "Ignoring callback %s, due to callLaunchOnExit is false", launchOnExit.c_str());
+				//DEBUG_LOG(FILESYS, "Ignoring callback %s, due to callLaunchOnExit is false", launchOnExit.c_str());
 			}
 		}
 		launchOnExit = std::string();
@@ -177,7 +177,7 @@ std::string GetLaunchItemPath(IActivatedEventArgs^ activateArgs) {
 	}
 	return launchItemHandler.GetFilePath();
 }
-
+ 
 void CloseLaunchItem(bool launchOnExit) {
 	if (launchItemHandler.IsValid() && launchItemHandler.IsHandled()) {
 		launchItemHandler.Close(launchOnExit);
