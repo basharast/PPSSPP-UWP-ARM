@@ -74,6 +74,12 @@ This project for legacy support, if something isn't working on your modern hardw
 
 please don't open issue for it, I support only ARM32
 
+# Support
+The whole credits for the good performance goes to Henrik and PPSSPP contributors for keeping the project core compatible with older builds, what I did is a little comparing to the main work
+
+If you found this release helpful and enjoy it, consider supporting the project at the link below:
+
+https://www.ppsspp.org/buygold/
 
 # Credits
 
