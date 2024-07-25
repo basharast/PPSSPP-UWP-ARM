@@ -862,7 +862,7 @@ bool GenerateFragmentShader(const FShaderID &id, char *buffer, const ShaderLangu
 
 			if (texFunc != GE_TEXFUNC_REPLACE) {
 				if (ubershader) {
-					if (compat.shaderLanguage == HLSL_D3D11_LEVEL9  && compat.shaderLanguage == HLSL_D3D11_LEVEL93) {
+					if (compat.shaderLanguage == HLSL_D3D11_LEVEL9  || compat.shaderLanguage == HLSL_D3D11_LEVEL93) {
 						WRITE(p, "  t.a = (t.a > u_texNoAlphaMul.x) ? t.a : u_texNoAlphaMul.x;\n");
 					}
 					else 
