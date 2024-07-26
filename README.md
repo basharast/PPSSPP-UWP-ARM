@@ -47,7 +47,7 @@ Phase 2 ([PR](https://github.com/hrydgard/ppsspp/pull/17952)) [Mereged]
 - [x] Post shaders
 
 
-# Building
+# Building [1.15.5]
 
 - You need SDKs: 18362, 14393 and 22621 (must)
 - Use Visual Studio 2022
@@ -56,7 +56,12 @@ Phase 2 ([PR](https://github.com/hrydgard/ppsspp/pull/17952)) [Mereged]
 - Tests made on `Release` and `UWP Gold`
 - Build
 
-## Build Legacy
+# Building [1.17.1]
+- Same requirements except it's ready for `10586`
+- It has only ARM legacy configuration
+- Just select it the target config and build
+
+## Build Legacy 
 
 To build PPSSPP for `10586`
 
@@ -66,6 +71,7 @@ To build PPSSPP for `10586`
 - Set `CommonUWP` min target to `10240` or `10586`
 - Set `PPSSPP_UWP` min target to `10240` or `10586`
 - Add Preprocessors `HTTPS_NOT_AVAILABLE` & `NO_RAC`
+- At `CommonUWP` ensure to exclude `ext\naett` from build
 - Build using `UWP Gold 14393` configuration only
 
 ## Important
