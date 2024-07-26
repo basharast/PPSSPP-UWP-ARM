@@ -119,7 +119,6 @@ debian/ppsspp/
 # Libretro build
 *.o
 *.tmp
-*.a
 
 # YouCompleteMe file
 .ycm_extra_conf.pyc

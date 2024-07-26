@@ -1,7 +1,6 @@
 .DS_Store
 android/armv6/share
 android/armv7/share
-lib*/*.a
 *.o
 *.o.*
 *.d
