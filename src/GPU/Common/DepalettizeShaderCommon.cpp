@@ -97,37 +97,50 @@ void GenerateDepalShader300(ShaderWriter &writer, const DepalConfig &config) {
 		writer.C("  int index = int(color.r * 255.99);\n");
 		break;
 	case GE_FORMAT_8888:
-		if (shiftedMask & 0xFF) writer.C("  uint r = uint(abs(color.r) * 255.99);\n"); else writer.C("  uint r = 0;\n");
-		if (shiftedMask & 0xFF00) writer.C("  uint g = uint(abs(color.g) * 255.99);\n"); else writer.C("  uint g = 0;\n");
-		if (shiftedMask & 0xFF0000) writer.C("  uint b = uint(abs(color.b) * 255.99);\n"); else writer.C("  uint b = 0;\n");
-		if (shiftedMask & 0xFF000000) writer.C("  uint a = uint(abs(color.a) * 255.99);\n"); else writer.C("  uint a = 0;\n");
+		
 		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9 || writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL93) {
+			if (shiftedMask & 0xFF) writer.C("  uint r = uint(abs(color.r) * 255.99);\n"); else writer.C("  uint r = 0;\n");
+			if (shiftedMask & 0xFF00) writer.C("  uint g = uint(abs(color.g) * 255.99);\n"); else writer.C("  uint g = 0;\n");
+			if (shiftedMask & 0xFF0000) writer.C("  uint b = uint(abs(color.b) * 255.99);\n"); else writer.C("  uint b = 0;\n");
+			if (shiftedMask & 0xFF000000) writer.C("  uint a = uint(abs(color.a) * 255.99);\n"); else writer.C("  uint a = 0;\n");
 			writer.C("  uint index = (a * 16777216) + (b * 65536) + (g * 256) + (r);\n");
 		}
 		else {
+			if (shiftedMask & 0xFF) writer.C("  int r = int(color.r * 255.99);\n"); else writer.C("  int r = 0;\n");
+			if (shiftedMask & 0xFF00) writer.C("  int g = int(color.g * 255.99);\n"); else writer.C("  int g = 0;\n");
+			if (shiftedMask & 0xFF0000) writer.C("  int b = int(color.b * 255.99);\n"); else writer.C("  int b = 0;\n");
+			if (shiftedMask & 0xFF000000) writer.C("  int a = int(color.a * 255.99);\n"); else writer.C("  int a = 0;\n");
 			writer.C("  int index = (a << 24) | (b << 16) | (g << 8) | (r);\n");
 		}
 		break;
 	case GE_FORMAT_4444:
-		if (shiftedMask & 0xF) writer.C("  uint r = uint(abs(color.r) * 15.99);\n"); else writer.C("  uint r = 0;\n");
-		if (shiftedMask & 0xF0) writer.C("  uint g = uint(abs(color.g) * 15.99);\n"); else writer.C("  uint g = 0;\n");
-		if (shiftedMask & 0xF00) writer.C("  uint b = uint(abs(color.b) * 15.99);\n"); else writer.C("  uint b = 0;\n");
-		if (shiftedMask & 0xF000) writer.C("  uint a = uint(abs(color.a) * 15.99);\n"); else writer.C("  uint a = 0;\n");
+		
 		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9 || writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL93) {
+			if (shiftedMask & 0xF) writer.C("  uint r = uint(abs(color.r) * 15.99);\n"); else writer.C("  uint r = 0;\n");
+			if (shiftedMask & 0xF0) writer.C("  uint g = uint(abs(color.g) * 15.99);\n"); else writer.C("  uint g = 0;\n");
+			if (shiftedMask & 0xF00) writer.C("  uint b = uint(abs(color.b) * 15.99);\n"); else writer.C("  uint b = 0;\n");
+			if (shiftedMask & 0xF000) writer.C("  uint a = uint(abs(color.a) * 15.99);\n"); else writer.C("  uint a = 0;\n");
 			writer.C("  uint index = (a * 4096) + (b * 256) + (g * 16) + (r);\n");
 		}
 		else {
+			if (shiftedMask & 0xF) writer.C("  int r = int(color.r * 15.99);\n"); else writer.C("  int r = 0;\n");
+			if (shiftedMask & 0xF0) writer.C("  int g = int(color.g * 15.99);\n"); else writer.C("  int g = 0;\n");
+			if (shiftedMask & 0xF00) writer.C("  int b = int(color.b * 15.99);\n"); else writer.C("  int b = 0;\n");
+			if (shiftedMask & 0xF000) writer.C("  int a = int(color.a * 15.99);\n"); else writer.C("  int a = 0;\n");
 			writer.C("  int index = (a << 12) | (b << 8) | (g << 4) | (r);\n");
 		}
 		break;
 	case GE_FORMAT_565:
-		if (shiftedMask & 0x1F) writer.C("  uint r = uint(abs(color.r) * 31.99);\n"); else writer.C("  uint r = 0;\n");
-		if (shiftedMask & 0x7E0) writer.C("  uint g = uint(abs(color.g) * 63.99);\n"); else writer.C("  uint g = 0;\n");
-		if (shiftedMask & 0xF800) writer.C("  uint b = uint(abs(color.b) * 31.99);\n"); else writer.C("  uint b = 0;\n");
 		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9 || writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL93) {
+			if (shiftedMask & 0x1F) writer.C("  uint r = uint(abs(color.r) * 31.99);\n"); else writer.C("  uint r = 0;\n");
+			if (shiftedMask & 0x7E0) writer.C("  uint g = uint(abs(color.g) * 63.99);\n"); else writer.C("  uint g = 0;\n");
+			if (shiftedMask & 0xF800) writer.C("  uint b = uint(abs(color.b) * 31.99);\n"); else writer.C("  uint b = 0;\n");
 			writer.C("  uint index = (b * 2048) + (g * 32) + (r);\n");
 		}
 		else {
+			if (shiftedMask & 0x1F) writer.C("  int r = int(color.r * 31.99);\n"); else writer.C("  int r = 0;\n");
+			if (shiftedMask & 0x7E0) writer.C("  int g = int(color.g * 63.99);\n"); else writer.C("  int g = 0;\n");
+			if (shiftedMask & 0xF800) writer.C("  int b = int(color.b * 31.99);\n"); else writer.C("  int b = 0;\n");
 			writer.C("  int index = (b << 11) | (g << 5) | (r);\n");
 		}
 		break;
@@ -136,14 +149,19 @@ void GenerateDepalShader300(ShaderWriter &writer, const DepalConfig &config) {
 			// SOCOM case. We need to make sure the next few lines load the right bits, see below.
 			shiftedMask <<= 8;
 		}
-		if (shiftedMask & 0x1F) writer.C("  uint r = uint(abs(color.r) * 31.99);\n"); else writer.C("  uint r = 0;\n");
-		if (shiftedMask & 0x3E0) writer.C("  uint g = uint(abs(color.g) * 31.99);\n"); else writer.C("  uint g = 0;\n");
-		if (shiftedMask & 0x7C00) writer.C("  uint b = uint(abs(color.b) * 31.99);\n"); else writer.C("  uint b = 0;\n");
-		if (shiftedMask & 0x8000) writer.C("  uint a = uint(abs(color.a));\n"); else writer.C("  uint a = 0;\n");
+		
 		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9 || writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL93) {
+			if (shiftedMask & 0x1F) writer.C("  uint r = uint(abs(color.r) * 31.99);\n"); else writer.C("  uint r = 0;\n");
+			if (shiftedMask & 0x3E0) writer.C("  uint g = uint(abs(color.g) * 31.99);\n"); else writer.C("  uint g = 0;\n");
+			if (shiftedMask & 0x7C00) writer.C("  uint b = uint(abs(color.b) * 31.99);\n"); else writer.C("  uint b = 0;\n");
+			if (shiftedMask & 0x8000) writer.C("  uint a = uint(abs(color.a));\n"); else writer.C("  uint a = 0;\n");
 			writer.C("  uint index = (a * 32768) + (b * 1024) + (g * 32) + (r);\n");
 		}
 		else {
+			if (shiftedMask & 0x1F) writer.C("  int r = int(color.r * 31.99);\n"); else writer.C("  int r = 0;\n");
+			if (shiftedMask & 0x3E0) writer.C("  int g = int(color.g * 31.99);\n"); else writer.C("  int g = 0;\n");
+			if (shiftedMask & 0x7C00) writer.C("  int b = int(color.b * 31.99);\n"); else writer.C("  int b = 0;\n");
+			if (shiftedMask & 0x8000) writer.C("  int a = int(color.a);\n"); else writer.C("  int a = 0;\n");
 			writer.C("  int index = (a << 15) | (b << 10) | (g << 5) | (r);\n");
 		}
 
