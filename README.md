@@ -72,8 +72,14 @@ To build PPSSPP for `10586`
 - Set `PPSSPP_UWP` min target to `10240` or `10586`
 - Add Preprocessors `HTTPS_NOT_AVAILABLE` & `NO_RAC`
 - At `CommonUWP` ensure to exclude `ext\naett` from build
-- At `Common\Thread\ThreadUtil.cpp` disable `SetThreadDescription(..);`
 - Build using `UWP Gold 14393` configuration only
+
+If you're attempting to make your own from the official source, as extra:
+- Ensure `Common/Render/Text/draw_text_uwp.cpp` has same changes I made
+- At `Common\Thread\ThreadUtil.cpp` disable `SetThreadDescription(..);`
+- Replace anything with `FromApp` with older Win32 API (Except memory functions)
+- At `App.cpp` -> `InitialPPSSPP()` ensure `->InstalledPath` replaced by `->InstalledLocation->Path`
+- Remove HDMI stuff from `UWP/Common/DeviceResources.cpp`
 
 ## Important
 
