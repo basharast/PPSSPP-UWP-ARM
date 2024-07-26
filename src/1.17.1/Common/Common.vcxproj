@@ -1,0 +1,1088 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM">
+      <Configuration>Release</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{3FCDBAE2-5103-4350-9A8E-848CE9C73195}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>Common</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\Windows\fix_2017.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\Windows\fix_2017.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\Windows\fix_2017.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\Windows\fix_2017.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\Windows\fix_2017.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\Windows\fix_2017.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\Windows\fix_2017.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\Windows\fix_2017.props" />
+  </ImportGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>$(DefaultPlatformToolset)</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>$(DefaultPlatformToolset)</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>$(DefaultPlatformToolset)</PlatformToolset>
+    <WindowsSDKDesktopARM64Support>true</WindowsSDKDesktopARM64Support>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>$(DefaultPlatformToolset)</PlatformToolset>
+    <WindowsSDKDesktopARMSupport>true</WindowsSDKDesktopARMSupport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>$(DefaultPlatformToolset)</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>$(DefaultPlatformToolset)</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>$(DefaultPlatformToolset)</PlatformToolset>
+    <WindowsSDKDesktopARM64Support>true</WindowsSDKDesktopARM64Support>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>$(DefaultPlatformToolset)</PlatformToolset>
+    <WindowsSDKDesktopARMSupport>true</WindowsSDKDesktopARMSupport>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>_CRTDBG_MAP_ALLOC;USING_WIN_UI;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;WIN32;_ARCH_32=1;_M_IX86=1;_DEBUG;_LIB;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ForcedIncludeFiles>Common/DbgNew.h</ForcedIncludeFiles>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>../ext/OpenXR-SDK/include;../ext/glew;../ext/snappy;../ext/glslang;../ext/libpng17;../ext;../ext/zlib;..;../ext/zstd/lib</AdditionalIncludeDirectories>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <MinimalRebuild>false</MinimalRebuild>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib />
+    <Lib>
+      <AdditionalDependencies>ws2_32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <AdditionalOptions>/ignore:4221 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <ForcedIncludeFiles>Common/DbgNew.h</ForcedIncludeFiles>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PreprocessorDefinitions>_CRTDBG_MAP_ALLOC;USING_WIN_UI;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;WIN32;_ARCH_64=1;_M_X64=1;_DEBUG;_LIB;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>../ext/OpenXR-SDK/include;../ext/glew;../ext/snappy;../ext/glslang;../ext/libpng17;../ext;../ext/zlib;..;../ext/zstd/lib</AdditionalIncludeDirectories>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <OmitFramePointers>false</OmitFramePointers>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <MinimalRebuild>false</MinimalRebuild>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib />
+    <Lib>
+      <AdditionalDependencies>ws2_32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <AdditionalOptions>/ignore:4221 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <ForcedIncludeFiles>Common/DbgNew.h</ForcedIncludeFiles>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PreprocessorDefinitions>_CRTDBG_MAP_ALLOC;USING_WIN_UI;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;WIN32;_ARCH_64=1;_DEBUG;_LIB;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>../ext/OpenXR-SDK/include;../ext/glew;../ext/snappy;../ext/glslang;../ext/libpng17;../ext;../ext/zlib;..;../ext/zstd/lib</AdditionalIncludeDirectories>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <OmitFramePointers>false</OmitFramePointers>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <MinimalRebuild>false</MinimalRebuild>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib />
+    <Lib>
+      <AdditionalDependencies>ws2_32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <AdditionalOptions>/ignore:4221 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PreprocessorDefinitions>_CRTDBG_MAP_ALLOC;USING_WIN_UI;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;WIN32;_ARCH_32=1;_DEBUG;_LIB;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>../ext/OpenXR-SDK/include;../ext/glew;../ext/snappy;../ext/glslang;../ext/libpng17;../ext;../ext/zlib;..;../ext/zstd/lib</AdditionalIncludeDirectories>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <OmitFramePointers>false</OmitFramePointers>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <MinimalRebuild>false</MinimalRebuild>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib />
+    <Lib>
+      <AdditionalDependencies>ws2_32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <AdditionalOptions>/ignore:4221 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>USING_WIN_UI;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;WIN32;_ARCH_32=1;_M_IX86=1;NDEBUG;_LIB;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <AdditionalIncludeDirectories>../ext/OpenXR-SDK/include;../ext/glew;../ext/snappy;../ext/glslang;../ext/libpng17;../ext;../ext/zlib;..;../ext/zstd/lib</AdditionalIncludeDirectories>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib />
+    <Lib>
+      <AdditionalDependencies>ws2_32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <AdditionalOptions>/ignore:4221 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>USING_WIN_UI;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;WIN32;_ARCH_64=1;_M_X64=1;NDEBUG;_LIB;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>../ext/OpenXR-SDK/include;../ext/glew;../ext/snappy;../ext/glslang;../ext/libpng17;../ext;../ext/zlib;..;../ext/zstd/lib</AdditionalIncludeDirectories>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <StringPooling>true</StringPooling>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib />
+    <Lib>
+      <AdditionalDependencies>ws2_32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <AdditionalOptions>/ignore:4221 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>USING_WIN_UI;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;WIN32;_ARCH_64=1;NDEBUG;_LIB;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>../ext/OpenXR-SDK/include;../ext/glew;../ext/snappy;../ext/glslang;../ext/libpng17;../ext;../ext/zlib;..;../ext/zstd/lib</AdditionalIncludeDirectories>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <StringPooling>true</StringPooling>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib />
+    <Lib>
+      <AdditionalDependencies>ws2_32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <AdditionalOptions>/ignore:4221 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>USING_WIN_UI;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;WIN32;_ARCH_32=1;NDEBUG;_LIB;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>../ext/OpenXR-SDK/include;../ext/glew;../ext/snappy;../ext/glslang;../ext/libpng17;../ext;../ext/zlib;..;../ext/zstd/lib</AdditionalIncludeDirectories>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <StringPooling>true</StringPooling>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib />
+    <Lib>
+      <AdditionalDependencies>ws2_32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <AdditionalOptions>/ignore:4221 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\ext\at3_standalone\at3_decoders.h" />
+    <ClInclude Include="..\ext\at3_standalone\atrac.h" />
+    <ClInclude Include="..\ext\at3_standalone\atrac3data.h" />
+    <ClInclude Include="..\ext\at3_standalone\atrac3plus.h" />
+    <ClInclude Include="..\ext\at3_standalone\atrac3plus_data.h" />
+    <ClInclude Include="..\ext\at3_standalone\compat.h" />
+    <ClInclude Include="..\ext\at3_standalone\fft.h" />
+    <ClInclude Include="..\ext\at3_standalone\float_dsp.h" />
+    <ClInclude Include="..\ext\at3_standalone\get_bits.h" />
+    <ClInclude Include="..\ext\at3_standalone\intreadwrite.h" />
+    <ClInclude Include="..\ext\at3_standalone\mem.h" />
+    <ClInclude Include="..\ext\basis_universal\basisu.h" />
+    <ClInclude Include="..\ext\basis_universal\basisu_containers.h" />
+    <ClInclude Include="..\ext\basis_universal\basisu_containers_impl.h" />
+    <ClInclude Include="..\ext\basis_universal\basisu_file_headers.h" />
+    <ClInclude Include="..\ext\basis_universal\basisu_transcoder.h" />
+    <ClInclude Include="..\ext\basis_universal\basisu_transcoder_internal.h" />
+    <ClInclude Include="..\ext\basis_universal\basisu_transcoder_uastc.h" />
+    <ClInclude Include="..\ext\libpng17\png.h" />
+    <ClInclude Include="..\ext\libpng17\pngconf.h" />
+    <ClInclude Include="..\ext\libpng17\pngdebug.h" />
+    <ClInclude Include="..\ext\libpng17\pnginfo.h" />
+    <ClInclude Include="..\ext\libpng17\pnglibconf.h" />
+    <ClInclude Include="..\ext\libpng17\pngpriv.h" />
+    <ClInclude Include="..\ext\libpng17\pngstruct.h" />
+    <ClInclude Include="..\ext\minimp3\minimp3.h" />
+    <ClInclude Include="..\ext\naett\naett.h" />
+    <ClInclude Include="..\ext\vma\vk_mem_alloc.h" />
+    <ClInclude Include="ABI.h" />
+    <ClInclude Include="Arm64Emitter.h" />
+    <ClInclude Include="ArmCommon.h" />
+    <ClInclude Include="ArmEmitter.h" />
+    <ClInclude Include="BitScan.h" />
+    <ClInclude Include="BitSet.h" />
+    <ClInclude Include="Buffer.h" />
+    <ClInclude Include="Data\Collections\ConstMap.h" />
+    <ClInclude Include="Data\Collections\FixedSizeQueue.h" />
+    <ClInclude Include="Data\Collections\Hashmaps.h" />
+    <ClInclude Include="Data\Collections\Slice.h" />
+    <ClInclude Include="Data\Collections\ThreadSafeList.h" />
+    <ClInclude Include="Data\Collections\TinySet.h" />
+    <ClInclude Include="Data\Color\RGBAUtil.h" />
+    <ClInclude Include="Data\Convert\SmallDataConvert.h" />
+    <ClInclude Include="Data\Encoding\Base64.h" />
+    <ClInclude Include="Data\Encoding\Compression.h" />
+    <ClInclude Include="Data\Encoding\Shiftjis.h" />
+    <ClInclude Include="Data\Encoding\Utf16.h" />
+    <ClInclude Include="Data\Encoding\Utf8.h" />
+    <ClInclude Include="Data\Format\DDSLoad.h" />
+    <ClInclude Include="Data\Format\IniFile.h" />
+    <ClInclude Include="Data\Format\JSONReader.h" />
+    <ClInclude Include="Data\Format\JSONWriter.h" />
+    <ClInclude Include="Data\Format\PNGLoad.h" />
+    <ClInclude Include="Data\Format\RIFF.h" />
+    <ClInclude Include="Data\Format\ZIMLoad.h" />
+    <ClInclude Include="Data\Format\ZIMSave.h" />
+    <ClInclude Include="Data\Hash\Hash.h" />
+    <ClInclude Include="Data\Random\Rng.h" />
+    <ClInclude Include="Data\Text\I18n.h" />
+    <ClInclude Include="Data\Text\Parsers.h" />
+    <ClInclude Include="Data\Text\WrapText.h" />
+    <ClInclude Include="FakeEmitter.h" />
+    <ClInclude Include="File\AndroidContentURI.h" />
+    <ClInclude Include="File\AndroidStorage.h" />
+    <ClInclude Include="File\DirListing.h" />
+    <ClInclude Include="File\DiskFree.h" />
+    <ClInclude Include="File\FileDescriptor.h" />
+    <ClInclude Include="File\FileUtil.h" />
+    <ClInclude Include="File\Path.h" />
+    <ClInclude Include="File\PathBrowser.h" />
+    <ClInclude Include="File\VFS\DirectoryReader.h" />
+    <ClInclude Include="File\VFS\VFS.h" />
+    <ClInclude Include="File\VFS\ZipFileReader.h" />
+    <ClInclude Include="GPU\D3D11\D3D11Loader.h" />
+    <ClInclude Include="GPU\D3D9\D3DCompilerLoader.h" />
+    <ClInclude Include="GPU\D3D9\D3D9ShaderCompiler.h" />
+    <ClInclude Include="GPU\D3D9\D3D9StateCache.h" />
+    <ClInclude Include="GPU\DataFormat.h" />
+    <ClInclude Include="GPU\GPUBackendCommon.h" />
+    <ClInclude Include="GPU\MiscTypes.h" />
+    <ClInclude Include="GPU\OpenGL\DataFormatGL.h" />
+    <ClInclude Include="GPU\OpenGL\gl3stub.h" />
+    <ClInclude Include="GPU\OpenGL\GLFeatures.h" />
+    <ClInclude Include="GPU\OpenGL\GLFrameData.h" />
+    <ClInclude Include="GPU\OpenGL\GLMemory.h" />
+    <ClInclude Include="GPU\OpenGL\GLQueueRunner.h" />
+    <ClInclude Include="GPU\OpenGL\GLRenderManager.h" />
+    <ClInclude Include="GPU\OpenGL\GLSLProgram.h" />
+    <ClInclude Include="GPU\OpenGL\GLCommon.h" />
+    <ClInclude Include="GPU\OpenGL\GLDebugLog.h" />
+    <ClInclude Include="GPU\Shader.h" />
+    <ClInclude Include="GPU\ShaderTranslation.h" />
+    <ClInclude Include="GPU\ShaderWriter.h" />
+    <ClInclude Include="GPU\thin3d.h" />
+    <ClInclude Include="GPU\thin3d_create.h" />
+    <ClInclude Include="GPU\Vulkan\VulkanAlloc.h" />
+    <ClInclude Include="GPU\Vulkan\VulkanBarrier.h" />
+    <ClInclude Include="GPU\Vulkan\VulkanContext.h" />
+    <ClInclude Include="GPU\Vulkan\VulkanDebug.h" />
+    <ClInclude Include="GPU\Vulkan\VulkanDescSet.h" />
+    <ClInclude Include="GPU\Vulkan\VulkanFramebuffer.h" />
+    <ClInclude Include="GPU\Vulkan\VulkanFrameData.h" />
+    <ClInclude Include="GPU\Vulkan\VulkanImage.h" />
+    <ClInclude Include="GPU\Vulkan\VulkanLoader.h" />
+    <ClInclude Include="GPU\Vulkan\VulkanMemory.h" />
+    <ClInclude Include="GPU\Vulkan\VulkanProfiler.h" />
+    <ClInclude Include="GPU\Vulkan\VulkanQueueRunner.h" />
+    <ClInclude Include="GPU\Vulkan\VulkanRenderManager.h" />
+    <ClInclude Include="Input\GestureDetector.h" />
+    <ClInclude Include="Input\InputState.h" />
+    <ClInclude Include="Input\KeyCodes.h" />
+    <ClInclude Include="Math\CrossSIMD.h" />
+    <ClInclude Include="Math\curves.h" />
+    <ClInclude Include="Math\expression_parser.h" />
+    <ClInclude Include="Math\fast\fast_matrix.h" />
+    <ClInclude Include="Math\geom2d.h" />
+    <ClInclude Include="Math\lin\matrix4x4.h" />
+    <ClInclude Include="Math\lin\vec3.h" />
+    <ClInclude Include="Math\math_util.h" />
+    <ClInclude Include="Math\Statistics.h" />
+    <ClInclude Include="Net\HTTPNaettRequest.h" />
+    <ClInclude Include="Net\NetBuffer.h" />
+    <ClInclude Include="Net\HTTPClient.h" />
+    <ClInclude Include="Net\HTTPHeaders.h" />
+    <ClInclude Include="Net\HTTPServer.h" />
+    <ClInclude Include="Net\HTTPRequest.h" />
+    <ClInclude Include="Net\Resolve.h" />
+    <ClInclude Include="Net\Sinks.h" />
+    <ClInclude Include="Net\URL.h" />
+    <ClInclude Include="Net\WebsocketServer.h" />
+    <ClInclude Include="Profiler\Profiler.h" />
+    <ClInclude Include="Render\DrawBuffer.h" />
+    <ClInclude Include="Render\ManagedTexture.h" />
+    <ClInclude Include="Render\TextureAtlas.h" />
+    <ClInclude Include="Render\Text\draw_text.h" />
+    <ClInclude Include="Render\Text\draw_text_android.h" />
+    <ClInclude Include="Render\Text\draw_text_cocoa.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Render\Text\draw_text_qt.h" />
+    <ClInclude Include="Render\Text\draw_text_sdl.h" />
+    <ClInclude Include="Render\Text\draw_text_uwp.h" />
+    <ClInclude Include="Render\Text\draw_text_win.h" />
+    <ClInclude Include="LogReporting.h" />
+    <ClInclude Include="RiscVEmitter.h" />
+    <ClInclude Include="Serialize\SerializeDeque.h" />
+    <ClInclude Include="Serialize\SerializeFuncs.h" />
+    <ClInclude Include="Serialize\SerializeList.h" />
+    <ClInclude Include="Serialize\SerializeMap.h" />
+    <ClInclude Include="Serialize\Serializer.h" />
+    <ClInclude Include="CodeBlock.h" />
+    <ClInclude Include="Data\Convert\ColorConv.h" />
+    <ClInclude Include="Common.h" />
+    <ClInclude Include="CommonFuncs.h" />
+    <ClInclude Include="CommonTypes.h" />
+    <ClInclude Include="CommonWindows.h" />
+    <ClInclude Include="Log\ConsoleListener.h" />
+    <ClInclude Include="Log\StdioListener.h" />
+    <ClInclude Include="CPUDetect.h" />
+    <ClInclude Include="Crypto\md5.h" />
+    <ClInclude Include="Crypto\sha1.h" />
+    <ClInclude Include="Crypto\sha256.h" />
+    <ClInclude Include="DbgNew.h" />
+    <ClInclude Include="ExceptionHandlerSetup.h" />
+    <ClInclude Include="GraphicsContext.h" />
+    <ClInclude Include="Log.h" />
+    <ClInclude Include="Log\LogManager.h" />
+    <ClInclude Include="MachineContext.h" />
+    <ClInclude Include="MemArena.h" />
+    <ClInclude Include="MemoryUtil.h" />
+    <ClInclude Include="MipsEmitter.h" />
+    <ClInclude Include="OSVersion.h" />
+    <ClInclude Include="Serialize\SerializeSet.h" />
+    <ClInclude Include="StringUtils.h" />
+    <ClInclude Include="Swap.h" />
+    <ClInclude Include="SysError.h" />
+    <ClInclude Include="System\Display.h" />
+    <ClInclude Include="System\OSD.h" />
+    <ClInclude Include="System\Request.h" />
+    <ClInclude Include="System\NativeApp.h" />
+    <ClInclude Include="System\System.h" />
+    <ClInclude Include="Thread\Barrier.h" />
+    <ClInclude Include="Thread\Channel.h" />
+    <ClInclude Include="Thread\Event.h" />
+    <ClInclude Include="Thread\Waitable.h" />
+    <ClInclude Include="Thread\ParallelLoop.h" />
+    <ClInclude Include="Thread\Promise.h" />
+    <ClInclude Include="Thread\ThreadManager.h" />
+    <ClInclude Include="Thread\ThreadUtil.h" />
+    <ClInclude Include="Thunk.h" />
+    <ClInclude Include="TimeUtil.h" />
+    <ClInclude Include="UI\AsyncImageFileView.h" />
+    <ClInclude Include="UI\Context.h" />
+    <ClInclude Include="UI\IconCache.h" />
+    <ClInclude Include="UI\PopupScreens.h" />
+    <ClInclude Include="UI\Root.h" />
+    <ClInclude Include="UI\Screen.h" />
+    <ClInclude Include="UI\ScrollView.h" />
+    <ClInclude Include="UI\Tween.h" />
+    <ClInclude Include="UI\UI.h" />
+    <ClInclude Include="UI\UIScreen.h" />
+    <ClInclude Include="UI\View.h" />
+    <ClInclude Include="UI\ViewGroup.h" />
+    <ClInclude Include="VR\OpenXRLoader.h" />
+    <ClInclude Include="VR\PPSSPPVR.h" />
+    <ClInclude Include="VR\VRBase.h" />
+    <ClInclude Include="VR\VRFramebuffer.h" />
+    <ClInclude Include="VR\VRInput.h" />
+    <ClInclude Include="VR\VRMath.h" />
+    <ClInclude Include="VR\VRRenderer.h" />
+    <ClInclude Include="x64Analyzer.h" />
+    <ClInclude Include="x64Emitter.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\ext\at3_standalone\atrac.cpp" />
+    <ClCompile Include="..\ext\at3_standalone\atrac3.cpp" />
+    <ClCompile Include="..\ext\at3_standalone\atrac3plus.cpp" />
+    <ClCompile Include="..\ext\at3_standalone\atrac3plusdec.cpp" />
+    <ClCompile Include="..\ext\at3_standalone\atrac3plusdsp.cpp" />
+    <ClCompile Include="..\ext\at3_standalone\get_bits.cpp" />
+    <ClCompile Include="..\ext\at3_standalone\compat.cpp" />
+    <ClCompile Include="..\ext\at3_standalone\fft.cpp" />
+    <ClCompile Include="..\ext\at3_standalone\mem.cpp" />
+    <ClCompile Include="..\ext\basis_universal\basisu_transcoder.cpp" />
+    <ClCompile Include="..\ext\libpng17\png.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\ext\libpng17\pngerror.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\ext\libpng17\pngget.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\ext\libpng17\pngmem.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\ext\libpng17\pngpread.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\ext\libpng17\pngread.c">
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\ext\libpng17\pngrio.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\ext\libpng17\pngrtran.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\ext\libpng17\pngrutil.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\ext\libpng17\pngset.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\ext\libpng17\pngtest.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\ext\libpng17\pngtrans.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\ext\libpng17\pngwio.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\ext\libpng17\pngwrite.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\ext\libpng17\pngwtran.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\ext\libpng17\pngwutil.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\ext\minimp3\minimp3.cpp" />
+    <ClCompile Include="..\ext\naett\naett.c" />
+    <ClCompile Include="..\ext\vma\vk_mem_alloc.cpp" />
+    <ClCompile Include="ABI.cpp" />
+    <ClCompile Include="Arm64Emitter.cpp" />
+    <ClCompile Include="ArmCPUDetect.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ArmEmitter.cpp" />
+    <ClCompile Include="Buffer.cpp" />
+    <ClCompile Include="Data\Collections\FastVec.h" />
+    <ClCompile Include="Data\Color\RGBAUtil.cpp" />
+    <ClCompile Include="Data\Convert\SmallDataConvert.cpp" />
+    <ClCompile Include="Data\Encoding\Base64.cpp" />
+    <ClCompile Include="Data\Encoding\Compression.cpp" />
+    <ClCompile Include="Data\Encoding\Utf8.cpp" />
+    <ClCompile Include="Data\Format\DDSLoad.cpp" />
+    <ClCompile Include="Data\Format\IniFile.cpp" />
+    <ClCompile Include="Data\Format\JSONReader.cpp" />
+    <ClCompile Include="Data\Format\JSONWriter.cpp" />
+    <ClCompile Include="Data\Format\PNGLoad.cpp" />
+    <ClCompile Include="Data\Format\RIFF.cpp" />
+    <ClCompile Include="Data\Format\ZIMLoad.cpp" />
+    <ClCompile Include="Data\Format\ZIMSave.cpp" />
+    <ClCompile Include="Data\Hash\Hash.cpp" />
+    <ClCompile Include="Data\Text\I18n.cpp" />
+    <ClCompile Include="Data\Text\Parsers.cpp" />
+    <ClCompile Include="Data\Text\WrapText.cpp" />
+    <ClCompile Include="File\AndroidContentURI.cpp" />
+    <ClCompile Include="File\AndroidStorage.cpp" />
+    <ClCompile Include="File\DirListing.cpp" />
+    <ClCompile Include="File\DiskFree.cpp" />
+    <ClCompile Include="File\FileDescriptor.cpp" />
+    <ClCompile Include="File\FileUtil.cpp" />
+    <ClCompile Include="File\Path.cpp" />
+    <ClCompile Include="File\PathBrowser.cpp" />
+    <ClCompile Include="File\VFS\DirectoryReader.cpp" />
+    <ClCompile Include="File\VFS\VFS.cpp" />
+    <ClCompile Include="File\VFS\ZipFileReader.cpp" />
+    <ClCompile Include="GPU\D3D11\D3D11Loader.cpp" />
+    <ClCompile Include="GPU\D3D11\thin3d_d3d11.cpp" />
+    <ClCompile Include="GPU\D3D9\D3DCompilerLoader.cpp" />
+    <ClCompile Include="GPU\D3D9\D3D9ShaderCompiler.cpp" />
+    <ClCompile Include="GPU\D3D9\D3D9StateCache.cpp" />
+    <ClCompile Include="GPU\D3D9\thin3d_d3d9.cpp" />
+    <ClCompile Include="GPU\GPUBackendCommon.cpp" />
+    <ClCompile Include="GPU\OpenGL\DataFormatGL.cpp" />
+    <ClCompile Include="GPU\OpenGL\gl3stub.c" />
+    <ClCompile Include="GPU\OpenGL\GLFeatures.cpp" />
+    <ClCompile Include="GPU\OpenGL\GLFrameData.cpp" />
+    <ClCompile Include="GPU\OpenGL\GLMemory.cpp" />
+    <ClCompile Include="GPU\OpenGL\GLQueueRunner.cpp" />
+    <ClCompile Include="GPU\OpenGL\GLRenderManager.cpp" />
+    <ClCompile Include="GPU\OpenGL\GLSLProgram.cpp" />
+    <ClCompile Include="GPU\OpenGL\GLDebugLog.cpp" />
+    <ClCompile Include="GPU\OpenGL\thin3d_gl.cpp" />
+    <ClCompile Include="GPU\Shader.cpp" />
+    <ClCompile Include="GPU\ShaderTranslation.cpp" />
+    <ClCompile Include="GPU\ShaderWriter.cpp" />
+    <ClCompile Include="GPU\thin3d.cpp" />
+    <ClCompile Include="GPU\Vulkan\thin3d_vulkan.cpp" />
+    <ClCompile Include="GPU\Vulkan\VulkanBarrier.cpp" />
+    <ClCompile Include="GPU\Vulkan\VulkanContext.cpp" />
+    <ClCompile Include="GPU\Vulkan\VulkanDebug.cpp" />
+    <ClCompile Include="GPU\Vulkan\VulkanDescSet.cpp" />
+    <ClCompile Include="GPU\Vulkan\VulkanFramebuffer.cpp" />
+    <ClCompile Include="GPU\Vulkan\VulkanFrameData.cpp" />
+    <ClCompile Include="GPU\Vulkan\VulkanImage.cpp" />
+    <ClCompile Include="GPU\Vulkan\VulkanLoader.cpp" />
+    <ClCompile Include="GPU\Vulkan\VulkanMemory.cpp" />
+    <ClCompile Include="GPU\Vulkan\VulkanProfiler.cpp" />
+    <ClCompile Include="GPU\Vulkan\VulkanQueueRunner.cpp" />
+    <ClCompile Include="GPU\Vulkan\VulkanRenderManager.cpp" />
+    <ClCompile Include="Input\GestureDetector.cpp" />
+    <ClCompile Include="Input\InputState.cpp" />
+    <ClCompile Include="Log.cpp" />
+    <ClCompile Include="Math\curves.cpp" />
+    <ClCompile Include="Math\expression_parser.cpp" />
+    <ClCompile Include="Math\fast\fast_matrix.c" />
+    <ClCompile Include="Math\lin\matrix4x4.cpp" />
+    <ClCompile Include="Math\lin\vec3.cpp" />
+    <ClCompile Include="Math\math_util.cpp" />
+    <ClCompile Include="Math\Statistics.cpp" />
+    <ClCompile Include="Net\HTTPNaettRequest.cpp" />
+    <ClCompile Include="Net\NetBuffer.cpp" />
+    <ClCompile Include="Net\HTTPClient.cpp" />
+    <ClCompile Include="Net\HTTPHeaders.cpp" />
+    <ClCompile Include="Net\HTTPServer.cpp" />
+    <ClCompile Include="Net\HTTPRequest.cpp" />
+    <ClCompile Include="Net\Resolve.cpp" />
+    <ClCompile Include="Net\Sinks.cpp" />
+    <ClCompile Include="Net\URL.cpp" />
+    <ClCompile Include="Net\WebsocketServer.cpp" />
+    <ClCompile Include="Profiler\Profiler.cpp" />
+    <ClCompile Include="Render\DrawBuffer.cpp" />
+    <ClCompile Include="Render\ManagedTexture.cpp" />
+    <ClCompile Include="Render\TextureAtlas.cpp" />
+    <ClCompile Include="Render\Text\draw_text.cpp" />
+    <ClCompile Include="Render\Text\draw_text_android.cpp" />
+    <ClCompile Include="Render\Text\draw_text_qt.cpp" />
+    <ClCompile Include="Render\Text\draw_text_sdl.cpp" />
+    <ClCompile Include="Render\Text\draw_text_uwp.cpp" />
+    <ClCompile Include="Render\Text\draw_text_win.cpp" />
+    <ClCompile Include="LogReporting.cpp" />
+    <ClCompile Include="RiscVCPUDetect.cpp" />
+    <ClCompile Include="RiscVEmitter.cpp" />
+    <ClCompile Include="LoongArchCPUDetect.cpp" />
+    <ClCompile Include="Serialize\Serializer.cpp" />
+    <ClCompile Include="Data\Convert\ColorConv.cpp" />
+    <ClCompile Include="Log\ConsoleListener.cpp" />
+    <ClCompile Include="Log\StdioListener.cpp" />
+    <ClCompile Include="CPUDetect.cpp" />
+    <ClCompile Include="MipsCPUDetect.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="FakeCPUDetect.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Crypto\md5.cpp" />
+    <ClCompile Include="Crypto\sha1.cpp" />
+    <ClCompile Include="Crypto\sha256.cpp" />
+    <ClCompile Include="ExceptionHandlerSetup.cpp" />
+    <ClCompile Include="Log\LogManager.cpp" />
+    <ClCompile Include="MemArenaAndroid.cpp" />
+    <ClCompile Include="MemArenaPosix.cpp" />
+    <ClCompile Include="MemArenaWin32.cpp" />
+    <ClCompile Include="MemArenaDarwin.cpp" />
+    <ClCompile Include="MemoryUtil.cpp" />
+    <ClCompile Include="MipsEmitter.cpp" />
+    <ClCompile Include="SysError.cpp" />
+    <ClCompile Include="OSVersion.cpp" />
+    <ClCompile Include="StringUtils.cpp" />
+    <ClCompile Include="System\Display.cpp" />
+    <ClCompile Include="System\OSD.cpp" />
+    <ClCompile Include="System\Request.cpp" />
+    <ClCompile Include="Thread\ParallelLoop.cpp" />
+    <ClCompile Include="Thread\ThreadManager.cpp" />
+    <ClCompile Include="Thread\ThreadUtil.cpp" />
+    <ClCompile Include="Thunk.cpp" />
+    <ClCompile Include="TimeUtil.cpp" />
+    <ClCompile Include="UI\AsyncImageFileView.cpp" />
+    <ClCompile Include="UI\Context.cpp" />
+    <ClCompile Include="UI\IconCache.cpp" />
+    <ClCompile Include="UI\PopupScreens.cpp" />
+    <ClCompile Include="UI\Root.cpp" />
+    <ClCompile Include="UI\Screen.cpp" />
+    <ClCompile Include="UI\ScrollView.cpp" />
+    <ClCompile Include="UI\Tween.cpp" />
+    <ClCompile Include="UI\UI.cpp" />
+    <ClCompile Include="UI\UIScreen.cpp" />
+    <ClCompile Include="UI\View.cpp" />
+    <ClCompile Include="UI\ViewGroup.cpp" />
+    <ClCompile Include="VR\OpenXRLoader.cpp" />
+    <ClCompile Include="VR\PPSSPPVR.cpp" />
+    <ClCompile Include="VR\VRBase.cpp" />
+    <ClCompile Include="VR\VRFramebuffer.cpp" />
+    <ClCompile Include="VR\VRInput.cpp" />
+    <ClCompile Include="VR\VRMath.cpp" />
+    <ClCompile Include="VR\VRRenderer.cpp" />
+    <ClCompile Include="x64Analyzer.cpp" />
+    <ClCompile Include="x64Emitter.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\ext\at3_standalone\CMakeLists.txt" />
+    <Text Include="..\ext\at3_standalone\README.txt" />
+    <Text Include="..\ext\libpng17\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ext\cpu_features.vcxproj">
+      <Project>{c249f016-7f82-45cf-bb6e-0642a988c4d3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ext\zlib\zlib.vcxproj">
+      <Project>{f761046e-6c38-4428-a5f1-38391a37bb34}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\ext\basis_universal\basisu_transcoder_tables_astc.inc" />
+    <None Include="..\ext\basis_universal\basisu_transcoder_tables_astc_0_255.inc" />
+    <None Include="..\ext\basis_universal\basisu_transcoder_tables_atc_55.inc" />
+    <None Include="..\ext\basis_universal\basisu_transcoder_tables_atc_56.inc" />
+    <None Include="..\ext\basis_universal\basisu_transcoder_tables_bc7_m5_alpha.inc" />
+    <None Include="..\ext\basis_universal\basisu_transcoder_tables_bc7_m5_color.inc" />
+    <None Include="..\ext\basis_universal\basisu_transcoder_tables_dxt1_5.inc" />
+    <None Include="..\ext\basis_universal\basisu_transcoder_tables_dxt1_6.inc" />
+    <None Include="..\ext\basis_universal\basisu_transcoder_tables_pvrtc2_45.inc" />
+    <None Include="..\ext\basis_universal\basisu_transcoder_tables_pvrtc2_alpha_33.inc" />
+    <None Include="Render\Text\draw_text_cocoa.mm">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
