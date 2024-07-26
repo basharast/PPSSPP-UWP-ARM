@@ -59,7 +59,7 @@ Phase 2 ([PR](https://github.com/hrydgard/ppsspp/pull/17952)) [Mereged]
 # Building [1.17.1]
 - Same requirements except it's ready for `10586`
 - It has only ARM legacy configuration
-- Just select it the target config and build
+- Just select the legacy config and build
 
 ## Build Legacy 
 
@@ -72,6 +72,7 @@ To build PPSSPP for `10586`
 - Set `PPSSPP_UWP` min target to `10240` or `10586`
 - Add Preprocessors `HTTPS_NOT_AVAILABLE` & `NO_RAC`
 - At `CommonUWP` ensure to exclude `ext\naett` from build
+- At `Common\Thread\ThreadUtil.cpp` disable `SetThreadDescription(..);`
 - Build using `UWP Gold 14393` configuration only
 
 ## Important
