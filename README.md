@@ -81,6 +81,27 @@ If you're attempting to make your own from the official source, as extra:
 - At `App.cpp` -> `InitialPPSSPP()` ensure `->InstalledPath` replaced by `->InstalledLocation->Path`
 - Remove HDMI stuff from `UWP/Common/DeviceResources.cpp`
 
+## Shader Compatiblity
+
+For devices such as Lumia 950/950XL & Elite X3 those support DX Feature level 11.x
+
+All other older devices supports only 9.3, surface support 9.1
+
+and this will cause the games not to work at all on older devices,
+
+I don't have good time to point the exact code lines, but here some tips:
+
+- Ensure to remove [assert](https://github.com/hrydgard/ppsspp/blob/832e64b8cd49484a0c44e2c26897f5f7259a3b6a/Common/GPU/D3D11/thin3d_d3d11.cpp#L257) that prevent 9.3 to load
+- Remove or disable [vertexIndex](https://github.com/hrydgard/ppsspp/blob/832e64b8cd49484a0c44e2c26897f5f7259a3b6a/Common/GPU/ShaderWriter.cpp#L219) 9.3 don't support that
+- Feature level 9.3 don't support bitwise, ensure to fix all shaders do that
+- Turn on D3D debug layer and ppsspp debug log and fix other shader problems one by one
+- Use multiple files to test, not all games use the same shaders
+
+and be aware, if you have device support feature level 11, then don't use 9.3
+
+the modification above will cause slow down, I made them based on my very basic experince
+
+
 ## Important
 
 This project for legacy support, if something isn't working on your modern hardware
