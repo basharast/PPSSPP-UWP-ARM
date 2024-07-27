@@ -94,6 +94,9 @@ I don't have good time to point the exact code lines, but here some tips:
 - Ensure to remove [assert](https://github.com/hrydgard/ppsspp/blob/832e64b8cd49484a0c44e2c26897f5f7259a3b6a/Common/GPU/D3D11/thin3d_d3d11.cpp#L257) that prevent 9.3 to load
 - Remove or disable [vertexIndex](https://github.com/hrydgard/ppsspp/blob/832e64b8cd49484a0c44e2c26897f5f7259a3b6a/Common/GPU/ShaderWriter.cpp#L219) 9.3 don't support that
 - Feature level 9.3 don't support bitwise, ensure to fix all shaders do that
+- Some shader already has condition for bitwise using `bitwiseOps`
+- You can simply force `bitwiseOps` to `false`
+- but there are not covered with this and has no alternative which need to be fixed
 - Turn on D3D debug layer and ppsspp debug log and fix other shader problems one by one
 - Use multiple files to test, not all games use the same shaders
 
