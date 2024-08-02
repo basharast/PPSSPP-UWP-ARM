@@ -1,6 +1,12 @@
-# PPSSPP-UWP (ARM32)
-PSP emulator with full-UWP (ARM32) support
+<p align="center">
+  <img src="assets/logo.png" width="176"><br>
+  <b>PPSSPP UWP ARM32 only</b><br/>
+  <a href="./src">Source</a> |
+  <a href="https://github.com/hrydgard/ppsspp">Original Project</a> 
+  <br/><br/>
+</p>
 
+# Target
 Legacy support:
 - Build 10586+ 
 - DirectX Feature Level 11, 9.3 (~9.1)
