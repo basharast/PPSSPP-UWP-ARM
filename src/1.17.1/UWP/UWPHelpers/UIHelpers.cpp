@@ -210,10 +210,9 @@ int AccSkipper = 0;
 extern DisplayOrientations currentOrientation;
 void OnReadingChanged(Windows::Devices::Sensors::Accelerometer^ sender, Windows::Devices::Sensors::AccelerometerReadingChangedEventArgs^ e)
 {
-	return;
-	/*if (e == nullptr || !g_Config.bSensorsMove || ReadingInProgress || g_Config.iTiltInputType == TILT_NULL || (!g_Config.bSensorsMoveX && !g_Config.bSensorsMoveY && !g_Config.bSensorsMoveZ)) {
+	if (e == nullptr || !g_Config.bSensorsMove || ReadingInProgress || g_Config.iTiltInputType == TILT_NULL || (!g_Config.bSensorsMoveX && !g_Config.bSensorsMoveY && !g_Config.bSensorsMoveZ)) {
 		return;
-	}*/
+	}
 	ReadingInProgress = true;
 
 	try {
@@ -254,39 +253,46 @@ void OnReadingChanged(Windows::Devices::Sensors::Accelerometer^ sender, Windows:
 		AxisInput axis_x;
 		axis_x.deviceId = DEVICE_ID_ACCELEROMETER;
 		axis_x.axisId = JOYSTICK_AXIS_ACCELEROMETER_X;
-		//axis_x.value = g_Config.bSensorsMoveX ? (float)xAxisAcc : 0;
+		axis_x.value = g_Config.bSensorsMoveX ? (float)xAxisAcc : 0;
 
 		//Y
 		AxisInput axis_y;
 		axis_y.deviceId = DEVICE_ID_ACCELEROMETER;
 		axis_y.axisId = JOYSTICK_AXIS_ACCELEROMETER_Y;
-		//axis_y.value = g_Config.bSensorsMoveY ? (float)yAxisAcc : 0;
+		axis_y.value = g_Config.bSensorsMoveY ? (float)yAxisAcc : 0;
 
 		//Z
 		AxisInput axis_z;
 		axis_z.deviceId = DEVICE_ID_ACCELEROMETER;
 		axis_z.axisId = JOYSTICK_AXIS_ACCELEROMETER_Z;
-		//axis_z.value = g_Config.bSensorsMoveZ ? (float)zAxisAcc : 0;
+		axis_z.value = g_Config.bSensorsMoveZ ? (float)zAxisAcc : 0;
+
+		float x = 0.f, y = 0.f, z = 0.f;
+
+		if (g_Config.bSensorsMoveX) {
+			x = axis_x.value;
+		}
+		if (g_Config.bSensorsMoveY) {
+			y = axis_y.value;
+		}
+		if (g_Config.bSensorsMoveZ) {
+			z = axis_z.value;
+		}
 
 		switch (currentOrientation)
 		{
 		case DisplayOrientations::Landscape:
 		case DisplayOrientations::LandscapeFlipped:
-			axis_x.axisId = JOYSTICK_AXIS_ACCELEROMETER_Y;
-			axis_y.axisId = JOYSTICK_AXIS_ACCELEROMETER_X;
+			if (g_Config.bSensorsMoveX) {
+				x = axis_y.value;
+			}
+			if (g_Config.bSensorsMoveY) {
+				y = axis_x.value;
+			}
 			break;
 		}
-		/*
-		if (g_Config.bSensorsMoveX) {
-			NativeAxis(axis_x);
-		}
-		if (g_Config.bSensorsMoveY) {
-			NativeAxis(axis_y);
-		}
-		if (g_Config.bSensorsMoveZ) {
-			NativeAxis(axis_z);
-		}
-		*/
+		
+		NativeAccelerometer(x, y, z);
 		ReadingInProgress = false;
 	}
 	catch (...) {
@@ -297,7 +303,6 @@ void OnReadingChanged(Windows::Devices::Sensors::Accelerometer^ sender, Windows:
 
 bool AccelerometerReady = false;
 void LinkAccelerometer() {
-#if defined(_M_ARM)
 	_accelerometer = Accelerometer::GetDefault();
 
 	if (_accelerometer != nullptr && !AccelerometerReady)
@@ -311,7 +316,6 @@ void LinkAccelerometer() {
 		_accelerometer->ReadingChanged += ref new Windows::Foundation::TypedEventHandler<Windows::Devices::Sensors::Accelerometer^, Windows::Devices::Sensors::AccelerometerReadingChangedEventArgs^>(&OnReadingChanged);
 		AccelerometerReady = true;
 	}
-#endif
 }
 bool GetAccelerometerState() {
 	return AccelerometerReady;

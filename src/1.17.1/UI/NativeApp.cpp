@@ -358,6 +358,7 @@ static void ClearFailedGPUBackends() {
 	}
 }
 
+extern bool isLevel93;
 void NativeInit(int argc, const char *argv[], const char *savegame_dir, const char *external_dir, const char *cache_dir) {
 	net::Init();  // This needs to happen before we load the config. So on Windows we also run it in Main. It's fine to call multiple times.
 
@@ -476,6 +477,18 @@ void NativeInit(int argc, const char *argv[], const char *savegame_dir, const ch
 	else {
 		INFO_LOG(Log::System, "No memstick directory file found (tried to open '%s')", memstickDirFile.c_str());
 	}
+
+	if (isLevel93) {
+		g_Config.bFogState = false;
+		g_Config.bforceFloatShader = true;
+		g_Config.bUseDepalShader = false;
+	}
+	else {
+		g_Config.bFogState = true;
+		g_Config.bforceFloatShader = false;
+		g_Config.bUseDepalShader = true;
+	}
+
 #elif PPSSPP_PLATFORM(IOS)
 	g_Config.defaultCurrentDirectory = g_Config.internalDataDirectory;
 	g_Config.memStickDirectory = DarwinFileSystemServices::appropriateMemoryStickDirectoryToUse();
@@ -516,7 +529,7 @@ void NativeInit(int argc, const char *argv[], const char *savegame_dir, const ch
 	}
 
 	if (!LogManager::GetInstance()) {
-		LogManager::Init(&g_Config.bEnableLogging);
+		LogManager::Init(&g_Config.bEnableLogging2);
 	}
 
 #if !PPSSPP_PLATFORM(WINDOWS)
@@ -1051,7 +1064,10 @@ static Matrix4x4 ComputeOrthoMatrix(float xres, float yres) {
 
 static void SendMouseDeltaAxis();
 
-void NativeFrame(GraphicsContext *graphicsContext) {
+int tempW = g_display.pixel_xres;
+int tempH = g_display.pixel_yres;
+extern bool forceResize;
+void NativeFrame(GraphicsContext* graphicsContext) {
 	PROFILE_END_FRAME();
 
 	// This can only be accessed from Windows currently, and causes linking errors with headless etc.
@@ -1105,7 +1121,7 @@ void NativeFrame(GraphicsContext *graphicsContext) {
 		pendingMessages.clear();
 	}
 
-	for (const auto &item : toProcess) {
+	for (const auto& item : toProcess) {
 		if (HandleGlobalMessage(item.message, item.value)) {
 			// TODO: Add a to-string thingy.
 			INFO_LOG(Log::System, "Handled global message: %d / %s", (int)item.message, item.value.c_str());
@@ -1155,34 +1171,43 @@ void NativeFrame(GraphicsContext *graphicsContext) {
 	int interval;
 	Draw::PresentMode presentMode = ComputePresentMode(g_draw, &interval);
 	g_draw->Present(presentMode, interval);
-
+	
 	if (resized) {
 		INFO_LOG(Log::G3D, "Resized flag set - recalculating bounds");
 		resized = false;
 
-		if (uiContext) {
-			// Modifying the bounds here can be used to "inset" the whole image to gain borders for TV overscan etc.
-			// The UI now supports any offset but not the EmuScreen yet.
-			uiContext->SetBounds(Bounds(0, 0, g_display.dp_xres, g_display.dp_yres));
+		if (tempW != g_display.pixel_xres || tempH != g_display.pixel_yres || forceResize) {
+			forceResize = false;
+			tempW = g_display.pixel_xres;
+			tempH = g_display.pixel_yres;
 
-			// OSX 10.6 and SDL 1.2 bug.
+			if (uiContext) {
+				// Modifying the bounds here can be used to "inset" the whole image to gain borders for TV overscan etc.
+				// The UI now supports any offset but not the EmuScreen yet.
+				uiContext->SetBounds(Bounds(0, 0, g_display.dp_xres, g_display.dp_yres));
+
+				// OSX 10.6 and SDL 1.2 bug.
 #if defined(__APPLE__) && !defined(USING_QT_UI)
-			static int dp_xres_old = g_display.dp_xres;
-			if (g_display.dp_xres != dp_xres_old) {
-				dp_xres_old = g_display.dp_xres;
+				static int dp_xres_old = g_display.dp_xres;
+				if (g_display.dp_xres != dp_xres_old) {
+					dp_xres_old = g_display.dp_xres;
+				}
+#endif
 			}
+
+			graphicsContext->Resize();
+			g_screenManager->resized();
+
+			// TODO: Move this to the GraphicsContext objects for each backend.
+#if !PPSSPP_PLATFORM(WINDOWS) && !defined(ANDROID)
+			PSP_CoreParameter().pixelWidth = g_display.pixel_xres;
+			PSP_CoreParameter().pixelHeight = g_display.pixel_yres;
+			System_PostUIMessage(UIMessage::GPU_DISPLAY_RESIZED);
 #endif
 		}
-
-		graphicsContext->Resize();
-		g_screenManager->resized();
-
-		// TODO: Move this to the GraphicsContext objects for each backend.
-#if !PPSSPP_PLATFORM(WINDOWS) && !defined(ANDROID)
-		PSP_CoreParameter().pixelWidth = g_display.pixel_xres;
-		PSP_CoreParameter().pixelHeight = g_display.pixel_yres;
-		System_PostUIMessage(UIMessage::GPU_DISPLAY_RESIZED);
-#endif
+		else {
+			INFO_LOG(Log::G3D, "Same temp size detected, no changes");
+		}
 	} else {
 		// INFO_LOG(Log::G3D, "Polling graphics context");
 		graphicsContext->Poll();
@@ -1468,7 +1493,7 @@ void NativeResized() {
 	// NativeResized can come from any thread so we just set a flag, then process it later.
 	VERBOSE_LOG(Log::G3D, "NativeResized - setting flag");
 	resized = true;
-	updateScreen = true;
+	//updateScreen = true;
 }
 
 void NativeSetRestarting() {

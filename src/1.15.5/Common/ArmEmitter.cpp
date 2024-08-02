@@ -632,6 +632,7 @@ void ARMXEmitter::FlushIcache()
 	FlushIcacheSection(lastCacheFlushEnd, code);
 	lastCacheFlushEnd = code;
 }
+
 void ARMXEmitter::FlushIcacheSection(u8 *start, u8 *end)
 {
 #if PPSSPP_PLATFORM(IOS)

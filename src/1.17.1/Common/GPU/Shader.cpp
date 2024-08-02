@@ -6,6 +6,8 @@
 
 #include "ext/glslang/SPIRV/GlslangToSpv.h"
 
+extern bool isLevel93;
+
 const char *ShaderLanguageAsString(ShaderLanguage lang) {
 	switch (lang) {
 	case GLSL_1xx: return "GLSL 1.x";
@@ -93,14 +95,14 @@ void ShaderLanguageDesc::Init(ShaderLanguage lang) {
 		if (lang == HLSL_D3D11) {
 			fragColor0 = "outfragment.target";
 			fragColor1 = "outfragment.target1";
-			vertexIndex = false;  // if declared as a semantic input
+			vertexIndex = !isLevel93;  // if declared as a semantic input
 		} else {
 			fragColor0 = "outfragment.target";
 		}
 		varying_fs = "in";
 		varying_vs = "out";
 		attribute = "in";
-		bitwiseOps = false;
+		bitwiseOps = !isLevel93;
 		framebufferFetchExtension = nullptr;
 		gles = false;
 		glslES30 = true;  // Hm, D3D9 too?

@@ -103,16 +103,12 @@ LocalFileLoader::LocalFileLoader(const Path& filename)
 
 	const DWORD access = GENERIC_READ, share = FILE_SHARE_READ, mode = OPEN_EXISTING, flags = FILE_ATTRIBUTE_NORMAL;
 #if PPSSPP_PLATFORM(UWP)
-#if !defined(_M_ARM) && !defined(BUILD14393)
-	handle_ = CreateFile2FromAppW(filename.ToWString().c_str(), access, share, mode, nullptr);
-#else
 	handle_ = CreateFile2(filename.ToWString().c_str(), access, share, mode, nullptr);
-#endif
 #else
 	handle_ = CreateFile(filename.ToWString().c_str(), access, share, nullptr, mode, flags, nullptr);
 #endif
 	if (handle_ == INVALID_HANDLE_VALUE) {
-#if PPSSPP_PLATFORM(UWP) && (defined(_M_ARM) || defined(BUILD14393))
+#if PPSSPP_PLATFORM(UWP)
 		//Use UWP StorageManager to get handle
 		handle_ = CreateFileUWP(filename_.ToString(), access, share, mode);
 		if (handle_ == INVALID_HANDLE_VALUE) {
@@ -172,7 +168,7 @@ bool LocalFileLoader::Exists() {
 		return info.exists;
 	}
 	else {
-#if PPSSPP_PLATFORM(UWP) && (defined(_M_ARM) || defined(BUILD14393))
+#if PPSSPP_PLATFORM(UWP)
 		return IsExistsUWP(filename_.ToString());
 #else
 		return false;
@@ -185,7 +181,7 @@ bool LocalFileLoader::IsDirectory() {
 	if (File::GetFileInfo(filename_, &info)) {
 		return info.exists && info.isDirectory;
 	}
-#if PPSSPP_PLATFORM(UWP) && (defined(_M_ARM) || defined(BUILD14393))
+#if PPSSPP_PLATFORM(UWP)
 	return IsDirectoryUWP(filename_.ToString());
 #else
 	return false;

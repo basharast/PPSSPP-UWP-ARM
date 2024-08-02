@@ -288,7 +288,7 @@ void __CheatInit() {
 	// Always register the event, want savestates to be compatible whether cheats on or off.
 	CheatEvent = CoreTiming::RegisterEvent("CheatEvent", &hleCheat);
 
-	if (g_Config.bEnableCheats) {
+	if (g_Config.bEnableCheats2) {
 		__CheatStart();
 	}
 
@@ -320,7 +320,7 @@ void __CheatDoState(PointerWrap &p) {
 }
 
 void hleCheat(u64 userdata, int cyclesLate) {
-	bool shouldBeEnabled = !Achievements::ChallengeModeActive() && g_Config.bEnableCheats;
+	bool shouldBeEnabled = !Achievements::ChallengeModeActive() && g_Config.bEnableCheats2;
 
 	if (cheatsEnabled != shouldBeEnabled) {
 		// Okay, let's move to the desired state, then.

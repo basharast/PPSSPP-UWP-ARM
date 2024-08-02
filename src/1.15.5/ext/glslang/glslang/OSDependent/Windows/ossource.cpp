@@ -36,12 +36,11 @@
 
 #define STRICT
 #define VC_EXTRALEAN 1
-#include <windows.h>
 #include <cassert>
-#include <process.h>
-#include <psapi.h>
-#include <cstdio>
 #include <cstdint>
+#include <cstdio>
+#include <process.h>
+#include <windows.h>
 
 //
 // This file contains the Window-OS-specific functions
@@ -51,29 +50,18 @@
 #error Trying to build a windows specific file in a non windows build.
 #endif
 
-DWORD(WINAPI* TlsAllocPtr)();
-BOOL(WINAPI* TlsSetValuePtr)(DWORD, LPVOID);
-LPVOID(WINAPI* TlsGetValuePtr)(DWORD);
-BOOL(WINAPI* TlsFreePtr)(DWORD);
-
 namespace glslang {
 
-inline OS_TLSIndex ToGenericTLSIndex (DWORD handle)
-{
-    return (OS_TLSIndex)((uintptr_t)handle + 1);
-}
+inline OS_TLSIndex ToGenericTLSIndex(DWORD handle) { return (OS_TLSIndex)((uintptr_t)handle + 1); }
 
-inline DWORD ToNativeTLSIndex (OS_TLSIndex nIndex)
-{
-    return (DWORD)((uintptr_t)nIndex - 1);
-}
+inline DWORD ToNativeTLSIndex(OS_TLSIndex nIndex) { return (DWORD)((uintptr_t)nIndex - 1); }
 
 //
 // Thread Local Storage Operations
 //
 OS_TLSIndex OS_AllocTLSIndex()
 {
-    DWORD dwIndex = TlsAllocPtr();
+    DWORD dwIndex = TlsAlloc();
     if (dwIndex == TLS_OUT_OF_INDEXES) {
         assert(0 && "OS_AllocTLSIndex(): Unable to allocate Thread Local Storage");
         return OS_INVALID_TLS_INDEX;
@@ -82,14 +70,14 @@ OS_TLSIndex OS_AllocTLSIndex()
     return ToGenericTLSIndex(dwIndex);
 }
 
-bool OS_SetTLSValue(OS_TLSIndex nIndex, void *lpvValue)
+bool OS_SetTLSValue(OS_TLSIndex nIndex, void* lpvValue)
 {
     if (nIndex == OS_INVALID_TLS_INDEX) {
         assert(0 && "OS_SetTLSValue(): Invalid TLS Index");
         return false;
     }
 
-    if (TlsSetValuePtr(ToNativeTLSIndex(nIndex), lpvValue))
+    if (TlsSetValue(ToNativeTLSIndex(nIndex), lpvValue))
         return true;
     else
         return false;
@@ -98,7 +86,7 @@ bool OS_SetTLSValue(OS_TLSIndex nIndex, void *lpvValue)
 void* OS_GetTLSValue(OS_TLSIndex nIndex)
 {
     assert(nIndex != OS_INVALID_TLS_INDEX);
-    return TlsGetValuePtr(ToNativeTLSIndex(nIndex));
+    return TlsGetValue(ToNativeTLSIndex(nIndex));
 }
 
 bool OS_FreeTLSIndex(OS_TLSIndex nIndex)
@@ -108,7 +96,7 @@ bool OS_FreeTLSIndex(OS_TLSIndex nIndex)
         return false;
     }
 
-    if (TlsFreePtr(ToNativeTLSIndex(nIndex)))
+    if (TlsFree(ToNativeTLSIndex(nIndex)))
         return true;
     else
         return false;
@@ -116,25 +104,13 @@ bool OS_FreeTLSIndex(OS_TLSIndex nIndex)
 
 HANDLE GlobalLock;
 
-void InitGlobalLock()
-{
-    GlobalLock = CreateMutex(nullptr, false, nullptr);
-}
+void InitGlobalLock() { GlobalLock = CreateMutex(nullptr, false, nullptr); }
 
-void GetGlobalLock()
-{
-    WaitForSingleObject(GlobalLock, INFINITE);
-}
+void GetGlobalLock() { WaitForSingleObject(GlobalLock, INFINITE); }
 
-void ReleaseGlobalLock()
-{
-    ReleaseMutex(GlobalLock);
-}
+void ReleaseGlobalLock() { ReleaseMutex(GlobalLock); }
 
-unsigned int __stdcall EnterGenericThread (void* entry)
-{
-    return ((TThreadEntrypoint)entry)(nullptr);
-}
+unsigned int __stdcall EnterGenericThread(void* entry) { return ((TThreadEntrypoint)entry)(nullptr); }
 
 //#define DUMP_COUNTERS
 

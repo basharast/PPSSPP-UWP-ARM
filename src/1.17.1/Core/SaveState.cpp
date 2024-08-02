@@ -578,7 +578,7 @@ namespace SaveState
 		Path fn = GenerateSaveSlotFilename(gameFilename, slot, STATE_EXTENSION);
 		if (!fn.empty()) {
 			// This add only 1 extra state, should we just always enable it?
-			if (g_Config.bEnableStateUndo) {
+			if (g_Config.bEnableStateUndo2) {
 				Path backup = GetSysDirectory(DIRECTORY_SAVESTATE) / LOAD_UNDO_NAME;
 				
 				auto saveCallback = [=](Status status, std::string_view message, void *data) {
@@ -641,7 +641,7 @@ namespace SaveState
 			Path shot = GenerateSaveSlotFilename(gameFilename, slot, SCREENSHOT_EXTENSION);
 			auto renameCallback = [=](Status status, std::string_view message, void *data) {
 				if (status != Status::FAILURE) {
-					if (g_Config.bEnableStateUndo) {
+					if (g_Config.bEnableStateUndo2) {
 						DeleteIfExists(fnUndo);
 						RenameIfExists(fn, fnUndo);
 						g_Config.sStateUndoLastSaveGame = GenerateFullDiscId(gameFilename);
@@ -657,7 +657,7 @@ namespace SaveState
 				}
 			};
 			// Let's also create a screenshot.
-			if (g_Config.bEnableStateUndo) {
+			if (g_Config.bEnableStateUndo2) {
 				Path shotUndo = GenerateSaveSlotFilename(gameFilename, slot, UNDO_SCREENSHOT_EXTENSION);
 				DeleteIfExists(shotUndo);
 				RenameIfExists(shot, shotUndo);

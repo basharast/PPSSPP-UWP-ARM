@@ -182,14 +182,14 @@ namespace MIPSComp {
 		}
 	}
 
-	static void InitRegs(u8* vregs, int reg) {
+	static void InitRegs(u8 *vregs, int reg) {
 		vregs[0] = reg;
 		vregs[1] = reg + 1;
 		vregs[2] = reg + 2;
 		vregs[3] = reg + 3;
 	}
 
-	void IRFrontend::ApplyPrefixST(u8* vregs, u32 prefix, VectorSize sz, int tempReg) {
+	void IRFrontend::ApplyPrefixST(u8 *vregs, u32 prefix, VectorSize sz, int tempReg) {
 		if (prefix == 0xE4)
 			return;
 
@@ -263,7 +263,7 @@ namespace MIPSComp {
 			if (zeroedLanes != -1) {
 				InitRegs(vregs, tempReg);
 				ir.Write(IROp::Vec4Init, vregs[0], (int)Vec4Init::AllZERO);
-				ir.Write({ IROp::Vec4Blend, vregs[0], origV[0], vregs[0], zeroedLanes });
+				ir.Write(IROp::Vec4Blend, vregs[0], origV[0], vregs[0], zeroedLanes);
 				return;
 			}
 		}
@@ -285,24 +285,20 @@ namespace MIPSComp {
 				if (regnum >= n) {
 					// Depends on the op, but often zero.
 					ir.Write(IROp::SetConstF, vregs[i], ir.AddConstantFloat(0.0f));
-				}
-				else if (abs) {
+				} else if (abs) {
 					ir.Write(IROp::FAbs, vregs[i], origV[regnum]);
 					if (negate)
 						ir.Write(IROp::FNeg, vregs[i], vregs[i]);
-				}
-				else {
+				} else {
 					if (negate)
 						ir.Write(IROp::FNeg, vregs[i], origV[regnum]);
 					else if (vregs[i] != origV[regnum])
 						ir.Write(IROp::FMov, vregs[i], origV[regnum]);
 				}
-			}
-			else {
+			} else {
 				if (negate) {
 					ir.Write(IROp::SetConstF, vregs[i], ir.AddConstantFloat(-constantArray[regnum + (abs << 2)]));
-				}
-				else {
+				} else {
 					ir.Write(IROp::SetConstF, vregs[i], ir.AddConstantFloat(constantArray[regnum + (abs << 2)]));
 				}
 			}
@@ -321,18 +317,18 @@ namespace MIPSComp {
 		}
 	}
 
-	void IRFrontend::GetVectorRegsPrefixS(u8* regs, VectorSize sz, int vectorReg) {
+	void IRFrontend::GetVectorRegsPrefixS(u8 *regs, VectorSize sz, int vectorReg) {
 		_assert_(js.prefixSFlag & JitState::PREFIX_KNOWN);
 		GetVectorRegs(regs, sz, vectorReg);
 		ApplyPrefixST(regs, js.prefixS, sz, IRVTEMP_PFX_S);
 	}
-	void IRFrontend::GetVectorRegsPrefixT(u8* regs, VectorSize sz, int vectorReg) {
+	void IRFrontend::GetVectorRegsPrefixT(u8 *regs, VectorSize sz, int vectorReg) {
 		_assert_(js.prefixTFlag & JitState::PREFIX_KNOWN);
 		GetVectorRegs(regs, sz, vectorReg);
 		ApplyPrefixST(regs, js.prefixT, sz, IRVTEMP_PFX_T);
 	}
 
-	void IRFrontend::GetVectorRegsPrefixD(u8* regs, VectorSize sz, int vectorReg) {
+	void IRFrontend::GetVectorRegsPrefixD(u8 *regs, VectorSize sz, int vectorReg) {
 		_assert_(js.prefixDFlag & JitState::PREFIX_KNOWN);
 
 		GetVectorRegs(regs, sz, vectorReg);
@@ -360,7 +356,7 @@ namespace MIPSComp {
 
 	// "D" prefix is really a post process. No need to allocate a temporary register (except
 	// dummies to simulate writemask, which is done in GetVectorRegsPrefixD
-	void IRFrontend::ApplyPrefixD(u8* vregs, VectorSize sz, int vectorReg) {
+	void IRFrontend::ApplyPrefixD(u8 *vregs, VectorSize sz, int vectorReg) {
 		_assert_(js.prefixDFlag & JitState::PREFIX_KNOWN);
 		if (!js.prefixD)
 			return;
@@ -375,20 +371,19 @@ namespace MIPSComp {
 			if (sat == 1) {
 				// clamped = x < 0 ? (x > 1 ? 1 : x) : x [0, 1]
 				ir.Write(IROp::FSat0_1, vregs[i], vregs[i]);
-			}
-			else if (sat == 3) {
+			} else if (sat == 3) {
 				ir.Write(IROp::FSatMinus1_1, vregs[i], vregs[i]);
 			}
 		}
 	}
 
-	void IRFrontend::ApplyPrefixDMask(u8* vregs, VectorSize sz, int vectorReg) {
+	void IRFrontend::ApplyPrefixDMask(u8 *vregs, VectorSize sz, int vectorReg) {
 		if (IsVec4(sz, vregs) && js.VfpuWriteMask() != 0 && opts.preferVec4) {
 			u8 origV[4];
 			GetVectorRegs(origV, sz, vectorReg);
 
 			// Just keep the original values where it was masked.
-			ir.Write({ IROp::Vec4Blend, origV[0], vregs[0], origV[0], js.VfpuWriteMask() });
+			ir.Write(IROp::Vec4Blend, origV[0], vregs[0], origV[0], js.VfpuWriteMask());
 
 			// So that saturate works, change it back.
 			for (int i = 0; i < 4; ++i)
@@ -467,11 +462,10 @@ namespace MIPSComp {
 		case LSVType::LVQ:
 			if (IsVec4(V_Quad, vregs)) {
 				ir.Write(IROp::LoadVec4, vregs[0], rs, ir.AddConstant(imm));
-			}
-			else {
+			} else {
 				// Let's not even bother with "vertical" loads for now.
 				if (!g_Config.bFastMemory)
-					ir.Write({ IROp::ValidateAddress128, { 0 }, (u8)rs, 0, (u32)imm });
+					ir.Write(IROp::ValidateAddress128, 0, (u8)rs, 0, (u32)imm);
 				ir.Write(IROp::LoadFloat, vregs[0], rs, ir.AddConstant(imm));
 				ir.Write(IROp::LoadFloat, vregs[1], rs, ir.AddConstant(imm + 4));
 				ir.Write(IROp::LoadFloat, vregs[2], rs, ir.AddConstant(imm + 8));
@@ -482,11 +476,10 @@ namespace MIPSComp {
 		case LSVType::SVQ:
 			if (IsVec4(V_Quad, vregs)) {
 				ir.Write(IROp::StoreVec4, vregs[0], rs, ir.AddConstant(imm));
-			}
-			else {
+			} else {
 				// Let's not even bother with "vertical" stores for now.
 				if (!g_Config.bFastMemory)
-					ir.Write({ IROp::ValidateAddress128, { 0 }, (u8)rs, 1, (u32)imm });
+					ir.Write(IROp::ValidateAddress128, 0, (u8)rs, 1, (u32)imm);
 				ir.Write(IROp::StoreFloat, vregs[0], rs, ir.AddConstant(imm));
 				ir.Write(IROp::StoreFloat, vregs[1], rs, ir.AddConstant(imm + 4));
 				ir.Write(IROp::StoreFloat, vregs[2], rs, ir.AddConstant(imm + 8));
@@ -526,8 +519,7 @@ namespace MIPSComp {
 
 		if (IsVec4(sz, dregs)) {
 			ir.Write(IROp::Vec4Init, dregs[0], (int)(type == 6 ? Vec4Init::AllZERO : Vec4Init::AllONE));
-		}
-		else {
+		} else {
 			for (int i = 0; i < n; i++) {
 				ir.Write(IROp::SetConstF, dregs[i], ir.AddConstantFloat(type == 6 ? 0.0f : 1.0f));
 			}
@@ -554,8 +546,7 @@ namespace MIPSComp {
 			int row = vd & 3;
 			Vec4Init init = Vec4Init((int)Vec4Init::Set_1000 + row);
 			ir.Write(IROp::Vec4Init, dregs[0], (int)init);
-		}
-		else {
+		} else {
 			switch (sz) {
 			case V_Pair:
 				ir.Write(IROp::SetConstF, dregs[0], ir.AddConstantFloat((vd & 1) == 0 ? 1.0f : 0.0f));
@@ -684,8 +675,7 @@ namespace MIPSComp {
 		for (int i = 1; i < n; i++) {
 			if (i == n - 1) {
 				ir.Write(IROp::FAdd, IRVTEMP_0, IRVTEMP_0, tregs[i]);
-			}
-			else {
+			} else {
 				ir.Write(IROp::FMul, IRVTEMP_0 + 1, sregs[i], tregs[i]);
 				ir.Write(IROp::FAdd, IRVTEMP_0, IRVTEMP_0, IRVTEMP_0 + 1);
 			}
@@ -762,12 +752,11 @@ namespace MIPSComp {
 				ir.Write(IROp::Vec4Dot, dregs[0], sregs[0], tregs[0]);
 				ApplyPrefixD(dregs, V_Single, vd);
 				return;
-			}
-			else if (IsVec3of4(sz, sregs) && IsVec3of4(sz, tregs) && opts.preferVec4) {
+			} else if (IsVec3of4(sz, sregs) && IsVec3of4(sz, tregs) && opts.preferVec4) {
 				// Nice example of this in Fat Princess (US) in block 088181A0 (hot.)
 				// Create a temporary copy of S with the last element zeroed.
 				ir.Write(IROp::Vec4Init, IRVTEMP_0, (int)Vec4Init::AllZERO);
-				ir.Write({ IROp::Vec4Blend, IRVTEMP_0, IRVTEMP_0, sregs[0], 0x7 });
+				ir.Write(IROp::Vec4Blend, IRVTEMP_0, IRVTEMP_0, sregs[0], 0x7);
 				// Now we can just dot like normal, with the last element effectively masked.
 				ir.Write(IROp::Vec4Dot, dregs[0], IRVTEMP_0, sregs[0] == tregs[0] ? IRVTEMP_0 : tregs[0]);
 				ApplyPrefixD(dregs, V_Single, vd);
@@ -870,8 +859,7 @@ namespace MIPSComp {
 		for (int i = 0; i < n; i++) {
 			if (!IsOverlapSafe(dregs[i], n, sregs, n, tregs)) {
 				tempregs[i] = IRVTEMP_0 + i;
-			}
-			else {
+			} else {
 				tempregs[i] = dregs[i];
 			}
 		}
@@ -900,20 +888,18 @@ namespace MIPSComp {
 			if (IsVec4(sz, dregs) && IsVec4(sz, sregs) && IsVec4(sz, tregs)) {
 				if (opFunc != IROp::Nop) {
 					ir.Write(opFunc, dregs[0], sregs[0], tregs[0]);
-				}
-				else {
+				} else {
 					DISABLE;
 				}
 				ApplyPrefixD(dregs, sz, _VD);
 				return;
-			}
-			else if (IsVec3of4(sz, dregs) && IsVec3of4(sz, sregs) && IsVec3of4(sz, tregs) && opts.preferVec4) {
+			} else if (IsVec3of4(sz, dregs) && IsVec3of4(sz, sregs) && IsVec3of4(sz, tregs) && opts.preferVec4) {
 				// This is actually pretty common.  Use a temp + blend.
 				// We could post-process this, but it's easier to do it here.
 				if (opFunc == IROp::Nop)
 					DISABLE;
 				ir.Write(opFunc, IRVTEMP_0, sregs[0], tregs[0]);
-				ir.Write({ IROp::Vec4Blend, dregs[0], dregs[0], IRVTEMP_0, 0x7 });
+				ir.Write(IROp::Vec4Blend, dregs[0], dregs[0], IRVTEMP_0, 0x7);
 				ApplyPrefixD(dregs, sz, _VD);
 				return;
 			}
@@ -981,13 +967,11 @@ namespace MIPSComp {
 		if (optype == 0) {
 			if (js.HasUnknownPrefix() || !IsPrefixWithinSize(js.prefixS, op))
 				DISABLE;
-		}
-		else if (optype == 1 || optype == 2) {
+		} else if (optype == 1 || optype == 2) {
 			// D prefix is fine for these, and used sometimes.
 			if (js.HasUnknownPrefix() || js.HasSPrefix())
 				DISABLE;
-		}
-		else if (optype == 5 && js.HasDPrefix()) {
+		} else if (optype == 5 && js.HasDPrefix()) {
 			DISABLE;
 		}
 
@@ -1026,8 +1010,7 @@ namespace MIPSComp {
 			if (!IsOverlapSafeAllowS(dregs[i], i, n, sregs)) {
 				usingTemps = true;
 				tempregs[i] = IRVTEMP_0 + i;
-			}
-			else {
+			} else {
 				tempregs[i] = dregs[i];
 			}
 		}
@@ -1059,15 +1042,13 @@ namespace MIPSComp {
 				ir.Write(irop, dregs[0], sregs[0]);
 				ApplyPrefixD(dregs, sz, vd);
 				return;
-			}
-			else if (IsVec3of4(sz, sregs) && IsVec3of4(sz, dregs) && irop != IROp::Nop && opts.preferVec4) {
+			} else if (IsVec3of4(sz, sregs) && IsVec3of4(sz, dregs) && irop != IROp::Nop && opts.preferVec4) {
 				// This is a simple case of vmov.t, just blend.
 				if (irop == IROp::Vec4Mov) {
-					ir.Write({ IROp::Vec4Blend, dregs[0], dregs[0], sregs[0], 0x7 });
-				}
-				else {
+					ir.Write(IROp::Vec4Blend, dregs[0], dregs[0], sregs[0], 0x7);
+				} else {
 					ir.Write(irop, IRVTEMP_0, sregs[0]);
-					ir.Write({ IROp::Vec4Blend, dregs[0], dregs[0], IRVTEMP_0, 0x7 });
+					ir.Write(IROp::Vec4Blend, dregs[0], dregs[0], IRVTEMP_0, 0x7);
 				}
 				ApplyPrefixD(dregs, sz, vd);
 				return;
@@ -1207,8 +1188,7 @@ namespace MIPSComp {
 		if (imm != 0) {
 			for (int i = 0; i < n; i++)
 				ir.Write(IROp::FCvtScaledWS, dregs[i], sregs[i], imm | (rmode << 6));
-		}
-		else {
+		} else {
 			for (int i = 0; i < n; i++) {
 				switch (rmode) {
 				case 0: // vf2in
@@ -1251,8 +1231,7 @@ namespace MIPSComp {
 			if (rt != MIPS_REG_ZERO) {
 				if (imm < 128) {  //R(rt) = VI(imm);
 					ir.Write(IROp::FMovToGPR, rt, vfpuBase + voffset[imm]);
-				}
-				else {
+				} else {
 					switch (imm - 128) {
 					case VFPU_CTRL_DPREFIX:
 					case VFPU_CTRL_SPREFIX:
@@ -1262,8 +1241,7 @@ namespace MIPSComp {
 					}
 					if (imm - 128 < VFPU_CTRL_MAX) {
 						ir.Write(IROp::VfpuCtrlToReg, rt, imm - 128);
-					}
-					else {
+					} else {
 						INVALIDOP;
 					}
 				}
@@ -1273,30 +1251,25 @@ namespace MIPSComp {
 		case 7: // mtv
 			if (imm < 128) {
 				ir.Write(IROp::FMovFromGPR, vfpuBase + voffset[imm], rt);
-			}
-			else if ((imm - 128) < VFPU_CTRL_MAX) {
+			} else if ((imm - 128) < VFPU_CTRL_MAX) {
 				u32 mask;
 				if (GetVFPUCtrlMask(imm - 128, &mask)) {
 					if (mask != 0xFFFFFFFF) {
 						ir.Write(IROp::AndConst, IRTEMP_0, rt, ir.AddConstant(mask));
 						ir.Write(IROp::SetCtrlVFPUReg, imm - 128, IRTEMP_0);
-					}
-					else {
+					} else {
 						ir.Write(IROp::SetCtrlVFPUReg, imm - 128, rt);
 					}
 				}
 
 				if (imm - 128 == VFPU_CTRL_SPREFIX) {
 					js.prefixSFlag = JitState::PREFIX_UNKNOWN;
-				}
-				else if (imm - 128 == VFPU_CTRL_TPREFIX) {
+				} else if (imm - 128 == VFPU_CTRL_TPREFIX) {
 					js.prefixTFlag = JitState::PREFIX_UNKNOWN;
-				}
-				else if (imm - 128 == VFPU_CTRL_DPREFIX) {
+				} else if (imm - 128 == VFPU_CTRL_DPREFIX) {
 					js.prefixDFlag = JitState::PREFIX_UNKNOWN;
 				}
-			}
-			else {
+			} else {
 				INVALIDOP;
 			}
 			break;
@@ -1317,8 +1290,7 @@ namespace MIPSComp {
 		if (imm < VFPU_CTRL_MAX) {
 			ir.Write(IROp::VfpuCtrlToReg, IRTEMP_0, imm);
 			ir.Write(IROp::FMovFromGPR, vfpuBase + voffset[vd], IRTEMP_0);
-		}
-		else {
+		} else {
 			INVALIDOP;
 		}
 	}
@@ -1338,22 +1310,18 @@ namespace MIPSComp {
 					ir.Write(IROp::FMovToGPR, IRTEMP_0, vfpuBase + voffset[imm]);
 					ir.Write(IROp::AndConst, IRTEMP_0, IRTEMP_0, ir.AddConstant(mask));
 					ir.Write(IROp::SetCtrlVFPUReg, imm, IRTEMP_0);
-				}
-				else {
+				} else {
 					ir.Write(IROp::SetCtrlVFPUFReg, imm, vfpuBase + voffset[vs]);
 				}
 			}
 			if (imm == VFPU_CTRL_SPREFIX) {
 				js.prefixSFlag = JitState::PREFIX_UNKNOWN;
-			}
-			else if (imm == VFPU_CTRL_TPREFIX) {
+			} else if (imm == VFPU_CTRL_TPREFIX) {
 				js.prefixTFlag = JitState::PREFIX_UNKNOWN;
-			}
-			else if (imm == VFPU_CTRL_DPREFIX) {
+			} else if (imm == VFPU_CTRL_DPREFIX) {
 				js.prefixDFlag = JitState::PREFIX_UNKNOWN;
 			}
-		}
-		else {
+		} else {
 			INVALIDOP;
 		}
 	}
@@ -1500,10 +1468,9 @@ namespace MIPSComp {
 				ir.Write(IROp::Vec4Scale, dregs[0], sregs[0], treg);
 				ApplyPrefixD(dregs, sz, vd);
 				return;
-			}
-			else if (IsVec3of4(sz, sregs) && IsVec3of4(sz, dregs) && opts.preferVec4) {
+			} else if (IsVec3of4(sz, sregs) && IsVec3of4(sz, dregs) && opts.preferVec4) {
 				ir.Write(IROp::Vec4Scale, IRVTEMP_0, sregs[0], treg);
-				ir.Write({ IROp::Vec4Blend, dregs[0], dregs[0], IRVTEMP_0, 0x7 });
+				ir.Write(IROp::Vec4Blend, dregs[0], dregs[0], IRVTEMP_0, 0x7);
 				ApplyPrefixD(dregs, sz, vd);
 				return;
 			}
@@ -1602,8 +1569,7 @@ namespace MIPSComp {
 					ir.Write(IROp::Vec4Mov, dregs[j * 4], s0);
 				}
 				return;
-			}
-			else if (IsMatrixVec4(sz, tregs)) {
+			} else if (IsMatrixVec4(sz, tregs)) {
 				// METHOD 2: Handles ABC only. Not efficient on CPUs that don't do fast dots.
 				// Dots only work if tregs are consecutive.
 				// TODO: Skip this and resort to method one and transpose the output?
@@ -1614,8 +1580,7 @@ namespace MIPSComp {
 					ir.Write(IROp::Vec4Mov, dregs[j * 4], s0);
 				}
 				return;
-			}
-			else {
+			} else {
 				// ABc - s consecutive, t not.
 				// Tekken uses this.
 				// logBlocks = 1;
@@ -1681,22 +1646,19 @@ namespace MIPSComp {
 				if (!homogenous || (i != n - 1)) {
 					ir.Write(IROp::Vec4Scale, s1, sregs[i], tregs[i]);
 					ir.Write(IROp::Vec4Add, s0, s0, s1);
-				}
-				else {
+				} else {
 					ir.Write(IROp::Vec4Add, s0, s0, sregs[i]);
 				}
 			}
 			if (IsVec4(sz, dregs)) {
 				ir.Write(IROp::Vec4Mov, dregs[0], s0);
-			}
-			else {
+			} else {
 				for (int i = 0; i < 4; i++) {
 					ir.Write(IROp::FMov, dregs[i], s0 + i);
 				}
 			}
 			return;
-		}
-		else if (msz == M_4x4 && IsMatrixVec4(msz, sregs)) {
+		} else if (msz == M_4x4 && IsMatrixVec4(msz, sregs)) {
 			// Consecutive, which is harder.
 			DISABLE;
 			int s0 = IRVTEMP_0;
@@ -1707,15 +1669,13 @@ namespace MIPSComp {
 				if (!homogenous || (i != n - 1)) {
 					ir.Write(IROp::Vec4Scale, s1, sregs[i], tregs[i]);
 					ir.Write(IROp::Vec4Add, s0, s0, s1);
-				}
-				else {
+				} else {
 					ir.Write(IROp::Vec4Add, s0, s0, sregs[i]);
 				}
 			}
 			if (IsVec4(sz, dregs)) {
 				ir.Write(IROp::Vec4Mov, dregs[0], s0);
-			}
-			else {
+			} else {
 				for (int i = 0; i < 4; i++) {
 					ir.Write(IROp::FMov, dregs[i], s0 + i);
 				}
@@ -1733,8 +1693,7 @@ namespace MIPSComp {
 				if (!homogenous || k != n - 1) {
 					ir.Write(IROp::FMul, temp1, sregs[i * 4 + k], tregs[k]);
 					ir.Write(IROp::FAdd, s0, s0, temp1);
-				}
-				else {
+				} else {
 					ir.Write(IROp::FAdd, s0, s0, sregs[i * 4 + k]);
 				}
 			}
@@ -1776,15 +1735,13 @@ namespace MIPSComp {
 			ir.Write(IROp::Vec4Shuffle, IRVTEMP_PFX_T, tregs[0], VFPU_SWIZZLE(2, 0, 1, 3));
 			ir.Write(IROp::Vec4Mul, IRVTEMP_0, IRVTEMP_PFX_S, IRVTEMP_PFX_T);
 			// Now just retain w and blend in our values.
-			ir.Write({ IROp::Vec4Blend, dregs[0], dregs[0], IRVTEMP_0, 0x7 });
-		}
-		else {
+			ir.Write(IROp::Vec4Blend, dregs[0], dregs[0], IRVTEMP_0, 0x7);
+		} else {
 			u8 tempregs[4]{};
 			if (!IsOverlapSafe(n, dregs, n, sregs, n, tregs)) {
 				for (int i = 0; i < n; ++i)
 					tempregs[i] = IRVTEMP_0 + i;
-			}
-			else {
+			} else {
 				for (int i = 0; i < n; ++i)
 					tempregs[i] = dregs[i];
 			}
@@ -1833,8 +1790,7 @@ namespace MIPSComp {
 			if (sz != V_Quad) {
 				DISABLE;
 			}
-		}
-		else {
+		} else {
 			switch (sz) {
 			case V_Pair:
 				outsize = V_Single;
@@ -1869,12 +1825,10 @@ namespace MIPSComp {
 				// Output is only one register.
 				ir.Write(IROp::Vec4ClampToZero, IRVTEMP_0, srcregs[0]);
 				ir.Write(IROp::Vec4Pack31To8, tempregs[0], IRVTEMP_0);
-			}
-			else {  //vi2c
+			} else {  //vi2c
 				ir.Write(IROp::Vec4Pack32To8, tempregs[0], srcregs[0]);
 			}
-		}
-		else {
+		} else {
 			// bits == 16
 			if (unsignedOp) {  //vi2us
 				// Output is only one register.
@@ -1884,8 +1838,7 @@ namespace MIPSComp {
 					ir.Write(IROp::Vec2ClampToZero, IRVTEMP_0 + 2, srcregs[2]);
 					ir.Write(IROp::Vec2Pack31To16, tempregs[1], IRVTEMP_0 + 2);
 				}
-			}
-			else {  //vi2s
+			} else {  //vi2s
 				ir.Write(IROp::Vec2Pack32To16, tempregs[0], srcregs[0]);
 				if (outsize == V_Pair) {
 					ir.Write(IROp::Vec2Pack32To16, tempregs[1], srcregs[2]);
@@ -1922,8 +1875,7 @@ namespace MIPSComp {
 		if (bits == 8) {
 			outsize = V_Quad;
 			sz = V_Single;  // For some reason, sz is set to Quad in this case though the outsize is Single.
-		}
-		else {
+		} else {
 			switch (sz) {
 			case V_Single:
 				outsize = V_Pair;
@@ -1965,8 +1917,7 @@ namespace MIPSComp {
 					tempregs[i] = IRVTEMP_PFX_T + i;
 				}
 			}
-		}
-		else if (outsize == V_Quad) {
+		} else if (outsize == V_Quad) {
 			bool consecutive = IsVec4(outsize, dregs);
 			if (!consecutive || !IsOverlapSafe(nOut, dregs, nIn, srcregs)) {
 				for (int i = 0; i < nOut; i++) {
@@ -1980,20 +1931,17 @@ namespace MIPSComp {
 				ir.Write(IROp::Vec2Unpack16To31, tempregs[0], srcregs[0]);
 				if (outsize == V_Quad)
 					ir.Write(IROp::Vec2Unpack16To31, tempregs[2], srcregs[1]);
-			}
-			else {
+			} else {
 				ir.Write(IROp::Vec2Unpack16To32, tempregs[0], srcregs[0]);
 				if (outsize == V_Quad)
 					ir.Write(IROp::Vec2Unpack16To32, tempregs[2], srcregs[1]);
 			}
-		}
-		else if (bits == 8) {
+		} else if (bits == 8) {
 			if (unsignedOp) {
 				// See the interpreter, this one is odd. Hardware bug?
 				ir.Write(IROp::Vec4Unpack8To32, tempregs[0], srcregs[0]);
 				ir.Write(IROp::Vec4DuplicateUpperBitsAndShift1, tempregs[0], tempregs[0]);
-			}
-			else {
+			} else {
 				ir.Write(IROp::Vec4Unpack8To32, tempregs[0], srcregs[0]);
 			}
 		}
@@ -2031,8 +1979,7 @@ namespace MIPSComp {
 			for (int i = 0; i < n; ++i) {
 				if (!IsOverlapSafe(dregs[i], n, sregs, n, tregs)) {
 					tempregs[i] = IRVTEMP_PFX_T + i;   // using IRTEMP0 for other things
-				}
-				else {
+				} else {
 					tempregs[i] = dregs[i];
 				}
 			}
@@ -2058,8 +2005,7 @@ namespace MIPSComp {
 				if (tempregs[i] != dregs[i])
 					ir.Write(IROp::FMov, dregs[i], tempregs[i]);
 			}
-		}
-		else if (sz == V_Quad) {
+		} else if (sz == V_Quad) {
 			// Rather than using vdots, we organize this as SIMD multiplies and adds.
 			// That means flipping the logic column-wise.  Also, luckily no prefix temps used.
 			if (!IsConsecutive4(sregs) || !IsConsecutive4(tregs) || !IsConsecutive4(dregs)) {
@@ -2073,20 +2019,20 @@ namespace MIPSComp {
 			ir.Write(IROp::Vec4Neg, IRVTEMP_0, tregs[0]);
 
 			// tmp = S[x,x,x,x] * T[w,-z,y,-x]
-			ir.Write(IRInst{ IROp::Vec4Blend, IRVTEMP_PFX_S, tregs[0], IRVTEMP_0, blendConst(1, 0, 1, 0) });
+			ir.Write(IROp::Vec4Blend, IRVTEMP_PFX_S, tregs[0], IRVTEMP_0, blendConst(1, 0, 1, 0));
 			ir.Write(IROp::Vec4Shuffle, IRVTEMP_PFX_T, IRVTEMP_PFX_S, shuffleImm(3, 2, 1, 0));
 			ir.Write(IROp::Vec4Shuffle, IRVTEMP_PFX_S, sregs[0], shuffleImm(0, 0, 0, 0));
 			ir.Write(IROp::Vec4Mul, IRVTEMP_PFX_D, IRVTEMP_PFX_S, IRVTEMP_PFX_T);
 
 			// tmp += S[y,y,y,y] * T[z,w,-x,-y]
-			ir.Write(IRInst{ IROp::Vec4Blend, IRVTEMP_PFX_S, tregs[0], IRVTEMP_0, blendConst(1, 1, 0, 0) });
+			ir.Write(IROp::Vec4Blend, IRVTEMP_PFX_S, tregs[0], IRVTEMP_0, blendConst(1, 1, 0, 0));
 			ir.Write(IROp::Vec4Shuffle, IRVTEMP_PFX_T, IRVTEMP_PFX_S, shuffleImm(2, 3, 0, 1));
 			ir.Write(IROp::Vec4Shuffle, IRVTEMP_PFX_S, sregs[0], shuffleImm(1, 1, 1, 1));
 			ir.Write(IROp::Vec4Mul, IRVTEMP_PFX_S, IRVTEMP_PFX_S, IRVTEMP_PFX_T);
 			ir.Write(IROp::Vec4Add, IRVTEMP_PFX_D, IRVTEMP_PFX_D, IRVTEMP_PFX_S);
 
 			// tmp += S[z,z,z,z] * T[-y,x,w,-z]
-			ir.Write(IRInst{ IROp::Vec4Blend, IRVTEMP_PFX_S, tregs[0], IRVTEMP_0, blendConst(0, 1, 1, 0) });
+			ir.Write(IROp::Vec4Blend, IRVTEMP_PFX_S, tregs[0], IRVTEMP_0, blendConst(0, 1, 1, 0));
 			ir.Write(IROp::Vec4Shuffle, IRVTEMP_PFX_T, IRVTEMP_PFX_S, shuffleImm(1, 0, 3, 2));
 			ir.Write(IROp::Vec4Shuffle, IRVTEMP_PFX_S, sregs[0], shuffleImm(2, 2, 2, 2));
 			ir.Write(IROp::Vec4Mul, IRVTEMP_PFX_S, IRVTEMP_PFX_S, IRVTEMP_PFX_T);
@@ -2096,8 +2042,7 @@ namespace MIPSComp {
 			ir.Write(IROp::Vec4Shuffle, IRVTEMP_PFX_S, sregs[0], shuffleImm(3, 3, 3, 3));
 			ir.Write(IROp::Vec4Mul, IRVTEMP_PFX_S, IRVTEMP_PFX_S, tregs[0]);
 			ir.Write(IROp::Vec4Add, dregs[0], IRVTEMP_PFX_D, IRVTEMP_PFX_S);
-		}
-		else {
+		} else {
 			INVALIDOP;
 		}
 	}
@@ -2161,8 +2106,7 @@ namespace MIPSComp {
 			for (int i = 0; i < n; i++) {
 				ir.Write(IROp::FCmovVfpuCC, dregs[i], sregs[i], (imm3) | ((!tf) << 7));
 			}
-		}
-		else {
+		} else {
 			// Look at the bottom four bits of CC to individually decide if the subregisters should be copied.
 			for (int i = 0; i < n; i++) {
 				ir.Write(IROp::FCmovVfpuCC, dregs[i], sregs[i], (i) | ((!tf) << 7));
@@ -2224,13 +2168,11 @@ namespace MIPSComp {
 		if (IsVec4(sz, dregs)) {
 			ir.Write(IROp::SetConstF, IRVTEMP_0, ir.AddConstantFloat(cst_constants[conNum]));
 			ir.Write(IROp::Vec4Shuffle, dregs[0], IRVTEMP_0, 0);
-		}
-		else if (IsVec3of4(sz, dregs) && opts.preferVec4) {
+		} else if (IsVec3of4(sz, dregs) && opts.preferVec4) {
 			ir.Write(IROp::SetConstF, IRVTEMP_0, ir.AddConstantFloat(cst_constants[conNum]));
 			ir.Write(IROp::Vec4Shuffle, IRVTEMP_0, IRVTEMP_0, 0);
-			ir.Write({ IROp::Vec4Blend, dregs[0], dregs[0], IRVTEMP_0, 0x7 });
-		}
-		else {
+			ir.Write(IROp::Vec4Blend, dregs[0], dregs[0], IRVTEMP_0, 0x7);
+		} else {
 			for (int i = 0; i < n; i++) {
 				// Most of the time, materializing a float is slower than copying from another float.
 				if (i == 0)
@@ -2296,8 +2238,7 @@ namespace MIPSComp {
 			case 's':
 				if (broadcastSine || !IsOverlapSafe(n, dregs, 1, sreg)) {
 					ir.Write(IROp::FMov, dregs[i], IRVTEMP_0);
-				}
-				else {
+				} else {
 					ir.Write(IROp::FSin, dregs[i], sreg[0]);
 					if (negSin) {
 						ir.Write(IROp::FNeg, dregs[i], dregs[i]);
@@ -2336,8 +2277,7 @@ namespace MIPSComp {
 		for (int i = 0; i < n; ++i) {
 			if (!IsOverlapSafe(dregs[i], n, sregs)) {
 				tempregs[i] = IRTEMP_0 + i;
-			}
-			else {
+			} else {
 				tempregs[i] = dregs[i];
 			}
 		}
@@ -2382,18 +2322,15 @@ namespace MIPSComp {
 
 		if (IsVec4(sz, dregs) && IsVec4(sz, sregs) && IsVec4(sz, tregs)) {
 			ir.Write(IROp::Vec4Add, dregs[0], tregs[0], sregs[0]);
-		}
-		else if (IsVec3of4(sz, dregs) && IsVec3of4(sz, sregs) && IsVec3of4(sz, tregs) && opts.preferVec4) {
+		} else if (IsVec3of4(sz, dregs) && IsVec3of4(sz, sregs) && IsVec3of4(sz, tregs) && opts.preferVec4) {
 			ir.Write(IROp::Vec4Add, IRVTEMP_0, tregs[0], sregs[0]);
-			ir.Write({ IROp::Vec4Blend, dregs[0], dregs[0], IRVTEMP_0, 0x7 });
-		}
-		else {
+			ir.Write(IROp::Vec4Blend, dregs[0], dregs[0], IRVTEMP_0, 0x7);
+		} else {
 			u8 tempregs[4];
 			for (int i = 0; i < n; ++i) {
 				if (!IsOverlapSafe(dregs[i], n, sregs)) {
 					tempregs[i] = IRVTEMP_0 + i;
-				}
-				else {
+				} else {
 					tempregs[i] = dregs[i];
 				}
 			}
@@ -2448,8 +2385,7 @@ namespace MIPSComp {
 		for (int i = 0; i < n; ++i) {
 			if (!IsOverlapSafe(dregs[i], n, sregs)) {
 				tempregs[i] = IRVTEMP_0 + i;
-			}
-			else {
+			} else {
 				tempregs[i] = dregs[i];
 			}
 		}
@@ -2461,8 +2397,7 @@ namespace MIPSComp {
 			ir.Write(IROp::FAdd, tempregs[1], sregs[1], sregs[3]);
 			ir.Write(IROp::FSub, tempregs[2], sregs[0], sregs[2]);
 			ir.Write(IROp::FSub, tempregs[3], sregs[1], sregs[3]);
-		}
-		else if (subop == 2) {
+		} else if (subop == 2) {
 			// vbfy1
 			ir.Write(IROp::FAdd, tempregs[0], sregs[0], sregs[1]);
 			ir.Write(IROp::FSub, tempregs[1], sregs[0], sregs[1]);
@@ -2470,8 +2405,7 @@ namespace MIPSComp {
 				ir.Write(IROp::FAdd, tempregs[2], sregs[2], sregs[3]);
 				ir.Write(IROp::FSub, tempregs[3], sregs[2], sregs[3]);
 			}
-		}
-		else {
+		} else {
 			INVALIDOP;
 		}
 

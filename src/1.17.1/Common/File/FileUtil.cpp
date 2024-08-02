@@ -216,15 +216,9 @@ namespace File {
 
 		if (getFinalPathNameByHandleW) {
 #if PPSSPP_PLATFORM(UWP)
-#if !defined(_M_ARM) && !defined(BUILD14393)
-			HANDLE hFile = CreateFile2FromAppW(path.c_str(), GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING, nullptr);
-#else
 			HANDLE hFile = CreateFile2(path.c_str(), GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING, nullptr);
-#endif
-#if defined(_M_ARM) || defined(BUILD14393)
 			//Use UWP StorageManager to get handle
 			hFile = CreateFileUWP(path, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
-#endif
 #else
 			HANDLE hFile = CreateFile(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
 #endif
@@ -343,16 +337,10 @@ namespace File {
 #endif
 		WIN32_FILE_ATTRIBUTE_DATA data{};
 #if PPSSPP_PLATFORM(UWP)
-#if !defined(_M_ARM) && !defined(BUILD14393)
-		if (!GetFileAttributesExFromAppW(path.ToWString().c_str(), GetFileExInfoStandard, &data) || data.dwFileAttributes == INVALID_FILE_ATTRIBUTES) {
-#else
 		if (!GetFileAttributesExW(path.ToWString().c_str(), GetFileExInfoStandard, &data) || data.dwFileAttributes == INVALID_FILE_ATTRIBUTES) {
-#endif
-#if defined(_M_ARM) || defined(BUILD14393)
 			if (IsExistsUWP(path.ToString())) {
 				return true;
 			}
-#endif
 			return false;
 		}
 #else
@@ -390,16 +378,10 @@ namespace File {
 #if defined(_WIN32)
 		WIN32_FILE_ATTRIBUTE_DATA data{};
 #if PPSSPP_PLATFORM(UWP)
-#if !defined(_M_ARM) && !defined(BUILD14393)
-		if (!GetFileAttributesExFromAppW(filename.ToWString().c_str(), GetFileExInfoStandard, &data) || data.dwFileAttributes == INVALID_FILE_ATTRIBUTES) {
-#else
 		if (!GetFileAttributesExW(filename.ToWString().c_str(), GetFileExInfoStandard, &data) || data.dwFileAttributes == INVALID_FILE_ATTRIBUTES) {
-#endif
-#if defined(_M_ARM) || defined(BUILD14393)
 			if (IsDirectoryUWP(filename.ToString())) {
 				return true;
 			}
-#endif
 #else
 		if (!GetFileAttributesEx(filename.ToWString().c_str(), GetFileExInfoStandard, &data) || data.dwFileAttributes == INVALID_FILE_ATTRIBUTES) {
 #endif
@@ -447,16 +429,10 @@ namespace File {
 
 #ifdef _WIN32
 #if PPSSPP_PLATFORM(UWP)
-#if !defined(_M_ARM) && !defined(BUILD14393)
-		if (!DeleteFileFromAppW(filename.ToWString().c_str())) {
-#else
 		if (!DeleteFileW(filename.ToWString().c_str())) {
-#endif
-#if defined(_M_ARM) || defined(BUILD14393)
 			if (DeleteUWP(filename.ToString())) {
 				return true;
 			}
-#endif
 			return false;
 		}
 #else
@@ -508,22 +484,16 @@ namespace File {
 
 #ifdef _WIN32
 #if PPSSPP_PLATFORM(UWP)
-#if !defined(_M_ARM) && !defined(BUILD14393)
-		if (CreateDirectoryFromAppW(path.ToWString().c_str(), NULL)) {
-#else
 		if (CreateDirectory(path.ToWString().c_str(), NULL)) {
-#endif
 			return true;
 		}
 		else {
-#if defined(_M_ARM) || defined(BUILD14393)
 			if (File::Exists(path)) {
 				return true;
 			}
 			else {
 				CreateDirectoryUWP(path.ToString());
 			}
-#endif
 		}
 #else
 		if (::CreateDirectory(path.ToWString().c_str(), NULL))
@@ -622,22 +592,15 @@ namespace File {
 
 
 #if defined(_WIN32) && defined(UNICODE)
-#if !defined(_M_ARM) && !defined(BUILD14393)
-		if (MoveFileFromAppW(srcFilename.ToWString().c_str(), destFilename.ToWString().c_str()))
-			return true;
-#else
 		std::wstring srcw = srcFilename.ToWString();
 		std::wstring destw = destFilename.ToWString();
 		if (_wrename(srcw.c_str(), destw.c_str()) == 0)
 			return true;
-#endif
-#if PPSSPP_PLATFORM(UWP) && (defined(_M_ARM) || defined(BUILD14393))
 		else {
 			if (RenameUWP(srcFilename.ToString(), destFilename.ToString())) {
 				return true;
 			}
 		}
-#endif
 #else
 		if (rename(srcFilename.c_str(), destFilename.c_str()) == 0)
 			return true;
@@ -667,19 +630,13 @@ namespace File {
 
 #ifdef _WIN32
 #if PPSSPP_PLATFORM(UWP)
-#if !defined(_M_ARM) && !defined(BUILD14393)
-		if (CopyFileFromAppW(srcFilename.ToWString().c_str(), destFilename.ToWString().c_str(), FALSE))
-#else
 		if (CopyFile2(srcFilename.ToWString().c_str(), destFilename.ToWString().c_str(), FALSE))
-#endif
 			return true;
-#if defined(_M_ARM) || defined(BUILD14393)
 		else {
 			if (CopyUWP(srcFilename.ToString(), destFilename.ToString())) {
 				return true;
 			}
 		}
-#endif
 #else
 		if (CopyFile(srcFilename.ToWString().c_str(), destFilename.ToWString().c_str(), FALSE))
 			return true;
@@ -765,11 +722,9 @@ namespace File {
 			return Delete(srcFilename);
 		}
 		else {
-#if PPSSPP_PLATFORM(UWP) && (defined(_M_ARM) || defined(BUILD14393))
 			if (MoveUWP(srcFilename.ToString(), destFilename.ToString())) {
 				return true;
 			}
-#endif
 			return false;
 		}
 	}
@@ -822,14 +777,8 @@ namespace File {
 #if defined(_WIN32) && defined(UNICODE)
 		WIN32_FILE_ATTRIBUTE_DATA attr;
 #if PPSSPP_PLATFORM(UWP)
-#if !defined(_M_ARM) && !defined(BUILD14393)
-		if (!GetFileAttributesExFromAppW(filename.ToWString().c_str(), GetFileExInfoStandard, &attr)) {
-#else
 		if (!GetFileAttributesExW(filename.ToWString().c_str(), GetFileExInfoStandard, &attr)) {
-#endif
-#if defined(_M_ARM) || defined(BUILD14393)
 			return (uint64_t)GetSizeUWP(filename.ToString());
-#endif
 #else
 		if (!GetFileAttributesEx(filename.ToWString().c_str(), GetFileExInfoStandard, &attr)) {
 #endif
@@ -932,19 +881,13 @@ namespace File {
 
 #ifdef _WIN32
 #if PPSSPP_PLATFORM(UWP)
-#if !defined(_M_ARM) && !defined(BUILD14393)
-		if (RemoveDirectoryFromAppW(path.ToWString().c_str())) {
-#else
 		if (RemoveDirectory(path.ToWString().c_str())) {
-#endif
 			return true;
 		}
 		else {
-#if defined(_M_ARM) || defined(BUILD14393)
 			if (DeleteUWP(path.ToString())) {
 				return true;
 			}
-#endif
 		}
 #else
 		if (::RemoveDirectory(path.ToWString().c_str()))

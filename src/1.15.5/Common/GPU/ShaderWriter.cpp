@@ -365,6 +365,7 @@ void ShaderWriter::BeginGSMain(Slice<VaryingDef> varyings, Slice<VaryingDef> out
 	_assert_(this->stage_ == ShaderStage::Geometry);
 	switch (lang_.shaderLanguage) {
 	case HLSL_D3D11:
+		// No idea where this used, but no GS in level 9.3
 	case HLSL_D3D11_LEVEL9:
 	case HLSL_D3D11_LEVEL93:
 		// Untested, but should work.
@@ -491,11 +492,11 @@ void ShaderWriter::ApplySamplerMetadata(Slice<SamplerDef> samplers) {
 void ShaderWriter::DeclareTexture2D(const SamplerDef &def) {
 	switch (lang_.shaderLanguage) {
 	case HLSL_D3D11:
-	case HLSL_D3D11_LEVEL9:
-	case HLSL_D3D11_LEVEL93:
 		F("Texture2D<float4> %s : register(t%d);\n", def.name, def.binding);
 		break;
 	case HLSL_D3D9:
+	case HLSL_D3D11_LEVEL9:
+	case HLSL_D3D11_LEVEL93:
 		F("sampler %s: register(s%d);\n", def.name, def.binding);
 		break;
 	case GLSL_VULKAN:
@@ -529,11 +530,11 @@ ShaderWriter &ShaderWriter::SampleTexture2D(const char *sampName, const char *uv
 	const SamplerDef *samp = GetSamplerDef(sampName);
 	switch (lang_.shaderLanguage) {
 	case HLSL_D3D11:
-	case HLSL_D3D11_LEVEL9:
-	case HLSL_D3D11_LEVEL93:
 		F("%s.Sample(%sSamp, %s)", sampName, sampName, uv);
 		break;
 	case HLSL_D3D9:
+	case HLSL_D3D11_LEVEL9:
+	case HLSL_D3D11_LEVEL93:
 		F("tex2D(%s, %s)", sampName, uv);
 		break;
 	default:
@@ -554,11 +555,11 @@ ShaderWriter &ShaderWriter::SampleTexture2DOffset(const char *sampName, const ch
 
 	switch (lang_.shaderLanguage) {
 	case HLSL_D3D11:
-	case HLSL_D3D11_LEVEL9:
-	case HLSL_D3D11_LEVEL93:
 		F("%s.Sample(%sSamp, %s, int2(%d, %d))", sampName, sampName, uv, offX, offY);
 		break;
 	case HLSL_D3D9:
+	case HLSL_D3D11_LEVEL9:
+	case HLSL_D3D11_LEVEL93:
 		// Not supported, we do a normal sample here to not crash or something
 		F("tex2D(%s, %s)", sampName, uv);
 		break;
@@ -580,11 +581,11 @@ ShaderWriter &ShaderWriter::LoadTexture2D(const char *sampName, const char *uv, 
 
 	switch (lang_.shaderLanguage) {
 	case HLSL_D3D11:
-	case HLSL_D3D11_LEVEL9:
-	case HLSL_D3D11_LEVEL93:
 		F("%s.Load(ivec3(%s, %d))", sampName, uv, level);
 		break;
 	case HLSL_D3D9:
+	case HLSL_D3D11_LEVEL9:
+	case HLSL_D3D11_LEVEL93:
 		// Not supported, we return a bad value
 		C("float4(1.0, 0.0, 1.0, 1.0)");
 		break;

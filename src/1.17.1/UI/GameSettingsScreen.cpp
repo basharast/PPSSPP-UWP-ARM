@@ -17,6 +17,8 @@
 
 #include "ppsspp_config.h"
 
+#include <ppl.h>
+#include <ppltasks.h>
 #include <algorithm>
 #include <set>
 
@@ -118,6 +120,10 @@ static bool SupportsCustomDriver() {
 }
 
 #endif
+
+extern bool isLevel93;
+extern bool resizeBufferRequested;
+extern bool AccelerometerReady;
 
 GameSettingsScreen::GameSettingsScreen(const Path &gamePath, std::string gameID, bool editThenRestore)
 	: TabbedUIDialogScreenWithGameBackground(gamePath), gameID_(gameID), editThenRestore_(editThenRestore) {
@@ -303,6 +309,7 @@ void GameSettingsScreen::CreateGraphicsSettings(UI::ViewGroup *graphicsSettings)
 		}
 	}
 
+
 	static const char *internalResolutions[] = { "Auto (1:1)", "1x PSP", "2x PSP", "3x PSP", "4x PSP", "5x PSP", "6x PSP", "7x PSP", "8x PSP", "9x PSP", "10x PSP" };
 	resolutionChoice_ = graphicsSettings->Add(new PopupMultiChoice(&g_Config.iInternalResolution, gr->T("Rendering Resolution"), internalResolutions, 0, ARRAY_SIZE(internalResolutions), I18NCat::GRAPHICS, screenManager()));
 	resolutionChoice_->OnChoice.Handle(this, &GameSettingsScreen::OnResolutionChange);
@@ -375,6 +382,28 @@ void GameSettingsScreen::CreateGraphicsSettings(UI::ViewGroup *graphicsSettings)
 		}
 #endif
 
+		PopupSliderChoiceFloat* UIBoost = new PopupSliderChoiceFloat(&g_Config.bDPIBoost, 30.0f, 250.0f, 96.0f, gr->T("DPI (-Boost/+Reduce)"), 1.0f, screenManager());
+		UIBoost->SetLiveUpdate(true);
+		UIBoost->OnChange.Add([=](EventParams& e) {
+			// This doesn't work same as 1.15.5
+			concurrency::create_task([&] {
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+				resizeBufferRequested = true;
+				});
+			return UI::EVENT_DONE;
+			});
+		UIBoost->SetEnabled(!PSP_IsInited());
+		graphicsSettings->Add(UIBoost);
+
+		PopupSliderChoiceFloat* UIQuality = new PopupSliderChoiceFloat(&g_Config.bQualityControl, 1.0f, 10.0f, 1.5f, gr->T("Quality Reduce"), 0.1f, screenManager());
+		UIQuality->SetLiveUpdate(true);
+		UIQuality->OnChange.Add([=](EventParams& e) {
+			resizeBufferRequested = true;
+			return UI::EVENT_DONE;
+			});
+		UIQuality->SetEnabled(!PSP_IsInited());
+		graphicsSettings->Add(UIQuality);
+
 	// All backends support FIFO. Check if any immediate modes are supported, if so we can allow the user to choose.
 	if (draw->GetDeviceCaps().presentModesSupported & (Draw::PresentMode::IMMEDIATE | Draw::PresentMode::MAILBOX)) {
 		CheckBox *vSync = graphicsSettings->Add(new CheckBox(&g_Config.bVSync, gr->T("VSync")));
@@ -384,6 +413,92 @@ void GameSettingsScreen::CreateGraphicsSettings(UI::ViewGroup *graphicsSettings)
 		});
 	}
 
+	graphicsSettings->Add(new ItemHeader(gr->T("DirectX Shader", "DirectX Shader")));
+	g_Config.sShaderLanguageTemp = g_Config.sShaderLanguage;
+	static const std::vector<std::string> shaderLangauges = { "Auto", "Level 9.1", "Level 9.3", "Level 10", "Level 11", "Level 12" };
+	PopupMultiChoiceDynamic* shaderLangaugesChoice = graphicsSettings->Add(new PopupMultiChoiceDynamic(&g_Config.sShaderLanguage, gr->T("Shading language"), shaderLangauges, I18NCat::NONE, screenManager()));
+	shaderLangaugesChoice->OnChoice.Handle(this, &GameSettingsScreen::OnLegacy);
+
+	if (!IsFirstInstance()) {
+		// If we're not the first instance, can't save the setting, and it requires a restart, so...
+		shaderLangaugesChoice->SetEnabled(false);
+	}
+	
+	CheckBox* shaderOptions = graphicsSettings->Add(new CheckBox(&g_Config.bShowShaderOptions, gr->T("ShaderOptions", "Shader Options")));
+	if (g_Config.bSoftwareRendering) {
+		g_Config.bShowShaderOptions = false;
+	}
+	shaderOptions->SetDisabledPtr(&g_Config.bSoftwareRendering);
+	shaderOptions->OnClick.Add([=](EventParams& e) {
+		RecreateViews();
+		return UI::EVENT_CONTINUE;
+		});
+
+	if (g_Config.bShowShaderOptions) {
+	CheckBox* shaderCache = graphicsSettings->Add(new CheckBox(&g_Config.bShaderDiskCache, gr->T("ShaderCache", "Shader Cache (Faster)")));
+	shaderCache->SetDisabledPtr(&g_Config.bSoftwareRendering);
+	shaderCache->OnClick.Add([=](EventParams& e) {
+		if (!g_Config.bShaderDiskCache) {
+
+		}
+		return UI::EVENT_CONTINUE;
+		});
+	
+		CheckBox* forceLowPrecision = graphicsSettings->Add(new CheckBox(&g_Config.bForceLowPrecision, gr->T("ForceLowPrecision", "Low Precision (Faster)")));
+		forceLowPrecision->SetDisabledPtr(&g_Config.bSoftwareRendering);
+		forceLowPrecision->OnClick.Add([=](EventParams& e) {
+			if (!g_Config.bForceLowPrecision) {
+				settingInfo_->Show(gr->T("D3DL93Notice", "Better to keep this active"), e.v);
+			}
+			return UI::EVENT_CONTINUE;
+			});
+
+		CheckBox* useDepalShader = graphicsSettings->Add(new CheckBox(&g_Config.bUseDepalShader, gr->T("UseDepalShader", "Shader Depal")));
+		useDepalShader->OnClick.Add([=](EventParams& e) {
+			if (g_Config.bUseDepalShader) {
+				if (isLevel93) {
+					if (g_Config.bEnableLights) {
+						g_Config.bUberShaderVertex = false;
+						g_Config.bUberShaderFragment = false;
+					}
+				}
+			}
+			return UI::EVENT_CONTINUE;
+			});
+		CheckBox* forceFloatShader = graphicsSettings->Add(new CheckBox(&g_Config.bforceFloatShader, gr->T("FloatShader", "Float Shader")));
+		forceFloatShader->OnClick.Add([=](EventParams& e) {
+			if (!g_Config.bforceFloatShader) {
+				if (isLevel93) {
+					settingInfo_->Show(gr->T("D3DL93Notice", "Shader language need this active"), e.v);
+				}
+			}
+			return UI::EVENT_CONTINUE;
+			});
+		CheckBox* enableLights = graphicsSettings->Add(new CheckBox(&g_Config.bEnableLights, gr->T("EnableLights", "Enable Lights")));
+		enableLights->OnClick.Add([=](EventParams& e) {
+			if (g_Config.bEnableLights) {
+				if (isLevel93) {
+				}
+			}
+			return UI::EVENT_CONTINUE;
+			});
+		CheckBox* fogState = graphicsSettings->Add(new CheckBox(&g_Config.bFogState, gr->T("FogState", "Enable Fog")));
+		fogState->OnClick.Add([=](EventParams& e) {
+			if (g_Config.bFogState) {
+				if (isLevel93) {
+				}
+			}
+			return UI::EVENT_CONTINUE;
+			});
+
+		if (!draw->GetBugs().Has(Draw::Bugs::UNIFORM_INDEXING_BROKEN)) {
+			// If the above if fails, the checkbox is redundant since it'll be force disabled anyway.
+			CheckBox* uberVertex = graphicsSettings->Add(new CheckBox(&g_Config.bUberShaderVertex, gr->T("UberShaderVertex", "Uber Shader (Vertex)")));
+			uberVertex->SetEnabledPtr(&g_Config.bUseDepalShader);
+			CheckBox* uberFragment = graphicsSettings->Add(new CheckBox(&g_Config.bUberShaderFragment, gr->T("Uber Shader (Vertex)", "Uber Shader (Fragment)")));
+			uberFragment->SetEnabledPtr(&g_Config.bUseDepalShader);
+		}
+	}
 #if PPSSPP_PLATFORM(ANDROID)
 		// Hide Immersive Mode on pre-kitkat Android
 		if (System_GetPropertyInt(SYSPROP_SYSTEMVERSION) >= 19) {
@@ -714,19 +829,8 @@ void GameSettingsScreen::CreateControlsSettings(UI::ViewGroup *controlsSettings)
 	controlsSettings->Add(new CheckBox(&g_Config.bGamepadOnlyFocused, co->T("Ignore gamepads when not focused")));
 #endif
 
-	if (System_GetPropertyBool(SYSPROP_HAS_ACCELEROMETER)) {
-		// Show the tilt type on the item.
-		Choice *customizeTilt = controlsSettings->Add(new ChoiceWithCallbackValueDisplay(co->T("Tilt control setup"), []() -> std::string {
-			auto co = GetI18NCategory(I18NCat::CONTROLS);
-			if ((u32)g_Config.iTiltInputType < (u32)g_numTiltTypes) {
-				return std::string(co->T(g_tiltTypes[g_Config.iTiltInputType]));
-			}
-			return "";
-		}));
-		customizeTilt->OnClick.Handle(this, &GameSettingsScreen::OnTiltCustomize);
-	} else if (System_GetPropertyInt(SYSPROP_DEVICE_TYPE) == DEVICE_TYPE_VR) {  // TODO: This seems like a regression
-		controlsSettings->Add(new CheckBox(&g_Config.bHapticFeedback, co->T("HapticFeedback", "Haptic Feedback (vibration)")));
-	}
+	controlsSettings->Add(new CheckBox(&g_Config.bHapticFeedback, co->T("HapticFeedback", "Haptic Feedback (vibration)")));
+	controlsSettings->Add(new CheckBox(&g_Config.bBackButtonHandle, co->T("BackButtonHandle", "Back button for menu (If any)")));
 
 	// TVs don't have touch control, at least not yet.
 	if ((deviceType != DEVICE_TYPE_TV) && (deviceType != DEVICE_TYPE_VR)) {
@@ -756,7 +860,7 @@ void GameSettingsScreen::CreateControlsSettings(UI::ViewGroup *controlsSettings)
 		autoHide->SetZeroLabel(co->T("Off"));
 
 		// Hide stick background, useful when increasing the size
-		CheckBox *hideStickBackground = controlsSettings->Add(new CheckBox(&g_Config.bHideStickBackground, co->T("Hide touch background shapes")));
+		CheckBox *hideStickBackground = controlsSettings->Add(new CheckBox(&g_Config.bHideStickBackground2, co->T("Hide touch background shapes")));
 		hideStickBackground->SetEnabledPtr(&g_Config.bShowTouchControls);
 
 		// Sticky D-pad.
@@ -767,8 +871,27 @@ void GameSettingsScreen::CreateControlsSettings(UI::ViewGroup *controlsSettings)
 		CheckBox *floatingAnalog = controlsSettings->Add(new CheckBox(&g_Config.bAutoCenterTouchAnalog, co->T("Auto-centering analog stick")));
 		floatingAnalog->SetEnabledPtr(&g_Config.bShowTouchControls);
 
-		if (System_GetPropertyInt(SYSPROP_DEVICE_TYPE) == DEVICE_TYPE_MOBILE) {
-			controlsSettings->Add(new CheckBox(&g_Config.bHapticFeedback, co->T("HapticFeedback", "Haptic Feedback (vibration)")));
+		//if (System_GetPropertyInt(SYSPROP_DEVICE_TYPE) == DEVICE_TYPE_MOBILE) 
+		{
+			controlsSettings->Add(new ItemHeader(ms->T("Sensors")));
+			TextView* titlControlInfo = new TextView(co->T("ZDepth tip", "Preferred to enable [Y] & [Z] for (Up, Down)."));
+			titlControlInfo->SetSmall(true);
+			titlControlInfo->SetPadding(5);
+			controlsSettings->Add(titlControlInfo);
+			CheckBox* enableSensorsMove = controlsSettings->Add(new CheckBox(&g_Config.bSensorsMove, co->T("Enable Sensors")));
+			enableSensorsMove->SetEnabledPtr(&AccelerometerReady);
+
+			CheckBox* enableSensorsMoveX = controlsSettings->Add(new CheckBox(&g_Config.bSensorsMoveX, co->T("Sensors [X] (Left, Right)")));
+			enableSensorsMoveX->SetEnabledPtr(&g_Config.bSensorsMove);
+
+			CheckBox* enableSensorsMoveY = controlsSettings->Add(new CheckBox(&g_Config.bSensorsMoveY, co->T("Sensors [Y] (Up, Down)")));
+			enableSensorsMoveY->SetEnabledPtr(&g_Config.bSensorsMove);
+
+			CheckBox* enableSensorsMoveZ = controlsSettings->Add(new CheckBox(&g_Config.bSensorsMoveZ, co->T("Sensors [Z] (Depth)")));
+			enableSensorsMoveZ->SetEnabledPtr(&g_Config.bSensorsMove);
+
+			Choice* customizeTilt = controlsSettings->Add(new Choice(co->T("Tilt control setup")));
+			customizeTilt->OnClick.Handle(this, &GameSettingsScreen::OnTiltCustomize);
 		}
 
 		// On non iOS systems, offer to let the user see this button.
@@ -900,7 +1023,7 @@ void GameSettingsScreen::CreateNetworkingSettings(UI::ViewGroup *networkingSetti
 		wlanChannelChoice->HideChoice(i + 2);
 		wlanChannelChoice->HideChoice(i + 7);
 	}
-	networkingSettings->Add(new CheckBox(&g_Config.bDiscordPresence, n->T("Send Discord Presence information")));
+	networkingSettings->Add(new CheckBox(&g_Config.bDiscordPresence2, n->T("Send Discord Presence information")));
 
 	networkingSettings->Add(new ItemHeader(n->T("AdHoc Server")));
 	networkingSettings->Add(new CheckBox(&g_Config.bEnableAdhocServer, n->T("Enable built-in PRO Adhoc Server", "Enable built-in PRO Adhoc Server")));
@@ -1078,7 +1201,7 @@ void GameSettingsScreen::CreateSystemSettings(UI::ViewGroup *systemSettings) {
 	systemSettings->Add(new CheckBox(&g_Config.bTransparentBackground, sy->T("Transparent UI background")));
 
 	static const char *backgroundAnimations[] = { "No animation", "Floating symbols", "Recent games", "Waves", "Moving background" };
-	systemSettings->Add(new PopupMultiChoice(&g_Config.iBackgroundAnimation, sy->T("UI background animation"), backgroundAnimations, 0, ARRAY_SIZE(backgroundAnimations), I18NCat::SYSTEM, screenManager()));
+	systemSettings->Add(new PopupMultiChoice(&g_Config.iBackgroundAnimation2, sy->T("UI background animation"), backgroundAnimations, 0, ARRAY_SIZE(backgroundAnimations), I18NCat::SYSTEM, screenManager()));
 
 	PopupMultiChoiceDynamic *theme = systemSettings->Add(new PopupMultiChoiceDynamic(&g_Config.sThemeName, sy->T("Theme"), GetThemeInfoNames(), I18NCat::THEMES, screenManager()));
 	theme->OnChoice.Add([=](EventParams &e) {
@@ -1226,7 +1349,7 @@ void GameSettingsScreen::CreateSystemSettings(UI::ViewGroup *systemSettings) {
 	}
 
 	systemSettings->Add(new Choice(sy->T("Restore Default Settings")))->OnClick.Handle(this, &GameSettingsScreen::OnRestoreDefaultSettings);
-	systemSettings->Add(new CheckBox(&g_Config.bEnableStateUndo, sy->T("Savestate slot backups")));
+	systemSettings->Add(new CheckBox(&g_Config.bEnableStateUndo2, sy->T("Savestate slot backups")));
 	static const char *autoLoadSaveStateChoices[] = { "Off", "Oldest Save", "Newest Save", "Slot 1", "Slot 2", "Slot 3", "Slot 4", "Slot 5" };
 	systemSettings->Add(new PopupMultiChoice(&g_Config.iAutoLoadSaveState, sy->T("Auto Load Savestate"), autoLoadSaveStateChoices, 0, ARRAY_SIZE(autoLoadSaveStateChoices), I18NCat::SYSTEM, screenManager()));
 	if (System_GetPropertyBool(SYSPROP_HAS_KEYBOARD))
@@ -1628,6 +1751,34 @@ UI::EventReturn GameSettingsScreen::OnInflightFramesChoice(UI::EventParams &e) {
 	return UI::EVENT_DONE;
 }
 
+UI::EventReturn GameSettingsScreen::OnLegacy(UI::EventParams& e) {
+	// It only makes sense to show the restart prompt if the backend was actually changed.
+	auto di = GetI18NCategory(I18NCat::DIALOG);
+		// It only makes sense to show the restart prompt if the backend was actually changed.
+		if (g_Config.sShaderLanguage != g_Config.sShaderLanguageTemp) {
+			auto message = "Changing this setting requires PPSSPP to restart.";
+			if (startsWithNoCase(g_Config.sShaderLanguage, "Level 9")) {
+				message = "Restart is required, 'Level 9.x' still beta, graphic glitches expected.";
+			}
+			else if (startsWithNoCase(g_Config.sShaderLanguage, "Level 12")) {
+				message = "Restart is required, 'Level 12' need DirectX 12, if this fail.. will switch to auto mode.";
+			}
+			else if (!startsWithNoCase(g_Config.sShaderLanguage, "Auto")) {
+				message = "Restart is required, be sure your GPU supports this level, if this fail.. will switch to auto mode.";
+			}
+			screenManager()->push(new PromptScreen(gamePath_, di->T(message), di->T("Restart"), di->T("Cancel"), [=](bool yes) {
+				if (yes) {
+					TriggerRestart("GameSettingsScreen::RenderingD3DLevelYes", editThenRestore_, gamePath_);
+				}
+				else {
+					g_Config.sShaderLanguage = g_Config.sShaderLanguageTemp;
+					RecreateViews();
+				}
+				}));
+		}
+	return UI::EVENT_DONE;
+}
+
 UI::EventReturn GameSettingsScreen::OnCameraDeviceChange(UI::EventParams& e) {
 	Camera::onCameraDeviceChange();
 	return UI::EVENT_DONE;
@@ -1828,7 +1979,7 @@ void DeveloperToolsScreen::CreateViews() {
 
 	AddOverlayList(list, screenManager());
 
-	list->Add(new CheckBox(&g_Config.bEnableLogging, dev->T("Enable Logging")))->OnClick.Handle(this, &DeveloperToolsScreen::OnLoggingChanged);
+	list->Add(new CheckBox(&g_Config.bEnableLogging2, dev->T("Enable Logging")))->OnClick.Handle(this, &DeveloperToolsScreen::OnLoggingChanged);
 	list->Add(new Choice(dev->T("Logging Channels")))->OnClick.Handle(this, &DeveloperToolsScreen::OnLogConfig);
 	list->Add(new CheckBox(&g_Config.bLogFrameDrops, dev->T("Log Dropped Frame Statistics")));
 	if (GetGPUBackend() == GPUBackend::VULKAN) {
@@ -1895,7 +2046,7 @@ void DeveloperToolsScreen::CreateViews() {
 	Draw::DrawContext *draw = screenManager()->getDrawContext();
 
 	list->Add(new ItemHeader(dev->T("Ubershaders")));
-	if (draw->GetShaderLanguageDesc().bitwiseOps && !draw->GetBugs().Has(Draw::Bugs::UNIFORM_INDEXING_BROKEN)) {
+	if (g_Config.bUseDepalShader && !draw->GetBugs().Has(Draw::Bugs::UNIFORM_INDEXING_BROKEN)) {
 		// If the above if fails, the checkbox is redundant since it'll be force disabled anyway.
 		list->Add(new CheckBox(&g_Config.bUberShaderVertex, dev->T("Vertex")));
 	}

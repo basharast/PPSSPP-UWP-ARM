@@ -19,7 +19,7 @@ void Screen::focusChanged(ScreenFocusChange focusChange) {
 	case ScreenFocusChange::FOCUS_LOST_TOP: eventName = "FOCUS_LOST_TOP"; break;
 	case ScreenFocusChange::FOCUS_BECAME_TOP: eventName = "FOCUS_BECAME_TOP"; break;
 	}
-	DEBUG_LOG(Log::System, "Screen %s got %s", this->tag(), eventName);
+	// DEBUG_LOG(Log::System, "Screen %s got %s", this->tag(), eventName);
 }
 
 int Screen::GetRequesterToken() {
@@ -254,10 +254,11 @@ void ScreenManager::getFocusPosition(float &x, float &y, float &z) {
 	z = stack_.size();
 }
 
+bool extern NotInGame;
 void ScreenManager::sendMessage(UIMessage message, const char *value) {
 	if (message == UIMessage::RECREATE_VIEWS) {
 		RecreateAllViews();
-	} else 	if (message == UIMessage::RESET_DPAD) {
+	} else 	if (message == UIMessage::RESET_DPAD && !NotInGame) {
 		RecreateAllViews();
 	} else if (message == UIMessage::LOST_FOCUS) {
 		TouchInput input{};

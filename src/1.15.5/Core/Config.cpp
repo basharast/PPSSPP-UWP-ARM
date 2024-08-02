@@ -133,6 +133,8 @@ std::string CreateRandMAC() {
 
 static int DefaultCpuCore() {
 #if PPSSPP_ARCH(ARM) || PPSSPP_ARCH(ARM64) || PPSSPP_ARCH(X86) || PPSSPP_ARCH(AMD64) || PPSSPP_ARCH(RISCV64)
+	if (System_GetPropertyBool(SYSPROP_CAN_JIT))
+		return (int)CPUCore::JIT;
 	return (int)CPUCore::IR_JIT;
 #else
 	return (int)CPUCore::IR_JIT;
@@ -459,12 +461,9 @@ static const ConfigSetting graphicsSettings[] = {
 	ConfigSetting("SkipBufferEffects", &g_Config.bSkipBufferEffects, false, CfgFlag::PER_GAME | CfgFlag::REPORT),
 	ConfigSetting("SoftwareRenderer", &g_Config.bSoftwareRendering, false, CfgFlag::PER_GAME),
 	ConfigSetting("SoftwareRendererJit", &g_Config.bSoftwareRenderingJit, true, CfgFlag::PER_GAME),
-#if _M_ARM
 	ConfigSetting("ForceFloatShader", &g_Config.bforceFloatShader, true, CfgFlag::PER_GAME),
-#else
-	ConfigSetting("ForceFloatShader", &g_Config.bforceFloatShader, false, CfgFlag::PER_GAME),
-#endif
-	ConfigSetting("ForceFloatShader", &g_Config.bforceFloatShader, true, CfgFlag::PER_GAME),
+	ConfigSetting("ForceFloatShader2", &g_Config.bforceFloatShader2, false, CfgFlag::PER_GAME),
+	ConfigSetting("EnableLights", &g_Config.bEnableLights, true, CfgFlag::PER_GAME),
 #if _M_ARM
 	ConfigSetting("HardwareTransform", &g_Config.bHardwareTransform, true, CfgFlag::PER_GAME | CfgFlag::REPORT),
 #else
@@ -553,11 +552,12 @@ static const ConfigSetting graphicsSettings[] = {
 	ConfigSetting("bRenderSkip3", &g_Config.bRenderSkip3, false, CfgFlag::PER_GAME),
 	ConfigSetting("bRenderSkipCount", &g_Config.bRenderSkipCount, 1000, CfgFlag::PER_GAME),
 	ConfigSetting("bDetectDeviceLose", &g_Config.bDetectDeviceLose, false, CfgFlag::PER_GAME),
-#if defined(_M_ARM) || defined(BUILD14393)
-	ConfigSetting("bFogState", &g_Config.bFogState, false, CfgFlag::PER_GAME),
-#else
 	ConfigSetting("bFogState", &g_Config.bFogState, true, CfgFlag::PER_GAME),
-#endif
+	ConfigSetting("bForceLowPrecision", &g_Config.bForceLowPrecision, true, CfgFlag::PER_GAME),
+	ConfigSetting("bShaderDiskCache", &g_Config.bShaderDiskCache, true, CfgFlag::PER_GAME),
+	ConfigSetting("bUseDepalShader", &g_Config.bUseDepalShader, true, CfgFlag::PER_GAME),
+	ConfigSetting("bShowShaderOptions", &g_Config.bShowShaderOptions, false, CfgFlag::DEFAULT),
+
 #if defined(_M_ARM) || defined(BUILD14393)
 	ConfigSetting("ShaderLanguage", &g_Config.sShaderLanguage, "Auto", CfgFlag::DEFAULT),
 	ConfigSetting("AssertTextureCache", &g_Config.bAssertTextureCache, false, CfgFlag::PER_GAME),
@@ -726,7 +726,7 @@ static const ConfigSetting controlSettings[] = {
 	ConfigSetting("TiltCircularInverseDeadzone", &g_Config.bTiltCircularInverseDeadzone, true, CfgFlag::PER_GAME),
 	ConfigSetting("TiltInputType", &g_Config.iTiltInputType, 0, CfgFlag::PER_GAME),
 #endif
-
+	 
 	ConfigSetting("DisableDpadDiagonals", &g_Config.bDisableDpadDiagonals, false, CfgFlag::PER_GAME),
 	ConfigSetting("GamepadOnlyFocused", &g_Config.bGamepadOnlyFocused, false, CfgFlag::PER_GAME),
 	ConfigSetting("TouchButtonStyle", &g_Config.iTouchButtonStyle, 1, CfgFlag::PER_GAME),
@@ -1014,7 +1014,7 @@ bool Config::LoadAppendedConfig() {
 
 	IterateSettings(iniFile, [&iniFile](Section* section, const ConfigSetting& setting) {
 		if (iniFile.Exists(section->name().c_str(), setting.iniKey_))
-			setting.Get(section);
+		setting.Get(section);
 		});
 
 	INFO_LOG(LOADER, "Loaded appended config '%s'.", appendedConfigFileName_.c_str());
@@ -1463,41 +1463,41 @@ void Config::CleanRecent() {
 	private_->SetRecentIsosThread([this] {
 		SetCurrentThreadName("RecentISOs");
 
-		AndroidJNIThreadContext jniContext;  // destructor detaches
+	AndroidJNIThreadContext jniContext;  // destructor detaches
 
-		double startTime = time_now_d();
+	double startTime = time_now_d();
 
-		std::lock_guard<std::mutex> guard(private_->recentIsosLock);
-		std::vector<std::string> cleanedRecent;
-		for (size_t i = 0; i < recentIsos.size(); i++) {
-			bool exists = false;
-			Path path = Path(recentIsos[i]);
-			switch (path.Type()) {
-			case PathType::CONTENT_URI:
-			case PathType::NATIVE:
-				exists = File::Exists(path);
-				break;
-			default:
-				FileLoader* loader = ConstructFileLoader(path);
-				exists = loader->ExistsFast();
-				delete loader;
-				break;
-			}
-
-			if (exists) {
-				// Make sure we don't have any redundant items.
-				auto duplicate = std::find(cleanedRecent.begin(), cleanedRecent.end(), recentIsos[i]);
-				if (duplicate == cleanedRecent.end()) {
-					cleanedRecent.push_back(recentIsos[i]);
-				}
-			}
+	std::lock_guard<std::mutex> guard(private_->recentIsosLock);
+	std::vector<std::string> cleanedRecent;
+	for (size_t i = 0; i < recentIsos.size(); i++) {
+		bool exists = false;
+		Path path = Path(recentIsos[i]);
+		switch (path.Type()) {
+		case PathType::CONTENT_URI:
+		case PathType::NATIVE:
+			exists = File::Exists(path);
+			break;
+		default:
+			FileLoader* loader = ConstructFileLoader(path);
+			exists = loader->ExistsFast();
+			delete loader;
+			break;
 		}
 
-		double recentTime = time_now_d() - startTime;
-		if (recentTime > 0.1) {
-			INFO_LOG(SYSTEM, "CleanRecent took %0.2f", recentTime);
+		if (exists) {
+			// Make sure we don't have any redundant items.
+			auto duplicate = std::find(cleanedRecent.begin(), cleanedRecent.end(), recentIsos[i]);
+			if (duplicate == cleanedRecent.end()) {
+				cleanedRecent.push_back(recentIsos[i]);
+			}
 		}
-		recentIsos = cleanedRecent;
+	}
+
+	double recentTime = time_now_d() - startTime;
+	if (recentTime > 0.1) {
+		INFO_LOG(SYSTEM, "CleanRecent took %0.2f", recentTime);
+	}
+	recentIsos = cleanedRecent;
 		});
 }
 
@@ -1750,7 +1750,7 @@ void Config::ResetControlLayout() {
 		pos.x = defaultTouchPosShow.x;
 		pos.y = defaultTouchPosShow.y;
 		pos.scale = defaultTouchPosShow.scale;
-		};
+	};
 	reset(g_Config.touchActionButtonCenter);
 	g_Config.fActionButtonSpacing = 1.0f;
 	reset(g_Config.touchDpad);

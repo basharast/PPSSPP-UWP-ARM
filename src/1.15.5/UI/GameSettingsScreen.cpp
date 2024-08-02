@@ -105,6 +105,7 @@ extern bool AccelerometerReady;
 extern bool D3DFeatureLevelGlobal;
 extern int targetFPS;
 extern bool resizeBufferRequested;
+extern bool recreateView;
 extern bool NotInGame;
 bool lowMemoryMode_ = false;
 
@@ -307,17 +308,6 @@ void GameSettingsScreen::CreateGraphicsSettings(UI::ViewGroup* graphicsSettings)
 	PopupMultiChoice* swapFlagsChanged = graphicsSettings->Add(new PopupMultiChoice(&g_Config.bSwapFlagsTemp, gr->T("SwapChain Flags"), swapFlags, 0, ARRAY_SIZE(swapFlags), I18NCat::GRAPHICS, screenManager()));
 	swapFlagsChanged->OnChoice.Handle(this, &GameSettingsScreen::OnSwapFlags);
 #endif
-	//#if !defined(BUILD14393)
-	g_Config.sShaderLanguageTemp = g_Config.sShaderLanguage;
-	static const std::vector<std::string> shaderLangauges = { "Auto", "Level 9.1", "Level 9.3", "Level 10", "Level 11", "Level 12" };
-	PopupMultiChoiceDynamic* shaderLangaugesChoice = graphicsSettings->Add(new PopupMultiChoiceDynamic(&g_Config.sShaderLanguage, gr->T("Shading language"), shaderLangauges, I18NCat::NONE, screenManager()));
-	shaderLangaugesChoice->OnChoice.Handle(this, &GameSettingsScreen::OnD3DLevel);
-
-	if (!IsFirstInstance()) {
-		// If we're not the first instance, can't save the setting, and it requires a restart, so...
-		shaderLangaugesChoice->SetEnabled(false);
-	}
-	//#endif
 
 #if !defined(BUILD14393) && _M_ARM
 	g_Config.bBackwardCompatibilityTemp = g_Config.bBackwardCompatibility;
@@ -381,17 +371,16 @@ void GameSettingsScreen::CreateGraphicsSettings(UI::ViewGroup* graphicsSettings)
 		//#endif
 
 		PopupSliderChoiceFloat* UIBoost = new PopupSliderChoiceFloat(&g_Config.bDPIBoost, 30.0f, 250.0f, 96.0f, gr->T("DPI (-Boost/+Reduce)"), 1.0f, screenManager());
-		UIBoost->SetLiveUpdate(true, true);
+		UIBoost->SetLiveUpdate(true);
 		UIBoost->OnChange.Add([=](EventParams& e) {
-			//System_NotifyUIState("resize");
-			RecreateViews();
+			resizeBufferRequested = true;
 			return UI::EVENT_DONE;
 			});
 		UIBoost->SetEnabled(!PSP_IsInited());
 		graphicsSettings->Add(UIBoost);
-		
-		PopupSliderChoiceFloat* UIQuality = new PopupSliderChoiceFloat(&g_Config.bQualityControl, 1.0f, 10.0f, 1.5f, gr->T("Quality Reduce"), 0.5f, screenManager());
-		UIQuality->SetLiveUpdate(true, true);
+
+		PopupSliderChoiceFloat* UIQuality = new PopupSliderChoiceFloat(&g_Config.bQualityControl, 1.0f, 10.0f, 1.5f, gr->T("Quality Reduce"), 0.1f, screenManager());
+		UIQuality->SetLiveUpdate(true);
 		UIQuality->OnChange.Add([=](EventParams& e) {
 			resizeBufferRequested = true;
 			return UI::EVENT_DONE;
@@ -420,9 +409,107 @@ void GameSettingsScreen::CreateGraphicsSettings(UI::ViewGroup* graphicsSettings)
 				NativeResized();
 				return UI::EVENT_CONTINUE;
 				});
-			
+
 		}
 
+		graphicsSettings->Add(new ItemHeader(gr->T("DirectX Shader", "DirectX Shader")));
+
+		g_Config.sShaderLanguageTemp = g_Config.sShaderLanguage;
+		static const std::vector<std::string> shaderLangauges = { "Auto", "Level 9.1", "Level 9.3", "Level 10", "Level 11", "Level 12" };
+		PopupMultiChoiceDynamic* shaderLangaugesChoice = graphicsSettings->Add(new PopupMultiChoiceDynamic(&g_Config.sShaderLanguage, gr->T("Shading language"), shaderLangauges, I18NCat::NONE, screenManager()));
+		shaderLangaugesChoice->OnChoice.Handle(this, &GameSettingsScreen::OnD3DLevel);
+
+		if (!IsFirstInstance()) {
+			// If we're not the first instance, can't save the setting, and it requires a restart, so...
+			shaderLangaugesChoice->SetEnabled(false);
+		}
+
+		CheckBox* shaderOptions = graphicsSettings->Add(new CheckBox(&g_Config.bShowShaderOptions, gr->T("ShaderOptions", "Shader Options")));
+		if (g_Config.bSoftwareRendering) {
+			g_Config.bShowShaderOptions = false;
+		}
+		shaderOptions->SetDisabledPtr(&g_Config.bSoftwareRendering);
+		shaderOptions->OnClick.Add([=](EventParams& e) {
+			RecreateViews();
+			return UI::EVENT_CONTINUE;
+			});
+
+
+		if (g_Config.bShowShaderOptions) {
+			CheckBox* shaderCache = graphicsSettings->Add(new CheckBox(&g_Config.bShaderDiskCache, gr->T("ShaderCache", "Shader Cache (Faster)")));
+			shaderCache->SetDisabledPtr(&g_Config.bSoftwareRendering);
+			shaderCache->OnClick.Add([=](EventParams& e) {
+				if (!g_Config.bShaderDiskCache) {
+
+				}
+				return UI::EVENT_CONTINUE;
+				});
+
+
+			CheckBox* forceLowPrecision = graphicsSettings->Add(new CheckBox(&g_Config.bForceLowPrecision, gr->T("ForceLowPrecision", "Low Precision (Faster)")));
+			forceLowPrecision->SetDisabledPtr(&g_Config.bSoftwareRendering);
+			forceLowPrecision->OnClick.Add([=](EventParams& e) {
+				if (!g_Config.bForceLowPrecision) {
+					settingInfo_->Show(gr->T("D3DL93Notice", "Better to keep this active"), e.v);
+				}
+				return UI::EVENT_CONTINUE;
+				});
+
+			CheckBox* useDepalShader = graphicsSettings->Add(new CheckBox(&g_Config.bUseDepalShader, gr->T("Use Depal", "Shader Depal")));
+			useDepalShader->SetDisabledPtr(&g_Config.bSoftwareRendering);
+			useDepalShader->OnClick.Add([=](EventParams& e) {
+				if (g_Config.bUseDepalShader) {
+					if (D3DFeatureLevelGlobal) {
+						if (g_Config.bEnableLights) {
+							g_Config.bUberShaderVertex = false;
+							g_Config.bUberShaderFragment = false;
+						}
+					}
+				}
+				return UI::EVENT_CONTINUE;
+				});
+
+
+			CheckBox* forceFloatShader = graphicsSettings->Add(new CheckBox(&g_Config.bforceFloatShader2, gr->T("FloatShader", "Float Shader")));
+			forceFloatShader->SetDisabledPtr(&g_Config.bSoftwareRendering);
+			forceFloatShader->OnClick.Add([=](EventParams& e) {
+				if (!g_Config.bforceFloatShader2) {
+					if (D3DFeatureLevelGlobal) {
+						settingInfo_->Show(gr->T("D3DL93Notice", "Shader language need this active"), e.v);
+					}
+				}
+				return UI::EVENT_CONTINUE;
+				});
+
+			CheckBox* enableLights = graphicsSettings->Add(new CheckBox(&g_Config.bEnableLights, gr->T("EnableLights", "Enable Lights")));
+			enableLights->SetDisabledPtr(&g_Config.bSoftwareRendering);
+			enableLights->OnClick.Add([=](EventParams& e) {
+				if (g_Config.bEnableLights) {
+					if (D3DFeatureLevelGlobal) {
+
+					}
+				}
+				return UI::EVENT_CONTINUE;
+		});
+
+			CheckBox* fogState = graphicsSettings->Add(new CheckBox(&g_Config.bFogState, gr->T("Fog Shader", "Fog Shader")));
+			fogState->SetDisabledPtr(&g_Config.bSoftwareRendering);
+			fogState->OnClick.Add([=](EventParams& e) {
+				if (g_Config.bFogState) {
+					if (D3DFeatureLevelGlobal) {
+					}
+				}
+				return UI::EVENT_CONTINUE;
+				});
+
+			if (!draw->GetBugs().Has(Draw::Bugs::UNIFORM_INDEXING_BROKEN)) {
+				// If the above if fails, the checkbox is redundant since it'll be force disabled anyway.
+				CheckBox* uberVertex = graphicsSettings->Add(new CheckBox(&g_Config.bUberShaderVertex, gr->T("UberShaderVertex", "Uber Shader (Vertex)")));
+				uberVertex->SetEnabledPtr(&g_Config.bUseDepalShader);
+				CheckBox* uberFragment = graphicsSettings->Add(new CheckBox(&g_Config.bUberShaderFragment, gr->T("Uber Shader (Vertex)", "Uber Shader (Fragment)")));
+				uberFragment->SetEnabledPtr(&g_Config.bUseDepalShader);
+			}
+	}
 #if PPSSPP_PLATFORM(ANDROID)
 		// Hide Immersive Mode on pre-kitkat Android
 		if (System_GetPropertyInt(SYSPROP_SYSTEMVERSION) >= 19) {
@@ -511,28 +598,6 @@ void GameSettingsScreen::CreateGraphicsSettings(UI::ViewGroup* graphicsSettings)
 
 	CheckBox* assertCache = graphicsSettings->Add(new CheckBox(&g_Config.bAssertTextureCache, gr->T("Assert texture cache", "Assert texture cache")));
 	assertCache->SetDisabledPtr(&g_Config.bSoftwareRendering);
-
-	CheckBox* fogState = graphicsSettings->Add(new CheckBox(&g_Config.bFogState, gr->T("Fog Shader", "Fog Shader")));
-	fogState->SetDisabledPtr(&g_Config.bSoftwareRendering);
-	fogState->OnClick.Add([=](EventParams& e) {
-		//settingInfo_->Show(gr->T("D3DL93Notice", "D3D Feature Level 9.3 always disabled"), e.v);
-		return UI::EVENT_CONTINUE;
-		});
-	fogState->SetEnabledFunc([] {
-		return !D3DFeatureLevelGlobal;
-		});
-
-
-	CheckBox* forceFloatShader = graphicsSettings->Add(new CheckBox(&g_Config.bforceFloatShader, gr->T("FloatShader", "Float shader (Depal)")));
-	forceFloatShader->SetDisabledPtr(&g_Config.bSoftwareRendering);
-	forceFloatShader->OnClick.Add([=](EventParams& e) {
-		if (!g_Config.bforceFloatShader) {
-			if (D3DFeatureLevelGlobal) {
-				settingInfo_->Show(gr->T("D3DL93Notice", "Shader language need this active"), e.v);
-			}
-		}
-		return UI::EVENT_CONTINUE;
-		});
 
 
 	CheckBox* lowRAM = graphicsSettings->Add(new CheckBox(&g_Config.bLowRAM, gr->T("Low Memory Mode")));
@@ -786,7 +851,6 @@ void GameSettingsScreen::CreateControlsSettings(UI::ViewGroup* controlsSettings)
 	controlsSettings->Add(new CheckBox(&g_Config.bSystemControls, co->T("Enable standard shortcut keys")));
 	controlsSettings->Add(new CheckBox(&g_Config.bGamepadOnlyFocused, co->T("Ignore gamepads when not focused")));
 #endif
-#if defined(_M_ARM)
 	//if (System_GetPropertyInt(SYSPROP_DEVICE_TYPE) == DEVICE_TYPE_MOBILE) 
 	{
 		controlsSettings->Add(new CheckBox(&g_Config.bHapticFeedback, co->T("HapticFeedback", "Haptic Feedback (vibration)")));
@@ -811,8 +875,8 @@ void GameSettingsScreen::CreateControlsSettings(UI::ViewGroup* controlsSettings)
 
 		Choice* customizeTilt = controlsSettings->Add(new Choice(co->T("Tilt control setup")));
 		customizeTilt->OnClick.Handle(this, &GameSettingsScreen::OnTiltCustomize);
-}
-#endif
+	}
+
 	// TVs don't have touch control, at least not yet.
 	if ((deviceType != DEVICE_TYPE_TV) && (deviceType != DEVICE_TYPE_VR)) {
 		controlsSettings->Add(new ItemHeader(co->T("OnScreen", "On-Screen Touch Controls")));
@@ -2028,7 +2092,7 @@ void DeveloperToolsScreen::CreateViews() {
 	Draw::DrawContext* draw = screenManager()->getDrawContext();
 
 	list->Add(new ItemHeader(dev->T("Ubershaders")));
-	if (draw->GetShaderLanguageDesc().bitwiseOps && !draw->GetBugs().Has(Draw::Bugs::UNIFORM_INDEXING_BROKEN)) {
+	if (g_Config.bUseDepalShader && !draw->GetBugs().Has(Draw::Bugs::UNIFORM_INDEXING_BROKEN)) {
 		// If the above if fails, the checkbox is redundant since it'll be force disabled anyway.
 		list->Add(new CheckBox(&g_Config.bUberShaderVertex, dev->T("Vertex")));
 	}

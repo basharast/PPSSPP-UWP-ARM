@@ -43,13 +43,13 @@ void MemArena::ReleaseSpace() {
 	hMemoryMapping = 0;
 }
 
-void* MemArena::CreateView(s64 offset, size_t size, void* viewbase) {
+void *MemArena::CreateView(s64 offset, size_t size, void *viewbase) {
 	size = roundup(size);
 #if PPSSPP_PLATFORM(UWP)
 	// We just grabbed some RAM before using RESERVE. This commits it.
-	void* ptr = VirtualAllocFromApp(viewbase, size, MEM_COMMIT, PAGE_READWRITE);
+	void *ptr = VirtualAllocFromApp(viewbase, size, MEM_COMMIT, PAGE_READWRITE);
 #else
-	void* ptr = MapViewOfFileEx(hMemoryMapping, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size, viewbase);
+	void *ptr = MapViewOfFileEx(hMemoryMapping, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size, viewbase);
 #endif
 	return ptr;
 }
@@ -76,7 +76,7 @@ u8* MemArena::Find4GBBase() {
 	return nullptr;
 
 #elif PPSSPP_ARCH(64BIT)
-	u8* base = (u8*)VirtualAlloc(0, 0xE1000000, MEM_RESERVE, PAGE_READWRITE);
+	u8 *base = (u8*)VirtualAlloc(0, 0xE1000000, MEM_RESERVE, PAGE_READWRITE);
 	if (base) {
 		VirtualFree(base, 0, MEM_RELEASE);
 	}

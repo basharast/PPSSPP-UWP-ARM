@@ -290,7 +290,7 @@ void CPUInfo::Detect()
 			logical_cpu_count = num / num_cores;
 		}
 	}
-#elif PPSSPP_PLATFORM(WINDOWS) || PPSSPP_PLATFORM(UWP)
+#elif PPSSPP_PLATFORM(WINDOWS)
 	truncate_cpy(brand_string, GetCPUBrandString().c_str());
 	isVFP3 = true;
 	isVFP4 = false;

@@ -37,6 +37,7 @@
 // TODO: Could support VK_NV_geometry_shader_passthrough, though the hardware that supports
 // it is already pretty fast at geometry shaders..
 
+extern bool isLevel93;
 
 bool GenerateGeometryShader(const GShaderID &id, char *buffer, const ShaderLanguageDesc &compat, const Draw::Bugs bugs, std::string *errorString) {
 	std::vector<const char*> extensions;
@@ -63,7 +64,7 @@ bool GenerateGeometryShader(const GShaderID &id, char *buffer, const ShaderLangu
 		WRITE(p, "\n");
 		WRITE(p, "layout (std140, set = 0, binding = 3) uniform baseVars {\n%s};\n", ub_baseStr);
 	} else if (compat.shaderLanguage == HLSL_D3D11) {
-		WRITE(p, "cbuffer base : register(b0) {\n%s};\n", ub_baseStr);
+		WRITE(p, "cbuffer base : register(b0) {\n%s};\n", isLevel93 ? ub_baseStr : ub_baseStr2); // Not sure as I know 9.3 don't even support GS
 	}
 
 	std::vector<VaryingDef> varyings, outVaryings;

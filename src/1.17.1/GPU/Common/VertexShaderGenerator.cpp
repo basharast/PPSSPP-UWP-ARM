@@ -116,6 +116,8 @@ const char *boneWeightAttrInitHLSL[9] = {
 // TODO: Skip all this if we can actually get a 16-bit depth buffer along with stencil, which
 // is a bit of a rare configuration, although quite common on mobile.
 
+extern bool isLevel93;
+
 static const char * const boneWeightDecl[9] = {
 	"#ERROR#",
 	"layout(location = 3) in float w1;\n",
@@ -190,11 +192,11 @@ bool GenerateVertexShader(const VShaderID &id, char *buffer, const ShaderLanguag
 	int ls0 = id.Bits(VS_BIT_LS0, 2);
 	int ls1 = id.Bits(VS_BIT_LS1, 2);
 	bool enableBones = id.Bit(VS_BIT_ENABLE_BONES) && useHWTransform;
-	bool enableLighting = id.Bit(VS_BIT_LIGHTING_ENABLE);
+	bool enableLighting = id.Bit(VS_BIT_LIGHTING_ENABLE) && g_Config.bEnableLights;
 	int matUpdate = id.Bits(VS_BIT_MATERIAL_UPDATE, 3);
 
 	bool lightUberShader = id.Bit(VS_BIT_LIGHT_UBERSHADER) && enableLighting;  // checking lighting here for the shader test's benefit, in reality if ubershader is set, lighting is set.
-	if (lightUberShader && !compat.bitwiseOps) {
+	if (lightUberShader && !g_Config.bUseDepalShader) {
 		*errorString = "Light ubershader requires bitwise ops in shader language";
 		return false;
 	}
@@ -249,11 +251,11 @@ bool GenerateVertexShader(const VShaderID &id, char *buffer, const ShaderLanguag
 	if (compat.shaderLanguage == GLSL_VULKAN) {
 		WRITE(p, "\n");
 
-		WRITE(p, "layout (std140, set = 0, binding = %d) uniform baseVars {\n%s};\n", DRAW_BINDING_DYNUBO_BASE, ub_baseStr);
+		WRITE(p, "layout (std140, set = 0, binding = %d) uniform baseVars {\n%s};\n", DRAW_BINDING_DYNUBO_BASE, isLevel93 ? ub_baseStr : ub_baseStr2);
 		if (enableLighting || doShadeMapping)
-			WRITE(p, "layout (std140, set = 0, binding = %d) uniform lightVars {\n%s};\n", DRAW_BINDING_DYNUBO_LIGHT, ub_vs_lightsStr);
+			WRITE(p, "layout (std140, set = 0, binding = %d) uniform lightVars {\n%s};\n", DRAW_BINDING_DYNUBO_LIGHT, isLevel93 ? ub_vs_lightsStr : ub_vs_lightsStr2);
 		if (enableBones)
-			WRITE(p, "layout (std140, set = 0, binding = %d) uniform boneVars {\n%s};\n", DRAW_BINDING_DYNUBO_BONE, ub_vs_bonesStr);
+			WRITE(p, "layout (std140, set = 0, binding = %d) uniform boneVars {\n%s};\n", DRAW_BINDING_DYNUBO_BONE, isLevel93 ? ub_vs_bonesStr : ub_vs_bonesStr2);
 
 		if (enableBones) {
 			WRITE(p, "%s", boneWeightDecl[numBoneWeights]);
@@ -296,9 +298,9 @@ bool GenerateVertexShader(const VShaderID &id, char *buffer, const ShaderLanguag
 	} else if (compat.shaderLanguage == HLSL_D3D11 || compat.shaderLanguage == HLSL_D3D9) {
 		// Note: These two share some code after this hellishly large if/else.
 		if (compat.shaderLanguage == HLSL_D3D11) {
-			WRITE(p, "cbuffer base : register(b0) {\n%s};\n", ub_baseStr);
-			WRITE(p, "cbuffer lights: register(b1) {\n%s};\n", ub_vs_lightsStr);
-			WRITE(p, "cbuffer bones : register(b2) {\n%s};\n", ub_vs_bonesStr);
+			WRITE(p, "cbuffer base : register(b0) {\n%s};\n", isLevel93 ? ub_baseStr : ub_baseStr2);
+			WRITE(p, "cbuffer lights: register(b1) {\n%s};\n", isLevel93 ? ub_vs_lightsStr : ub_vs_lightsStr2);
+			WRITE(p, "cbuffer bones : register(b2) {\n%s};\n", isLevel93 ? ub_vs_bonesStr : ub_vs_bonesStr2);
 		} else {
 			WRITE(p, "#pragma warning( disable : 3571 )\n");
 			if (isModeThrough) {
@@ -375,7 +377,7 @@ bool GenerateVertexShader(const VShaderID &id, char *buffer, const ShaderLanguag
 		if (useHWTransform) {
 			WRITE(p, "struct VS_IN {                              \n");
 			if ((doSpline || doBezier) && compat.shaderLanguage == HLSL_D3D11) {
-				WRITE(p, "  uint instanceId : SV_InstanceID;\n");
+				WRITE(p, "  uint instanceId : SV_InstanceID;\n"); // FL 9.3 don't support SV_InstanceID
 			}
 			if (enableBones) {
 				WRITE(p, "  %s", boneWeightAttrDeclHLSL[numBoneWeights]);
@@ -415,7 +417,7 @@ bool GenerateVertexShader(const VShaderID &id, char *buffer, const ShaderLanguag
 
 		WRITE(p, "struct VS_OUT {\n");
 		WRITE(p, "  vec3 v_texcoord : TEXCOORD0;\n");
-		const char *colorInterpolation = "";
+		const char *colorInterpolation = doFlatShading && !isLevel93 ? "nointerpolation " : "";
 		WRITE(p, "  %svec4 v_color0    : COLOR0;\n", colorInterpolation);
 		if (lmode) {
 			WRITE(p, "  vec3 v_color1    : COLOR1;\n");
@@ -952,10 +954,19 @@ bool GenerateVertexShader(const VShaderID &id, char *buffer, const ShaderLanguag
 		}
 
 		if (lightUberShader && hasColor) {
-			p.F("  vec4 ambientColor = ((u_lightControl & (1u << 0x14u)) != 0x0u) ? %s : u_matambientalpha;\n", srcCol);
-			if (enableLighting) {
-				p.F("  vec3 diffuseColor = ((u_lightControl & (1u << 0x15u)) != 0x0u) ? %s.rgb : u_matdiffuse;\n", srcCol);
-				p.F("  vec3 specularColor = ((u_lightControl & (1u << 0x16u)) != 0x0u) ? %s.rgb : u_matspecular.rgb;\n", srcCol);
+			if (compat.bitwiseOps) {
+				p.F("  vec4 ambientColor = ((u_lightControl & (1u << 0x14u)) != 0x0u) ? %s : u_matambientalpha;\n", srcCol);
+				if (enableLighting) {
+					p.F("  vec3 diffuseColor = ((u_lightControl & (1u << 0x15u)) != 0x0u) ? %s.rgb : u_matdiffuse;\n", srcCol);
+					p.F("  vec3 specularColor = ((u_lightControl & (1u << 0x16u)) != 0x0u) ? %s.rgb : u_matspecular.rgb;\n", srcCol);
+				}
+			}
+			else {
+				p.F("  vec4 ambientColor = ((u_lightControl / 1048576u) %% 2u != 0u) ? %s : u_matambientalpha;\n", srcCol);  // 1048576 = 2^20
+				if (enableLighting) {
+					p.F("  vec3 diffuseColor = ((u_lightControl / 2097152u) %% 2u != 0u) ? %s.rgb : u_matdiffuse;\n", srcCol);  // 2097152 = 2^21
+					p.F("  vec3 specularColor = ((u_lightControl / 4194304u) %% 2u != 0u) ? %s.rgb : u_matspecular.rgb;\n", srcCol);  // 4194304 = 2^22
+				}
 			}
 		} else {
 			// This path also takes care of the lightUberShader && !hasColor path, because all comparisons fail.
@@ -1028,53 +1039,118 @@ bool GenerateVertexShader(const VShaderID &id, char *buffer, const ShaderLanguag
 			// above. In that case, we only need to emit the code once, so the for loop here will
 			// only run for a single pass.
 			int count = useIndexing ? 1 : 4;
-			for (int i = 0; i < count; i++) {
-				snprintf(iStr, sizeof(iStr), useIndexing ? "[i]" : "%d", i);
-				if (useIndexing) {
-					p.C("  if ((u_lightControl & (0x1u << i)) != 0x0u) { \n");
-					p.C("    comp = (u_lightControl >> uint(0x4u + 0x4u * i)) & 0x3u;\n");
-					p.C("    type = (u_lightControl >> uint(0x4u + 0x4u * i + 0x2u)) & 0x3u;\n");
-				} else {
-					p.F("  if ((u_lightControl & 0x%xu) != 0x0u) { \n", 1 << i);
-					p.F("    comp = (u_lightControl >> 0x%02xu) & 0x3u;\n", 4 + 4 * i);
-					p.F("    type = (u_lightControl >> 0x%02xu) & 0x3u;\n", 4 + 4 * i + 2);
+			
+			if (compat.bitwiseOps) {
+				for (int i = 0; i < count; i++) {
+					snprintf(iStr, sizeof(iStr), useIndexing ? "[i]" : "%d", i);
+					if (useIndexing) {
+						p.C("  if ((u_lightControl & (0x1u << i)) != 0x0u) { \n");
+						p.C("    comp = (u_lightControl >> uint(0x4u + 0x4u * i)) & 0x3u;\n");
+						p.C("    type = (u_lightControl >> uint(0x4u + 0x4u * i + 0x2u)) & 0x3u;\n");
+					}
+					else {
+						p.F("  if ((u_lightControl & 0x%xu) != 0x0u) { \n", 1 << i);
+						p.F("    comp = (u_lightControl >> 0x%02xu) & 0x3u;\n", 4 + 4 * i);
+						p.F("    type = (u_lightControl >> 0x%02xu) & 0x3u;\n", 4 + 4 * i + 2);
+					}
+					p.F("    toLight = u_lightpos%s;\n", iStr);
+					p.C("    if (type != 0x0u) {\n");  // GE_LIGHTTYPE_DIRECTIONAL
+					p.F("      toLight -= worldpos;\n");
+					p.F("      distance = length(toLight);\n");
+					p.F("      toLight /= distance;\n");
+					p.F("      attenuation = clamp(1.0 / dot(u_lightatt%s, vec3(1.0, distance, distance*distance)), 0.0, 1.0);\n", iStr);
+					p.C("      if (type == 0x01u) {\n"); // GE_LIGHTTYPE_POINT
+					p.C("        lightScale = attenuation;\n");
+					p.C("      } else {\n");  // type must be 0x02 - GE_LIGHTTYPE_SPOT
+					p.F("        angle = dot(u_lightdir%s, toLight);\n", iStr);
+					p.F("        if (angle >= u_lightangle_spotCoef%s.x) {\n", iStr);
+					p.F("          lightScale = attenuation * (u_lightangle_spotCoef%s.y <= 0.0 ? 1.0 : pow(abs(angle), u_lightangle_spotCoef%s.y));\n", iStr, iStr, iStr);
+					p.C("        } else {\n");
+					p.C("          lightScale = 0.0;\n");
+					p.C("        }\n");
+					p.C("      }\n");
+					p.C("    } else {\n");
+					p.C("      lightScale = 1.0;\n");  // GE_LIGHTTYPE_DIRECTIONAL
+					p.C("    }\n");
+					p.C("    ldot = dot(toLight, worldnormal);\n");
+					p.C("    if (comp == 0x2u) {\n");  // GE_LIGHTCOMP_ONLYPOWDIFFUSE
+					p.C("      ldot = u_matspecular.a > 0.0 ? pow(max(ldot, 0.0), u_matspecular.a) : 1.0;\n");
+					p.C("    }\n");
+					p.F("    diffuse = (u_lightdiffuse%s * diffuseColor) * max(ldot, 0.0);\n", iStr);
+					p.C("    if (comp == 0x1u) {\n");  // do specular
+					p.C("      if (ldot >= 0.0) {\n");
+					p.C("        if (u_matspecular.a > 0.0) {\n");
+					p.C("          ldot = dot(normalize(toLight + vec3(0.0, 0.0, 1.0)), worldnormal);\n");
+					p.C("          ldot = pow(max(ldot, 0.0), u_matspecular.a);\n");
+					p.C("        } else {\n");
+					p.C("          ldot = 1.0;\n");
+					p.C("        }\n");
+					p.F("        lightSum1 += u_lightspecular%s * specularColor * ldot * lightScale;\n", iStr);
+					p.C("      }\n");
+					p.C("    }\n");
+					p.F("    lightSum0.rgb += (u_lightambient%s * ambientColor.rgb + diffuse) * lightScale;\n", iStr);
+					p.C("  }\n");
 				}
-				p.F("    toLight = u_lightpos%s;\n", iStr);
-				p.C("    if (type != 0x0u) {\n");  // GE_LIGHTTYPE_DIRECTIONAL
-				p.F("      toLight -= worldpos;\n");
-				p.F("      distance = length(toLight);\n");
-				p.F("      toLight /= distance;\n");
-				p.F("      attenuation = clamp(1.0 / dot(u_lightatt%s, vec3(1.0, distance, distance*distance)), 0.0, 1.0);\n", iStr);
-				p.C("      if (type == 0x01u) {\n"); // GE_LIGHTTYPE_POINT
-				p.C("        lightScale = attenuation;\n");
-				p.C("      } else {\n");  // type must be 0x02 - GE_LIGHTTYPE_SPOT
-				p.F("        angle = dot(u_lightdir%s, toLight);\n", iStr);
-				p.F("        if (angle >= u_lightangle_spotCoef%s.x) {\n", iStr);
-				p.F("          lightScale = attenuation * (u_lightangle_spotCoef%s.y <= 0.0 ? 1.0 : pow(angle, u_lightangle_spotCoef%s.y));\n", iStr, iStr, iStr);
-				p.C("        } else {\n");
-				p.C("          lightScale = 0.0;\n");
-				p.C("        }\n");
-				p.C("      }\n");
-				p.C("    } else {\n");
-				p.C("      lightScale = 1.0;\n");  // GE_LIGHTTYPE_DIRECTIONAL
-				p.C("    }\n");
-				p.C("    ldot = dot(toLight, worldnormal);\n");
-				p.C("    if (comp == 0x2u) {\n");  // GE_LIGHTCOMP_ONLYPOWDIFFUSE
-				p.C("      ldot = u_matspecular.a > 0.0 ? pow(max(ldot, 0.0), u_matspecular.a) : 1.0;\n");
-				p.C("    }\n");
-				p.F("    diffuse = (u_lightdiffuse%s * diffuseColor) * max(ldot, 0.0);\n", iStr);
-				p.C("    if (comp == 0x1u && ldot >= 0.0) {\n");  // do specular. note - must allow for the >= case, since the u_matspecular.a <= 0.0 case relies on it.
-				p.C("      if (u_matspecular.a > 0.0) {\n");
-				p.C("        ldot = dot(normalize(toLight + vec3(0.0, 0.0, 1.0)), worldnormal);\n");
-				p.C("        ldot = pow(max(ldot, 0.0), u_matspecular.a);\n");
-				p.C("      } else {\n");
-				p.C("        ldot = 1.0;\n");
-				p.C("      }\n");
-				p.F("      lightSum1 += u_lightspecular%s * specularColor * ldot * lightScale;\n", iStr);
-				p.C("    }\n");
-				p.F("    lightSum0.rgb += (u_lightambient%s * ambientColor.rgb + diffuse) * lightScale;\n", iStr);
-				p.C("  }\n");
 			}
+			else {
+				for (int i = 0; i < count; i++) {
+					snprintf(iStr, sizeof(iStr), useIndexing ? "[i]" : "%d", i);
+
+					if (useIndexing) {
+						p.C("  if ((u_lightControl / uint(pow(2.0, i))) % 2u != 0u) { \n");
+						p.C("    comp = (u_lightControl / uint(pow(2.0, 4u + 4u * i))) % 4u;\n");
+						p.C("    type = (u_lightControl / uint(pow(2.0, 4u + 4u * i + 2u))) % 4u;\n");
+					}
+					else {
+						p.F("  if ((u_lightControl & 0x%xu) != 0x0u) { \n", 1 << i);
+						p.F("    comp = (u_lightControl / uint(pow(2.0, %u))) %% 4u;\n", 4 + 4 * i);
+						p.F("    type = (u_lightControl / uint(pow(2.0, %u))) %% 4u;\n", 4 + 4 * i + 2);
+					}
+
+					p.F("    toLight = u_lightpos%s;\n", iStr);
+					p.C("    if (type != 0x0u) {\n");
+					p.C("      toLight -= worldpos;\n");
+					p.C("      distance = length(toLight);\n");
+					p.C("      toLight /= distance;\n");
+					p.F("      attenuation = clamp(1.0 / dot(u_lightatt%s, vec3(1.0, distance, distance*distance)), 0.0, 1.0);\n", iStr);
+					p.C("      if (type == 0x01u) {\n"); // GE_LIGHTTYPE_POINT
+					p.C("        lightScale = attenuation;\n");
+					p.C("      } else {\n"); // type must be 0x02 - GE_LIGHTTYPE_SPOT
+					p.F("        angle = dot(u_lightdir%s, toLight);\n", iStr);
+					p.F("        if (angle >= u_lightangle_spotCoef%s.x) {\n", iStr);
+					p.F("          lightScale = attenuation * (u_lightangle_spotCoef%s.y <= 0.0 ? 1.0 : pow(abs(angle), u_lightangle_spotCoef%s.y));\n", iStr, iStr);
+					p.C("        } else {\n");
+					p.C("          lightScale = 0.0;\n");
+					p.C("        }\n");
+					p.C("      }\n");
+					p.C("    } else {\n");
+					p.C("      lightScale = 1.0;\n"); // GE_LIGHTTYPE_DIRECTIONAL
+					p.C("    }\n");
+
+					p.C("    ldot = dot(toLight, worldnormal);\n");
+					p.C("    if (comp == 0x2u) {\n"); // GE_LIGHTCOMP_ONLYPOWDIFFUSE
+					p.C("      ldot = u_matspecular.a > 0.0 ? pow(max(ldot, 0.0), u_matspecular.a) : 1.0;\n");
+					p.C("    }\n");
+					p.F("    diffuse = (u_lightdiffuse%s * diffuseColor) * max(ldot, 0.0);\n", iStr);
+
+					p.C("    if (comp == 0x1u) {\n"); // do specular
+					p.C("      if (ldot >= 0.0) {\n");
+					p.C("        if (u_matspecular.a > 0.0) {\n");
+					p.C("          ldot = dot(normalize(toLight + vec3(0.0, 0.0, 1.0)), worldnormal);\n");
+					p.C("          ldot = pow(max(ldot, 0.0), u_matspecular.a);\n");
+					p.C("        } else {\n");
+					p.C("          ldot = 1.0;\n");
+					p.C("        }\n");
+					p.F("        lightSum1 += u_lightspecular%s * specularColor * ldot * lightScale;\n", iStr);
+					p.C("      }\n");
+					p.C("    }\n");
+
+					p.F("    lightSum0.rgb += (u_lightambient%s * ambientColor.rgb + diffuse) * lightScale;\n", iStr);
+					p.C("  }\n");
+				}
+
+			}
+			
 			if (useIndexing) {
 				p.F("  }");
 			}

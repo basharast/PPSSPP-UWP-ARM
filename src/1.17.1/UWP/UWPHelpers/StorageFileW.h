@@ -140,7 +140,7 @@ public:
 	bool Equal(PathUWP path) {
 		return Equal(path.ToString());
 	}
-	
+
 	// Compare file with StorageFile
 	bool Equal(StorageFile^ file) {
 		return Equal(file->Path);
@@ -194,6 +194,7 @@ public:
 		HRESULT hr = GetHandle(&handle, fileMode->dwDesiredAccess, fileMode->dwShareMode);
 		FILE* file{};
 		if (hr == S_OK && handle != INVALID_HANDLE_VALUE) {
+			DEBUG_LOG(Log::FileSystem, "Opening file (%s) with flag:%d mode:%s", GetPath().c_str(), fileMode->flags, mode);
 			file = _fdopen(_open_osfhandle((intptr_t)handle, fileMode->flags), mode);
 		}
 		return file;
@@ -211,7 +212,7 @@ public:
 
 		size_t size = sizeof(FILE_BASIC_INFO);
 		FILE_BASIC_INFO* information = (FILE_BASIC_INFO*)(malloc(size));
-		if(hr == S_OK && handle != INVALID_HANDLE_VALUE && information){
+		if (hr == S_OK && handle != INVALID_HANDLE_VALUE && information) {
 			information->FileAttributes = (DWORD)storageFile->Attributes;
 
 			if (FALSE == GetFileInformationByHandleEx(handle, FileBasicInfo, information, (DWORD)size)) {
@@ -233,7 +234,7 @@ public:
 		return storageFile;
 	}
 
-    time_t  filetime_to_timet(LARGE_INTEGER ull) const {
+	time_t  filetime_to_timet(LARGE_INTEGER ull) const {
 		return ull.QuadPart / 10000000ULL - 11644473600ULL;
 	}
 	ItemInfoUWP GetFileInfo() {
@@ -270,4 +271,3 @@ private:
 		return properties;
 	}
 };
-

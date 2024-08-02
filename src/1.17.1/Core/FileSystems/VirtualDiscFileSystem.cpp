@@ -41,6 +41,8 @@
 #include <sys/stat.h>
 #if PPSSPP_PLATFORM(UWP)
 //#include <fileapifromapp.h>
+#include "UWP/UWPHelpers/StorageManager.h"
+#include "UWP/UWPHelpers/PPSSPPTypesHelpers.h"
 #endif
 #else
 #include <dirent.h>
@@ -679,11 +681,43 @@ std::vector<PSPFileInfo> VirtualDiscFileSystem::GetDirListing(const std::string 
 	std::wstring w32path = GetLocalPath(path).ToWString() + L"\\*.*";
 
 #if PPSSPP_PLATFORM(UWP)
-	hFind = FindFirstFileEx(w32path.c_str(), FindExInfoStandard, &findData, FindExSearchNameMatch, NULL, 0);
+	hFind = FindFirstFileExW(w32path.c_str(), FindExInfoStandard, &findData, FindExSearchNameMatch, NULL, 0);
 #else
-	hFind = FindFirstFileEx(w32path.c_str(), FindExInfoStandard, &findData, FindExSearchNameMatch, NULL, 0);
+	hFind = FindFirstFileExW(w32path.c_str(), FindExInfoStandard, &findData, FindExSearchNameMatch, NULL, 0);
 #endif
 	if (hFind == INVALID_HANDLE_VALUE) {
+		// Getting folder contents will need extra work
+		// request must be done within StorageManager
+		auto contents = GetFolderContents(w32path);
+		if (!contents.empty()) {
+			//Copy files data from 'files' to 'myVector'
+			for each (auto item in contents) {
+				PSPFileInfo entry;
+				if (item.isDirectory) {
+					entry.type = FILETYPE_DIRECTORY;
+				}
+				else {
+					entry.type = FILETYPE_NORMAL;
+				}
+
+				entry.access = 0555;
+				entry.exists = true;
+				entry.size = item.size;
+				entry.name = item.name;
+				//tmFromFiletime(entry.atime, file.atime); //find solution if this value is important
+				//tmFromFiletime(entry.ctime, file.ctime); //find solution if this value is important
+				//tmFromFiletime(entry.mtime, file.mtime); //find solution if this value is important
+				entry.isOnSectorSystem = true;
+
+				std::string fullRelativePath = path + "/" + entry.name;
+				int fileIndex = getFileListIndex(fullRelativePath);
+				if (fileIndex != -1)
+					entry.startSector = fileList[fileIndex].firstBlock;
+
+				myVector.push_back(entry);
+			}
+			return myVector;
+		}
 		if (exists)
 			*exists = false;
 		return myVector; //the empty list

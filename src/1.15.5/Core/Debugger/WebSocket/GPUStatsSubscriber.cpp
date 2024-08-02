@@ -20,7 +20,7 @@
 #include "Core/Debugger/WebSocket/GPUStatsSubscriber.h"
 #include "Core/HW/Display.h"
 #include "Core/System.h"
-
+extern int targetFPS;
 struct CollectedStats {
 	float vps;
 	float fps;
@@ -47,7 +47,7 @@ struct DebuggerGPUStatsEvent {
 		j.pop();
 		j.pushDict("vblanksPerSecond");
 		j.writeFloat("actual", s.vps);
-		j.writeFloat("target", 60.0 / 1.001);
+		j.writeFloat("target", (targetFPS * 1.0) / 1.001);
 		j.pop();
 		j.writeString("info", s.statbuf);
 		j.pushDict("timing");

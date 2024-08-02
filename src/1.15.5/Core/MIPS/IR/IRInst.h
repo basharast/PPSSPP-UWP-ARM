@@ -330,7 +330,7 @@ enum IRFlags {
 
 struct IRMeta {
 	IROp op;
-	const char* name;
+	const char *name;
 	const char types[5];  // GGG
 	u32 flags;
 };
@@ -348,21 +348,25 @@ struct IRInst {
 };
 
 // Returns the new PC.
-u32 IRInterpret(MIPSState* ms, const IRInst* inst, int count);
+u32 IRInterpret(MIPSState *ms, const IRInst *inst, int count);
 
 // Each IR block gets a constant pool.
 class IRWriter {
 public:
-	IRWriter& operator =(const IRWriter& w) {
+	IRWriter &operator =(const IRWriter &w) {
 		insts_ = w.insts_;
 		return *this;
 	}
-	IRWriter& operator =(IRWriter&& w) {
+	IRWriter &operator =(IRWriter &&w) {
 		insts_ = std::move(w.insts_);
 		return *this;
 	}
 
 	void Write(IROp op, u8 dst = 0, u8 src1 = 0, u8 src2 = 0);
+	void Write(IROp op, IRReg dst, IRReg src1, IRReg src2, uint32_t c) {
+		AddConstant(c);
+		Write(op, dst, src1, src2);
+	}
 	void Write(IRInst inst) {
 		insts_.push_back(inst);
 	}
@@ -375,7 +379,7 @@ public:
 		insts_.clear();
 	}
 
-	const std::vector<IRInst>& GetInstructions() const { return insts_; }
+	const std::vector<IRInst> &GetInstructions() const { return insts_; }
 
 private:
 	std::vector<IRInst> insts_;
@@ -389,6 +393,6 @@ struct IROptions {
 	bool preferVec4;
 };
 
-const IRMeta* GetIRMeta(IROp op);
-void DisassembleIR(char* buf, size_t bufsize, IRInst inst);
+const IRMeta *GetIRMeta(IROp op);
+void DisassembleIR(char *buf, size_t bufsize, IRInst inst);
 void InitIR();

@@ -22,6 +22,7 @@ namespace DX
 		void SetLogicalSize(Windows::Foundation::Size logicalSize);
 		void SetCurrentOrientation(Windows::Graphics::Display::DisplayOrientations currentOrientation);
 		void SetDpi(float dpi);
+		void SetQuality(float quality, bool initial = false);
 		void ValidateDevice();
 		void HandleDeviceLost();
 		void RegisterDeviceNotify(IDeviceNotify* deviceNotify);
@@ -34,7 +35,7 @@ namespace DX
 		// The size of the render target, in dips.
 		Windows::Foundation::Size	GetLogicalSize() const					{ return m_logicalSize; }
 		float	GetDpi() const { return m_effectiveDpi; }
-		float GetActualDpi() const { return m_dpi / 2; }
+		float GetActualDpi() const { return m_dpi / m_scaleAmount; }
 
 		// D3D Accessors.
 		ID3D11Device3*				GetD3DDevice() const					{ return m_d3dDevice.Get(); }
@@ -60,9 +61,9 @@ namespace DX
 
 	private:
 		void CreateDeviceIndependentResources();
-		void CreateDeviceResources(IDXGIAdapter* vAdapter = nullptr);
+		void CreateDeviceResources(IDXGIAdapter* vAdapter , int forceAutoLange);
 		void UpdateRenderTargetSize();
-		bool CreateAdaptersList(Microsoft::WRL::ComPtr<ID3D11Device> device);
+		bool CreateAdaptersList(Microsoft::WRL::ComPtr<ID3D11Device> device, int forceAutoLange);
 
 		// Direct3D objects.
 		Microsoft::WRL::ComPtr<ID3D11Device3>			m_d3dDevice;
@@ -97,6 +98,7 @@ namespace DX
 		Windows::Graphics::Display::DisplayOrientations	m_nativeOrientation;
 		Windows::Graphics::Display::DisplayOrientations	m_currentOrientation;
 		float m_dpi;
+		float m_scaleAmount;
 
 		// This is the DPI that will be reported back to the app. It takes into account whether the app supports high resolution screens or not.
 		float m_effectiveDpi;

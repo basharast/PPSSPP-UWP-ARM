@@ -25,6 +25,7 @@ using namespace Windows::Storage;
 using namespace Windows::Foundation;
 
 extern void AddItemToFutureList(IStorageItem^ folder);
+extern bool appSuspended;
 
 // Call folder picker (the selected folder will be added to future list)
 concurrency::task<Platform::String^> PickSingleFolder()
@@ -32,7 +33,7 @@ concurrency::task<Platform::String^> PickSingleFolder()
 	auto folderPicker = ref new Windows::Storage::Pickers::FolderPicker();
 	folderPicker->SuggestedStartLocation = Windows::Storage::Pickers::PickerLocationId::Desktop;
 	folderPicker->FileTypeFilter->Append("*");
-
+	appSuspended = true;
 	return concurrency::create_task(folderPicker->PickSingleFolderAsync()).then([](StorageFolder^ folder) {
 		auto path = ref new Platform::String();
 		if (folder != nullptr)
@@ -50,7 +51,7 @@ concurrency::task<Platform::String^> PickSingleFile(std::vector<std::string> ext
 	auto filePicker = ref new Windows::Storage::Pickers::FileOpenPicker();
 	filePicker->SuggestedStartLocation = Windows::Storage::Pickers::PickerLocationId::Desktop;
 	filePicker->ViewMode = Pickers::PickerViewMode::List;
-
+	appSuspended = true;
 	if (exts.size() > 0) {
 		for each (auto ext in exts) {
 			filePicker->FileTypeFilter->Append(ToPlatformString(ext));

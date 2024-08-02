@@ -108,6 +108,7 @@ private:
 	UI::EventReturn OnSavePathMydoc(UI::EventParams &e);
 	UI::EventReturn OnSavePathOther(UI::EventParams &e);
 #endif
+	UI::EventReturn OnLegacy(UI::EventParams& e);
 	UI::EventReturn OnScreenRotation(UI::EventParams &e);
 	UI::EventReturn OnImmersiveModeChange(UI::EventParams &e);
 	UI::EventReturn OnSustainedPerformanceModeChange(UI::EventParams &e);

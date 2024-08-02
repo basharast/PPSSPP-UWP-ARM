@@ -16,7 +16,7 @@
 // https://github.com/hrydgard/ppsspp and http://www.ppsspp.org/.
 
 #include "pch.h"
-#include <io.h> 
+#include <io.h>
 #include <fcntl.h>
 #include <regex>
 
@@ -29,7 +29,7 @@
 
 #include <ppl.h>
 #include <ppltasks.h>
-
+ 
 using namespace Windows::Foundation;
 
 extern void AddItemToFutureList(IStorageItem^ item);

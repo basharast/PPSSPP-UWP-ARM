@@ -1239,8 +1239,8 @@ void MainScreen::CreateViews() {
 	if (!vertical) {
 		rightColumnChoices->Add(new Choice(mm->T("www.ppsspp.org")))->OnClick.Handle(this, &MainScreen::OnPPSSPPOrg);
 
-		if (!System_GetPropertyBool(SYSPROP_APP_GOLD) && (System_GetPropertyInt(SYSPROP_DEVICE_TYPE) != DEVICE_TYPE_VR)) {
-			Choice *gold = rightColumnChoices->Add(new Choice(mm->T("Buy PPSSPP Gold")));
+		if ((System_GetPropertyInt(SYSPROP_DEVICE_TYPE) != DEVICE_TYPE_VR)) {
+			Choice *gold = rightColumnChoices->Add(new Choice(mm->T("Support Project")));
 			gold->OnClick.Handle(this, &MainScreen::OnSupport);
 			gold->SetIcon(ImageID("I_ICONGOLD"), 0.5f);
 		}

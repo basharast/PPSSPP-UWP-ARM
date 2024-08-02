@@ -93,6 +93,10 @@ public:
 	bool bRenderSkip3;
 	bool bDetectDeviceLose;
 	bool bFogState;
+	bool bForceLowPrecision;
+	bool bShaderDiskCache;
+	bool bUseDepalShader;
+	bool bShowShaderOptions;
 	bool bAssertTextureCache;
 	bool bBackwardCompatibilityTemp;
 	bool bBackwardCompatibility;
@@ -157,6 +161,8 @@ public:
 	std::string sMicDevice;
 
 	bool bforceFloatShader;
+	bool bforceFloatShader2;
+	bool bEnableLights;
 	bool bSoftwareRendering;
 	bool bSoftwareRenderingJit;
 	bool bHardwareTransform; // only used in the GLES backend

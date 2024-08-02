@@ -388,21 +388,20 @@ void ComputeFragmentShaderID(FShaderID *id_out, const ComputedPipelineState &pip
 			id.SetBit(FS_BIT_STEREO);
 		}
 
-		if (g_Config.bVendorBugChecksEnabled) {
-			if (bugs.Has(Draw::Bugs::NO_DEPTH_CANNOT_DISCARD_STENCIL_ADRENO) || bugs.Has(Draw::Bugs::NO_DEPTH_CANNOT_DISCARD_STENCIL_MALI)) {
+		//if (g_Config.bVendorBugChecksEnabled) {
+			//if (bugs.Has(Draw::Bugs::NO_DEPTH_CANNOT_DISCARD_STENCIL_ADRENO) || bugs.Has(Draw::Bugs::NO_DEPTH_CANNOT_DISCARD_STENCIL_MALI)) {
 				// On Adreno, the workaround is safe, so we do simple checks.
 				bool stencilWithoutDepth = (!gstate.isDepthTestEnabled() || !gstate.isDepthWriteEnabled()) && !IsStencilTestOutputDisabled();
 				if (stencilWithoutDepth) {
 					id.SetBit(FS_BIT_NO_DEPTH_CANNOT_DISCARD_STENCIL, stencilWithoutDepth);
 				}
-			}
-		}
+			//}
+		//}
 
 		// Forcibly disable NEVER + depth-write on Mali.
 		// TODO: Take this from computed depth test instead of directly from the gstate.
 		// That will take more refactoring though.
-		if (bugs.Has(Draw::Bugs::NO_DEPTH_CANNOT_DISCARD_STENCIL_MALI) &&
-			gstate.getDepthTestFunction() == GE_COMP_NEVER && gstate.isDepthTestEnabled()) {
+		if (gstate.isDepthTestEnabled()) {
 			id.SetBit(FS_BIT_DEPTH_TEST_NEVER);
 		}
 

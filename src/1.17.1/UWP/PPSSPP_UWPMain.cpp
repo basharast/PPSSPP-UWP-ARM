@@ -29,6 +29,7 @@
 #include "Core/System.h"
 #include "Core/Loaders.h"
 #include "Core/Config.h"
+#include "Core/Core.h"
 
 #include "Windows/InputDevice.h"
 #include "Windows/XinputDevice.h"
@@ -42,6 +43,7 @@
 #include "UWPHelpers/StorageAsync.h"
 #include "UWPHelpers/LaunchItem.h"
 #include "UWPHelpers/InputHelpers.h"
+#include "UWPHelpers/UIHelpers.h"
 
 using namespace UWP;
 using namespace Windows::Foundation;
@@ -61,6 +63,9 @@ std::list<std::unique_ptr<InputDevice>> g_input;
 // TODO: See https://github.com/Microsoft/Windows-universal-samples/tree/master/Samples/WindowsAudioSession for WASAPI with UWP
 // TODO: Low latency input: https://github.com/Microsoft/Windows-universal-samples/tree/master/Samples/LowLatencyInput/cpp
 
+extern float scaleAmount;
+extern bool appSuspended;
+
 extern DisplayOrientations currentOrientation;
 // Loads and initializes application assets when the application is loaded.
 PPSSPP_UWPMain::PPSSPP_UWPMain(App ^app, const std::shared_ptr<DX::DeviceResources>& deviceResources) :
@@ -72,16 +77,15 @@ PPSSPP_UWPMain::PPSSPP_UWPMain(App ^app, const std::shared_ptr<DX::DeviceResourc
 
 	ctx_.reset(new UWPGraphicsContext(deviceResources));
 
-#if _DEBUG
-		LogManager::GetInstance()->SetAllLogLevels(LogLevel::LDEBUG);
-
-		if (g_Config.bEnableLogging) {
+		if (g_Config.bEnableLogging2) {
 			LogManager::GetInstance()->ChangeFileLog(GetLogFile().c_str());
 		}
-#endif
 
 		DisplayInformation^ displayInfo = DisplayInformation::GetForCurrentView();
 		currentOrientation = displayInfo->CurrentOrientation;
+
+		LinkAccelerometer();
+
 	// At this point we have main requirements initialized (Log, Config, NativeInit, Device)
 	NativeInitGraphics(ctx_.get());
 	System_NotifyUIEvent(UIEventNotification::RESIZE);
@@ -114,14 +118,29 @@ PPSSPP_UWPMain::~PPSSPP_UWPMain() {
 
 bool updateScreen = true;
 bool recreateView = false;
+bool resizeBufferRequested = false;
 
 // Updates application state when the window size changes (e.g. device orientation change)
+extern bool resizeInProgress;
 void PPSSPP_UWPMain::CreateWindowSizeDependentResources() {
 	ctx_->GetDrawContext()->HandleEvent(Draw::Event::LOST_BACKBUFFER, 0, 0, nullptr);
+	
+	System_NotifyUIEvent(UIEventNotification::RESIZE);
 
 	int width = m_deviceResources->GetScreenViewport().Width;
 	int height = m_deviceResources->GetScreenViewport().Height;
 	ctx_->GetDrawContext()->HandleEvent(Draw::Event::GOT_BACKBUFFER, width, height, m_deviceResources->GetBackBufferRenderTargetView());
+	if (!resizeInProgress) {
+		Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(
+			CoreDispatcherPriority::Normal,
+			ref new Windows::UI::Core::DispatchedHandler([=]()
+				{
+					CoreWindow^ corewindow = CoreWindow::GetForCurrentThread();
+					if (corewindow) {
+						app_->OnWindowSizeChanged(corewindow, nullptr);
+					}
+				}));
+	}
 }
 
 void PPSSPP_UWPMain::UpdateScreenState() {
@@ -150,7 +169,9 @@ void PPSSPP_UWPMain::UpdateScreenState() {
 	g_display.dpi = m_deviceResources->GetActualDpi();
 
 	// Boost DPI a bit to look better.
-	g_display.dpi *= 96 / (136.0f);
+	if (g_Config.bDPIBoost > 0) {
+		g_display.dpi *= g_Config.bDPIBoost / (136.0f);
+	}
 
 	g_display.dpi_scale_x = (96.0f / g_display.dpi);
 	g_display.dpi_scale_y = (96.0f / g_display.dpi);
@@ -170,25 +191,37 @@ bool mainMenuVisible = false;
 bool PPSSPP_UWPMain::Render() {
 	static bool hasSetThreadName = false;
 
+	if (resizeBufferRequested) {
+		resizeBufferRequested = false;
+		scaleAmount = g_Config.bQualityControl;
+		m_deviceResources->SetQuality(scaleAmount);
+		CreateWindowSizeDependentResources();
+		updateScreen = true;
+	}
+
 	if (!mainMenuVisible) {
 		System_NotifyUIEvent(UIEventNotification::RESIZE);
 	}
 
 	if (updateScreen) {
-		UpdateScreenState();
-		concurrency::create_task([&] {
-			std::this_thread::sleep_for(std::chrono::milliseconds(100));
-			System_PostUIMessage(UIMessage::RESET_DPAD, "");
-			});
+		if (!appSuspended) {
+			UpdateScreenState();
+			concurrency::create_task([&] {
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+				System_PostUIMessage(UIMessage::RESET_DPAD, "");
+				});
+		}
 		updateScreen = !mainMenuVisible;
 	}
 
 	if (recreateView) {
 		recreateView = false;
-		concurrency::create_task([&] {
-			std::this_thread::sleep_for(std::chrono::milliseconds(100));
-			System_PostUIMessage(UIMessage::RECREATE_VIEWS, "");
-		});
+		if (!appSuspended) {
+			concurrency::create_task([&] {
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+				System_PostUIMessage(UIMessage::RECREATE_VIEWS, "");
+				});
+		}
 	}
 
 	if (!hasSetThreadName) {
@@ -395,14 +428,14 @@ int64_t System_GetPropertyInt(SystemProperty prop) {
 	{
 		CoreWindow^ corewindow = CoreWindow::GetForCurrentThread();
 		if (corewindow) {
-			return  (int)corewindow->Bounds.Width;
+			return  (int)lround(corewindow->Bounds.Width);
 		}
 	}
 	case SYSPROP_DISPLAY_YRES:
 	{
 		CoreWindow^ corewindow = CoreWindow::GetForCurrentThread();
 		if (corewindow) {
-			return (int)corewindow->Bounds.Height;
+			return (int)lround(corewindow->Bounds.Height);
 		}
 	}
 	default:
@@ -500,9 +533,7 @@ void System_Notify(SystemNotification notification) {
 		DisplayInformation^ displayInformation = DisplayInformation::GetForCurrentView();
 		displayInformation->AutoRotationPreferences = displayOrientation;
 
-		concurrency::create_task([&] {
-			updateScreen = true;
-			});
+		updateScreen = true;
 		break;
 	}
 	default:
@@ -643,12 +674,14 @@ bool System_MakeRequest(SystemRequestType type, int requestId, const std::string
 		bool flag = !view->IsFullScreenMode;
 		if (param1 == "0") {
 			flag = false;
-		} else if (param1 == "1"){
+		}
+		else if (param1 == "1") {
 			flag = true;
 		}
 		if (flag) {
 			view->TryEnterFullScreenMode();
-		} else {
+		}
+		else {
 			view->ExitFullScreenMode();
 		}
 		return true;

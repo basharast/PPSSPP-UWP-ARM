@@ -74,6 +74,33 @@ R"(  mat4 u_proj;
   float u_rotation;
 )";
 
+static const char* const ub_baseStr2 =
+R"(  mat4 u_proj;
+  mat4 u_proj_through;
+  mat3x4 u_view;
+  mat3x4 u_world;
+  mat3x4 u_texmtx;
+  vec4 u_uvscaleoffset;
+  vec4 u_depthRange;
+  vec4 u_matambientalpha;
+  vec4 u_cullRangeMin;
+  vec4 u_cullRangeMax;
+  uint u_spline_counts;
+  uint u_depal_mask_shift_off_fmt;
+  uint u_colorWriteMask;
+  float u_mipBias;
+  vec2 u_texNoAlphaMul; 
+  float pad1; float pad2;
+  vec3 u_fogcolor;  uint u_alphacolorref;
+  vec3 u_texenv;    uint u_alphacolormask;
+  vec4 u_texclamp;
+  vec2 u_texclampoff; vec2 u_fogcoef;
+  vec3 u_blendFixA; 
+  float u_stencilReplaceValue;
+  vec3 u_blendFixB; 
+  float u_rotation;
+)";
+
 // 512 bytes. Would like to shrink more. Some colors only have 8-bit precision and we expand
 // them to float unnecessarily, could just as well expand in the shader.
 struct alignas(16) UB_VS_Lights {
@@ -106,6 +133,21 @@ R"(  vec4 u_ambient;
   vec3 u_lightspecular[4];
 )";
 
+static const char* const ub_vs_lightsStr2 =
+R"(  vec4 u_ambient;
+  vec3 u_matdiffuse;
+  vec4 u_matspecular;
+  vec3 u_matemissive;
+  uint u_lightControl;  // light ubershader control bits
+  vec3 u_lightpos[4];
+  vec3 u_lightdir[4];
+  vec3 u_lightatt[4];
+  vec4 u_lightangle_spotCoef[4];
+  vec3 u_lightambient[4];
+  vec3 u_lightdiffuse[4];
+  vec3 u_lightspecular[4];
+)";
+
 // With some cleverness, we could get away with uploading just half this when only the four or five first
 // bones are being used. This is 384b.
 struct alignas(16) UB_VS_Bones {
@@ -115,6 +157,11 @@ struct alignas(16) UB_VS_Bones {
 static const char * const ub_vs_bonesStr =
 R"(	mat3x4 u_bone0; mat3x4 u_bone1; mat3x4 u_bone2; mat3x4 u_bone3; mat3x4 u_bone4; mat3x4 u_bone5; mat3x4 u_bone6; mat3x4 u_bone7; mat3x4 u_bone8;
 )";
+
+static const char* const ub_vs_bonesStr2 =
+R"(	mat3x4 u_bone0; mat3x4 u_bone1; mat3x4 u_bone2; mat3x4 u_bone3; mat3x4 u_bone4; mat3x4 u_bone5; mat3x4 u_bone6; mat3x4 u_bone7; mat3x4 u_bone8;
+)";
+
 
 void CalcCullRange(float minValues[4], float maxValues[4], bool flipViewport, bool hasNegZ);
 

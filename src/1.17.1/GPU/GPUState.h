@@ -24,6 +24,7 @@
 #include "GPU/GPU.h"
 #include "GPU/ge_constants.h"
 #include "GPU/Common/ShaderCommon.h"
+#include "Core/Config.h"
 
 #if defined(_M_SSE)
 #include <emmintrin.h>
@@ -342,7 +343,7 @@ struct GPUgstate {
 	float getTextureLodSlope() const { return getFloat24(texlodslope); }
 
 	// Lighting
-	bool isLightingEnabled() const { return lightingEnable & 1; }
+	bool isLightingEnabled() const { return (lightingEnable & 1) && g_Config.bEnableLights; }
 	bool isLightChanEnabled(int chan) const { return lightEnable[chan] & 1; }
 	GELightComputation getLightComputation(int chan) const { return static_cast<GELightComputation>(ltype[chan] & 0x3); }
 	bool isUsingPoweredDiffuseLight(int chan) const { return getLightComputation(chan) == GE_LIGHTCOMP_ONLYPOWDIFFUSE; }

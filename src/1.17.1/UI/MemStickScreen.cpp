@@ -248,7 +248,7 @@ void MemStickScreen::CreateViews() {
 	case CHOICE_PRIVATE_DIRECTORY:
 		if (initialSetup_) {
 			confirmButtonText = di->T("Skip");
-			confirmButtonImage = ImageID("I_WARNING");
+			confirmButtonImage = ImageID("I_ARROW_RIGHT");
 		} else {
 			confirmButtonText = di->T("OK");
 		}

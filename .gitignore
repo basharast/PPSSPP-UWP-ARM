@@ -3,3 +3,5 @@ src/UWP/PPSSPP_UWP_TemporaryKey.pfx
 src/UWP/BundleArtifacts/arm.txt
 src/UWP/BundleArtifacts/x64.txt
 src/ext/armips/Tests/ARM/NocashInvalid/expected.txt
+src/1.15.5/UWP/PPSSPP_UWP_TemporaryKey.pfx
+src/1.17.1/UWP/PPSSPP_UWP_TemporaryKey.pfx

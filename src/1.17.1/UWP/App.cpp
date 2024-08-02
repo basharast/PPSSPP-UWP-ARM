@@ -20,6 +20,7 @@
 #include "Core/Config.h"
 #include "Core/Core.h"
 #include "UWPHelpers/LaunchItem.h"
+#include "UWPHelpers/StorageManager.h"
 #include <UWPUtil.h>
 
 using namespace UWP;
@@ -52,6 +53,33 @@ App::App() :
 {
 }
 
+bool appSuspended = false;
+
+void updateMemStickLocation() {
+	Path memstickDirFile = g_Config.internalDataDirectory / "memstick_dir.txt";
+	if (File::Exists(memstickDirFile)) {
+		INFO_LOG(Log::System, "Reading '%s' to find memstick dir.", memstickDirFile.c_str());
+		std::string memstickDir;
+		if (File::ReadTextFileToString(memstickDirFile, &memstickDir)) {
+			Path memstickPath(memstickDir);
+			if (!memstickPath.empty() && File::Exists(memstickPath)) {
+				g_Config.memStickDirectory = memstickPath;
+				SetWorkingFolder(g_Config.memStickDirectory.ToString());
+				g_Config.SetSearchPath(GetSysDirectory(DIRECTORY_SYSTEM));
+				g_Config.Reload();
+				INFO_LOG(Log::System, "Memstick Directory from memstick_dir.txt: '%s'", g_Config.memStickDirectory.c_str());
+			}
+			else {
+				ERROR_LOG(Log::System, "Couldn't read directory '%s' specified by memstick_dir.txt.", memstickDir.c_str());
+				g_Config.memStickDirectory.clear();
+			}
+		}
+	}
+	else {
+		INFO_LOG(Log::System, "No memstick directory file found (tried to open '%s')", memstickDirFile.c_str());
+	}
+}
+
 void App::InitialPPSSPP() {
 	// Initial net
 	net::Init();
@@ -74,7 +102,7 @@ void App::InitialPPSSPP() {
 	// because the next place it was called was in the EmuThread, and it's too late by then.
 	CreateSysDirectories();
 
-	LogManager::Init(&g_Config.bEnableLogging);
+	LogManager::Init(&g_Config.bEnableLogging2);
 
 	// Set the config path to local state by default
 	// it will be overrided by `NativeInit` if there is custom memStick
@@ -84,6 +112,10 @@ void App::InitialPPSSPP() {
 	if (g_Config.bFirstRun) {
 		// Clear `memStickDirectory` to show memory stick screen on first start
 		g_Config.memStickDirectory.clear();
+	}
+	else {
+		updateMemStickLocation();
+		CreateSysDirectories();
 	}
 
 	// Since we don't have any async operation in `NativeInit`
@@ -101,6 +133,9 @@ void App::InitialPPSSPP() {
 
 	// Calling `NativeInit` before will help us to deal with custom configs
 	// such as custom adapter, so it's better to initial render device here
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+
 	m_deviceResources = std::make_shared<DX::DeviceResources>();
 	m_deviceResources->CreateWindowSizeDependentResources();
 }
@@ -178,7 +213,12 @@ bool App::HasBackButton() {
 
 void App::App_BackRequested(Platform::Object^ sender, Windows::UI::Core::BackRequestedEventArgs^ e) {
 	if (m_isPhone) {
-		e->Handled = m_main->OnHardwareButton(HardwareButton::BACK);
+		if (g_Config.bBackButtonHandle) {
+			e->Handled = m_main->OnHardwareButton(HardwareButton::BACK);
+		}
+		else {
+			e->Handled = true;
+		}
 	} else {
 		e->Handled = true;
 	}
@@ -263,7 +303,7 @@ void App::Run() {
 	auto now = lastFrameTime;
 	std::chrono::nanoseconds deltaTime;
 	while (!m_windowClosed) {
-		if (m_windowVisible) {
+		if (m_windowVisible && !appSuspended) {
 			bool skipRequired = NotInGame;
 			if ((skipRequired)) {
 				now = std::chrono::high_resolution_clock::now();
@@ -311,12 +351,12 @@ void App::OnSuspending(Platform::Object^ sender, SuspendingEventArgs^ args) {
 	auto app = this;
 
 	create_task([app, deferral]() {
-		try {
-			g_Config.Save("App::OnSuspending");
-		}
-		catch (...) {
+			try {
+				g_Config.Save("App::OnSuspending");
+			}
+			catch (...) {
 
-		}
+			}
 		app->m_deviceResources->Trim();
 		deferral->Complete();
 	});
@@ -328,11 +368,19 @@ void App::OnResuming(Platform::Object^ sender, Platform::Object^ args) {
 	// does not occur if the app was previously terminated.
 
 	// Insert your code here.
+	appSuspended = false;
 }
 
 // Window event handlers.
 extern bool updateScreen;
+bool resizeInProgress = false;
+bool forceResize = false;
 void App::OnWindowSizeChanged(CoreWindow^ sender, WindowSizeChangedEventArgs^ args) {
+	if (appSuspended || resizeInProgress) {
+		return;
+	}
+	resizeInProgress = true;
+	forceResize = true;
 	auto view = Windows::UI::ViewManagement::ApplicationView::GetForCurrentView();
 	g_Config.bFullScreen = view->IsFullScreenMode;
 	g_Config.iForceFullScreen = -1;
@@ -346,13 +394,17 @@ void App::OnWindowSizeChanged(CoreWindow^ sender, WindowSizeChangedEventArgs^ ar
 		m_main->CreateWindowSizeDependentResources();
 	}
 
-	//updateScreen = true;
+	updateScreen = true;
 
 	PSP_CoreParameter().pixelWidth = (int)(width * scale);
 	PSP_CoreParameter().pixelHeight = (int)(height * scale);
 	if (UpdateScreenScale((int)width, (int)height)) {
 		System_PostUIMessage(UIMessage::GPU_DISPLAY_RESIZED);
 	}
+	concurrency::create_task([&] {
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		resizeInProgress = false;
+	});
 }
 
 void App::OnVisibilityChanged(CoreWindow^ sender, VisibilityChangedEventArgs^ args) {
@@ -373,7 +425,7 @@ void App::OnDpiChanged(DisplayInformation^ sender, Object^ args) {
 	// See DeviceResources.cpp for more details.
 	m_deviceResources->SetDpi(sender->LogicalDpi);
 	m_main->CreateWindowSizeDependentResources();
-	//updateScreen = true;
+	updateScreen = true;
 }
 
 DisplayOrientations currentOrientation;
@@ -381,7 +433,7 @@ void App::OnOrientationChanged(DisplayInformation^ sender, Object^ args) {
 	m_deviceResources->SetCurrentOrientation(sender->CurrentOrientation);
 	m_main->CreateWindowSizeDependentResources();
 	currentOrientation = sender->CurrentOrientation;
-	//updateScreen = true;
+	updateScreen = true;
 }
 
 void App::OnDisplayContentsInvalidated(DisplayInformation^ sender, Object^ args) {

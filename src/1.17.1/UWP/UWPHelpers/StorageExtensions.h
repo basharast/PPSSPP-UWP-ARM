@@ -59,12 +59,10 @@ typedef struct {
 bool replace(std::string& str, const std::string& from, const std::string& to);
 std::string replace2(const std::string str, const std::string& from, const std::string& to);
 std::vector<std::string> split(const std::string s, char seperator);
-#if defined(_M_ARM) || defined(BUILD14393)
 // Parent full path, child full path
 bool isChild(std::string parent, std::string child);
 // Parent full path, child full path, child name only
 bool isParent(std::string parent, std::string child, std::string childName);
-#endif 
 
 bool iequals(const std::string a, const std::string b);
 bool equals(const std::string a, const std::string b);
@@ -101,7 +99,5 @@ bool findInList(std::list<T>& inputList, T& str) {
 
 FILE_OPEN_UWP_MODE* GetFileMode(const char* mode);
 
-#if defined(_M_ARM) || defined(BUILD14393)
 // Parent and child full path
 std::string getSubRoot(std::string parent, std::string child);
-#endif

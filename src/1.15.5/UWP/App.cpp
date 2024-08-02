@@ -475,7 +475,15 @@ void App::OnResuming(Platform::Object^ sender, Platform::Object^ args) {
 
 // Window event handlers.
 extern bool updateScreen;
+bool resizeInProgress = false;
+bool forceResize = false;
 void App::OnWindowSizeChanged(CoreWindow^ sender, WindowSizeChangedEventArgs^ args) {
+	if (resizeInProgress) {
+		return;
+	}
+	forceResize = true;
+	resizeInProgress = true;
+
 	auto view = Windows::UI::ViewManagement::ApplicationView::GetForCurrentView();
 	g_Config.bFullScreen = view->IsFullScreenMode;
 	g_Config.iForceFullScreen = -1;
@@ -496,6 +504,11 @@ void App::OnWindowSizeChanged(CoreWindow^ sender, WindowSizeChangedEventArgs^ ar
 	if (UpdateScreenScale((int)width, (int)height)) {
 		System_PostUIMessage("gpu_displayResized", "");
 	}
+
+	concurrency::create_task([&] {
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		resizeInProgress = false;
+		});
 }
 
 void App::OnVisibilityChanged(CoreWindow^ sender, VisibilityChangedEventArgs^ args) {

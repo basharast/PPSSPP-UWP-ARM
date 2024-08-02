@@ -382,7 +382,13 @@ void DX::DeviceResources::CreateDeviceResources(IDXGIAdapter* vAdapter, int forc
 	if (m_d3dFeatureLevel == D3D_FEATURE_LEVEL_9_3 || m_d3dFeatureLevel == D3D_FEATURE_LEVEL_9_2 || m_d3dFeatureLevel == D3D_FEATURE_LEVEL_9_1) {
 		D3DFeatureLevelGlobal = true;
 		g_Config.bFogState = false;
-		g_Config.bforceFloatShader = true;
+		g_Config.bforceFloatShader2 = true;
+		g_Config.bUseDepalShader = false;
+	}
+	else {
+		g_Config.bFogState = true;
+		g_Config.bforceFloatShader2 = false;
+		g_Config.bUseDepalShader = true;
 	}
 
 	// Store pointers to the Direct3D 11.3 API device and immediate context.
@@ -687,7 +693,9 @@ void DX::DeviceResources::SetDpi(float dpi)
 		m_dpi = dpi;
 		CreateWindowSizeDependentResources();
 	}
-}void DX::DeviceResources::SetQuality(float quality, bool initial)
+}
+
+void DX::DeviceResources::SetQuality(float quality, bool initial)
 {
 	if (quality != m_scaleAmount)
 	{

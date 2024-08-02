@@ -757,9 +757,13 @@ static bool IsValidPBP(const Path &path, bool allowHomebrew) {
 	return true;
 }
 
+bool refreshInProgress = false;
 void GameBrowser::Refresh() {
 	using namespace UI;
-
+	if (refreshInProgress) {
+		return;
+	}
+	refreshInProgress = true;
 	lastScale_ = g_Config.fGameGridScale;
 	lastLayoutWasGrid_ = *gridStyle_;
 
@@ -961,6 +965,8 @@ void GameBrowser::Refresh() {
 		Add(new Spacer());
 		Add(new Choice(lastText_, new UI::LinearLayoutParams(UI::WRAP_CONTENT, UI::WRAP_CONTENT)))->OnClick.Handle(this, &GameBrowser::LastClick);
 	}
+
+	refreshInProgress = false;
 }
 
 bool GameBrowser::IsCurrentPathPinned() {
@@ -1290,8 +1296,8 @@ void MainScreen::CreateViews() {
 
 	if (!vertical) {
 		rightColumnChoices->Add(new Choice(mm->T("www.ppsspp.org")))->OnClick.Handle(this, &MainScreen::OnPPSSPPOrg);
-		if (!System_GetPropertyBool(SYSPROP_APP_GOLD) && (System_GetPropertyInt(SYSPROP_DEVICE_TYPE) != DEVICE_TYPE_VR)) {
-			Choice *gold = rightColumnChoices->Add(new Choice(mm->T("Buy PPSSPP Gold")));
+		if ((System_GetPropertyInt(SYSPROP_DEVICE_TYPE) != DEVICE_TYPE_VR)) {
+			Choice *gold = rightColumnChoices->Add(new Choice(mm->T("Support Project")));
 			gold->OnClick.Handle(this, &MainScreen::OnSupport);
 			gold->SetIcon(ImageID("I_ICONGOLD"), 0.5f);
 		}

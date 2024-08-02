@@ -41,380 +41,333 @@
 // Global declarations
 class PointerWrap;
 
-typedef void (*writeFn8)(const u8, const u32);
-typedef void (*writeFn16)(const u16, const u32);
-typedef void (*writeFn32)(const u32, const u32);
-typedef void (*writeFn64)(const u64, const u32);
+typedef void (*writeFn8 )(const u8, const u32);
+typedef void (*writeFn16)(const u16,const u32);
+typedef void (*writeFn32)(const u32,const u32);
+typedef void (*writeFn64)(const u64,const u32);
 
-typedef void (*readFn8)(u8&, const u32);
+typedef void (*readFn8 )(u8&,  const u32);
 typedef void (*readFn16)(u16&, const u32);
 typedef void (*readFn32)(u32&, const u32);
 typedef void (*readFn64)(u64&, const u32);
 
 namespace Memory {
-	// Base is a pointer to the base of the memory map. Yes, some MMU tricks
-	// are used to set up a full GC or Wii memory map in process memory.	on
-	// 32-bit, you have to mask your offsets with 0x3FFFFFFF. This means that
-	// some things are mirrored too many times, but eh... it works.
+// Base is a pointer to the base of the memory map. Yes, some MMU tricks
+// are used to set up a full GC or Wii memory map in process memory.	on
+// 32-bit, you have to mask your offsets with 0x3FFFFFFF. This means that
+// some things are mirrored too many times, but eh... it works.
 
-	// In 64-bit, this might point to "high memory" (above the 32-bit limit),
-	// so be sure to load it into a 64-bit register.
-	extern u8* base;
+// In 64-bit, this might point to "high memory" (above the 32-bit limit),
+// so be sure to load it into a 64-bit register.
+extern u8 *base; 
 
-	// This replaces RAM_NORMAL_SIZE at runtime.
-	extern u32 g_MemorySize;
-	extern u32 g_PSPModel;
+// This replaces RAM_NORMAL_SIZE at runtime.
+extern u32 g_MemorySize;
+extern u32 g_PSPModel;
 
-	// UWP has such limited memory management that we need to mask
-	// even in 64-bit mode. Also, when using the sanitizer, we need to mask as well.
+// UWP has such limited memory management that we need to mask
+// even in 64-bit mode. Also, when using the sanitizer, we need to mask as well.
 #if PPSSPP_ARCH(32BIT) || PPSSPP_PLATFORM(UWP) || USE_ASAN || PPSSPP_PLATFORM(IOS) || defined(__EMSCRIPTEN__)
 #define MASKED_PSP_MEMORY
 #endif
 
-	enum
-	{
-		// This may be adjusted by remaster games.
-		RAM_NORMAL_SIZE = 0x02000000,
-		// Used if the PSP model is PSP-2000 (Slim).
-		RAM_DOUBLE_SIZE = RAM_NORMAL_SIZE * 2,
+enum
+{
+	// This may be adjusted by remaster games.
+	RAM_NORMAL_SIZE = 0x02000000,
+	// Used if the PSP model is PSP-2000 (Slim).
+	RAM_DOUBLE_SIZE = RAM_NORMAL_SIZE * 2,
 
-		VRAM_SIZE = 0x00200000,
+	VRAM_SIZE       = 0x00200000,
 
-		SCRATCHPAD_SIZE = 0x00004000,
+	SCRATCHPAD_SIZE = 0x00004000,
 
 #ifdef MASKED_PSP_MEMORY
-		// This wraparound should work for PSP too.
-		MEMVIEW32_MASK = 0x3FFFFFFF,
+	// This wraparound should work for PSP too.
+	MEMVIEW32_MASK  = 0x3FFFFFFF,
 #endif
-	};
+};
 
-	enum {
-		MV_MIRROR_PREVIOUS = 1,
-		MV_IS_PRIMARY_RAM = 0x100,
-		MV_IS_EXTRA1_RAM = 0x200,
-		MV_IS_EXTRA2_RAM = 0x400,
-		MV_KERNEL = 0x800  // Can be skipped on platforms where memory is tight.
-	};
+enum {
+	MV_MIRROR_PREVIOUS = 1,
+	MV_IS_PRIMARY_RAM = 0x100,
+	MV_IS_EXTRA1_RAM = 0x200,
+	MV_IS_EXTRA2_RAM = 0x400,
+	MV_KERNEL = 0x800  // Can be skipped on platforms where memory is tight.
+};
 
-	struct MemoryView
-	{
-		u8** out_ptr;
-		u32 virtual_address;
-		u32 size;
-		u32 flags;
-	};
+struct MemoryView
+{
+	u8 **out_ptr;
+	u32 virtual_address;
+	u32 size;
+	u32 flags;
+};
 
-	// Uses a memory arena to set up an emulator-friendly memory map
-	bool MemoryMap_Setup(u32 flags);
-	void MemoryMap_Shutdown(u32 flags);
+// Uses a memory arena to set up an emulator-friendly memory map
+bool MemoryMap_Setup(u32 flags);
+void MemoryMap_Shutdown(u32 flags);
 
-	// Init and Shutdown
-	bool Init();
-	void Shutdown();
-	void DoState(PointerWrap& p);
-	void Clear();
-	// False when shutdown has already been called.
-	bool IsActive();
+// Init and Shutdown
+bool Init();
+void Shutdown();
+void DoState(PointerWrap &p);
+void Clear();
+// False when shutdown has already been called.
+bool IsActive();
 
-	class MemoryInitedLock {
-	public:
-		MemoryInitedLock();
-		~MemoryInitedLock();
-	};
+class MemoryInitedLock {
+public:
+	MemoryInitedLock();
+	~MemoryInitedLock();
+};
 
-	// This doesn't lock memory access or anything, it just makes sure memory isn't freed.
-	// Use it when accessing PSP memory from external threads.
-	MemoryInitedLock Lock();
+// This doesn't lock memory access or anything, it just makes sure memory isn't freed.
+// Use it when accessing PSP memory from external threads.
+MemoryInitedLock Lock();
 
-	// used by JIT to read instructions. Does not resolve replacements.
-	Opcode Read_Opcode_JIT(const u32 _Address);
-	// used by JIT. Reads in the "Locked cache" mode
-	void Write_Opcode_JIT(const u32 _Address, const Opcode& _Value);
+// used by JIT to read instructions. Does not resolve replacements.
+Opcode Read_Opcode_JIT(const u32 _Address);
+// used by JIT. Reads in the "Locked cache" mode
+void Write_Opcode_JIT(const u32 _Address, const Opcode& _Value);
 
-	// Should be used by analyzers, disassemblers etc. Does resolve replacements.
-	Opcode Read_Instruction(const u32 _Address, bool resolveReplacements = false);
-	Opcode ReadUnchecked_Instruction(const u32 _Address, bool resolveReplacements = false);
+// Should be used by analyzers, disassemblers etc. Does resolve replacements.
+Opcode Read_Instruction(const u32 _Address, bool resolveReplacements = false);
+Opcode ReadUnchecked_Instruction(const u32 _Address, bool resolveReplacements = false);
 
-	u8  Read_U8(const u32 _Address);
-	u16 Read_U16(const u32 _Address);
-	u32 Read_U32(const u32 _Address);
-	u64 Read_U64(const u32 _Address);
+u8  Read_U8(const u32 _Address);
+u16 Read_U16(const u32 _Address);
+u32 Read_U32(const u32 _Address);
+u64 Read_U64(const u32 _Address);
 
-	inline u8* GetPointerWriteUnchecked(const u32 address) {
+inline u8* GetPointerWriteUnchecked(const u32 address) {
 #ifdef MASKED_PSP_MEMORY
-		return (u8*)(base + (address & MEMVIEW32_MASK));
+	return (u8 *)(base + (address & MEMVIEW32_MASK));
 #else
-		return (u8*)(base + address);
+	return (u8 *)(base + address);
 #endif
-	}
+}
 
-	inline const u8* GetPointerUnchecked(const u32 address) {
+inline const u8* GetPointerUnchecked(const u32 address) {
 #ifdef MASKED_PSP_MEMORY
-		return (const u8*)(base + (address & MEMVIEW32_MASK));
+	return (const u8 *)(base + (address & MEMVIEW32_MASK));
 #else
-		return (const u8*)(base + address);
+	return (const u8 *)(base + address);
 #endif
-	}
+}
 
-	inline u32 ReadUnchecked_U32(const u32 address) {
+inline u32 ReadUnchecked_U32(const u32 address) {
 #ifdef MASKED_PSP_MEMORY
-		return *(u32_le*)(base + (address & MEMVIEW32_MASK));
+	return *(u32_le *)(base + (address & MEMVIEW32_MASK));
 #else
-		return *(u32_le*)(base + address);
+	return *(u32_le *)(base + address);
 #endif
-	}
+}
 
-	inline float ReadUnchecked_Float(const u32 address) {
+inline float ReadUnchecked_Float(const u32 address) {
 #ifdef MASKED_PSP_MEMORY
-		return *(float_le*)(base + (address & MEMVIEW32_MASK));
+	return *(float_le *)(base + (address & MEMVIEW32_MASK));
 #else
-		return *(float_le*)(base + address);
+	return *(float_le *)(base + address);
 #endif
-	}
+}
 
-	inline u16 ReadUnchecked_U16(const u32 address) {
+inline u16 ReadUnchecked_U16(const u32 address) {
 #ifdef MASKED_PSP_MEMORY
-		return *(u16_le*)(base + (address & MEMVIEW32_MASK));
+	return *(u16_le *)(base + (address & MEMVIEW32_MASK));
 #else
-		return *(u16_le*)(base + address);
+	return *(u16_le *)(base + address);
 #endif
-	}
+}
 
-	inline u8 ReadUnchecked_U8(const u32 address) {
+inline u8 ReadUnchecked_U8(const u32 address) {
 #ifdef MASKED_PSP_MEMORY
-		return (*(u8*)(base + (address & MEMVIEW32_MASK)));
+	return (*(u8 *)(base + (address & MEMVIEW32_MASK)));
 #else
-		return (*(u8*)(base + address));
+	return (*(u8 *)(base + address));
 #endif
-	}
+}
 
-	inline void WriteUnchecked_U32(u32 data, u32 address) {
+inline void WriteUnchecked_U32(u32 data, u32 address) {
 #ifdef MASKED_PSP_MEMORY
-		* (u32_le*)(base + (address & MEMVIEW32_MASK)) = data;
+	*(u32_le *)(base + (address & MEMVIEW32_MASK)) = data;
 #else
-		* (u32_le*)(base + address) = data;
+	*(u32_le *)(base + address) = data;
 #endif
-	}
+}
 
-	inline void WriteUnchecked_Float(float data, u32 address) {
+inline void WriteUnchecked_Float(float data, u32 address) {
 #ifdef MASKED_PSP_MEMORY
-		* (float_le*)(base + (address & MEMVIEW32_MASK)) = data;
+	*(float_le *)(base + (address & MEMVIEW32_MASK)) = data;
 #else
-		* (float_le*)(base + address) = data;
+	*(float_le *)(base + address) = data;
 #endif
-	}
+}
 
-	inline void WriteUnchecked_U16(u16 data, u32 address) {
+inline void WriteUnchecked_U16(u16 data, u32 address) {
 #ifdef MASKED_PSP_MEMORY
-		* (u16_le*)(base + (address & MEMVIEW32_MASK)) = data;
+	*(u16_le *)(base + (address & MEMVIEW32_MASK)) = data;
 #else
-		* (u16_le*)(base + address) = data;
+	*(u16_le *)(base + address) = data;
 #endif
-	}
+}
 
-	inline void WriteUnchecked_U8(u8 data, u32 address) {
+inline void WriteUnchecked_U8(u8 data, u32 address) {
 #ifdef MASKED_PSP_MEMORY
-		(*(u8*)(base + (address & MEMVIEW32_MASK))) = data;
+	(*(u8 *)(base + (address & MEMVIEW32_MASK))) = data;
 #else
-		(*(u8*)(base + address)) = data;
+	(*(u8 *)(base + address)) = data;
 #endif
+}
+
+inline float Read_Float(u32 address) 
+{
+	u32 ifloat = Read_U32(address);
+	float f;
+	memcpy(&f, &ifloat, sizeof(float));
+	return f;
+}
+
+// used by JIT. Return zero-extended 32bit values
+u32 Read_U8_ZX(const u32 address);
+u32 Read_U16_ZX(const u32 address);
+
+void Write_U8(const u8 data, const u32 address);
+void Write_U16(const u16 data, const u32 address);
+void Write_U32(const u32 data, const u32 address);
+void Write_U64(const u64 data, const u32 address);
+
+inline void Write_Float(float f, u32 address)
+{
+	u32 u;
+	memcpy(&u, &f, sizeof(float));
+	Write_U32(u, address);
+}
+
+u8* GetPointerWrite(const u32 address);
+const u8* GetPointer(const u32 address);
+
+u8 *GetPointerWriteRange(const u32 address, const u32 size);
+const u8 *GetPointerRange(const u32 address, const u32 size);
+
+bool IsRAMAddress(const u32 address);
+inline bool IsVRAMAddress(const u32 address) {
+	return ((address & 0x3F800000) == 0x04000000);
+}
+inline bool IsDepthTexVRAMAddress(const u32 address) {
+	return ((address & 0x3FE00000) == 0x04200000) || ((address & 0x3FE00000) == 0x04600000);
+}
+
+// 0x08000000 -> 0x08800000
+inline bool IsKernelAddress(const u32 address) {
+	return ((address & 0x3F800000) == 0x08000000);
+}
+
+// 0x08000000 -> 0x08400000
+inline bool IsKernelAndNotVolatileAddress(const u32 address) {
+	return ((address & 0x3FC00000) == 0x08000000);
+}
+
+bool IsScratchpadAddress(const u32 address);
+
+// Used for auto-converted char * parameters, which can sometimes legitimately be null -
+// so we don't want to get caught in GetPointer's crash reporting.
+inline const char* GetCharPointer(const u32 address) {
+	if (address) {
+		return (const char *)GetPointer(address);
+	} else {
+		return nullptr;
 	}
+}
 
-	inline float Read_Float(u32 address)
-	{
-		u32 ifloat = Read_U32(address);
-		float f;
-		memcpy(&f, &ifloat, sizeof(float));
-		return f;
-	}
+inline const char *GetCharPointerUnchecked(const u32 address) {
+	return (const char *)GetPointerUnchecked(address);
+}
 
-	// used by JIT. Return zero-extended 32bit values
-	u32 Read_U8_ZX(const u32 address);
-	u32 Read_U16_ZX(const u32 address);
+inline void MemcpyUnchecked(void *to_data, const u32 from_address, const u32 len) {
+	memcpy(to_data, GetPointerUnchecked(from_address), len);
+}
 
-	void Write_U8(const u8 data, const u32 address);
-	void Write_U16(const u16 data, const u32 address);
-	void Write_U32(const u32 data, const u32 address);
-	void Write_U64(const u64 data, const u32 address);
+inline void MemcpyUnchecked(const u32 to_address, const void *from_data, const u32 len) {
+	memcpy(GetPointerWriteUnchecked(to_address), from_data, len);
+}
 
-	inline void Write_Float(float f, u32 address)
-	{
-		u32 u;
-		memcpy(&u, &f, sizeof(float));
-		Write_U32(u, address);
-	}
+inline void MemcpyUnchecked(const u32 to_address, const u32 from_address, const u32 len) {
+	MemcpyUnchecked(GetPointerWriteUnchecked(to_address), from_address, len);
+}
 
-	u8* GetPointerWrite(const u32 address);
-	const u8* GetPointer(const u32 address);
-
-	u8* GetPointerWriteRange(const u32 address, const u32 size);
-	const u8* GetPointerRange(const u32 address, const u32 size);
-
-	bool IsRAMAddress(const u32 address);
-	inline bool IsVRAMAddress(const u32 address) {
-		return ((address & 0x3F800000) == 0x04000000);
-	}
-	inline bool IsDepthTexVRAMAddress(const u32 address) {
-		return ((address & 0x3FE00000) == 0x04200000) || ((address & 0x3FE00000) == 0x04600000);
-	}
-
-	// 0x08000000 -> 0x08800000
-	inline bool IsKernelAddress(const u32 address) {
-		return ((address & 0x3F800000) == 0x08000000);
-	}
-
-	// 0x08000000 -> 0x08400000
-	inline bool IsKernelAndNotVolatileAddress(const u32 address) {
-		return ((address & 0x3FC00000) == 0x08000000);
-	}
-
-	bool IsScratchpadAddress(const u32 address);
-
-	inline void MemcpyUnchecked(void* to_data, const u32 from_address, const u32 len) {
-		memcpy(to_data, GetPointerUnchecked(from_address), len);
-	}
-
-	inline void MemcpyUnchecked(const u32 to_address, const void* from_data, const u32 len) {
-		memcpy(GetPointerWriteUnchecked(to_address), from_data, len);
-	}
-
-	inline void MemcpyUnchecked(const u32 to_address, const u32 from_address, const u32 len) {
-		MemcpyUnchecked(GetPointerWriteUnchecked(to_address), from_address, len);
-	}
-
-	inline bool IsValidAddress(const u32 address) {
-		if ((address & 0x3E000000) == 0x08000000) {
-			return true;
-		}
-		else if ((address & 0x3F800000) == 0x04000000) {
-			return true;
-		}
-		else if ((address & 0xBFFFC000) == 0x00010000) {
-			return true;
-		}
-		else if ((address & 0x3F000000) >= 0x08000000 && (address & 0x3F000000) < 0x08000000 + g_MemorySize) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	inline bool IsValid4AlignedAddress(const u32 address) {
-		if ((address & 0x3E000003) == 0x08000000) {
-			return true;
-		}
-		else if ((address & 0x3F800003) == 0x04000000) {
-			return true;
-		}
-		else if ((address & 0xBFFFC003) == 0x00010000) {
-			return true;
-		}
-		else if ((address & 0x3F000000) >= 0x08000000 && (address & 0x3F000000) < 0x08000000 + g_MemorySize) {
-			return (address & 3) == 0;
-		}
-		else {
-			return false;
-		}
-	}
-
-
-	inline u32 MaxSizeAtAddress(const u32 address) {
-		if ((address & 0x3E000000) == 0x08000000) {
-			return 0x08000000 + g_MemorySize - (address & 0x3FFFFFFF);
-		}
-		else if ((address & 0x3F800000) == 0x04000000) {
-			return 0x04800000 - (address & 0x3FFFFFFF);
-		}
-		else if ((address & 0xBFFFC000) == 0x00010000) {
-			return 0x00014000 - (address & 0x3FFFFFFF);
-		}
-		else if ((address & 0x3F000000) >= 0x08000000 && (address & 0x3F000000) < 0x08000000 + g_MemorySize) {
-			return 0x08000000 + g_MemorySize - (address & 0x3FFFFFFF);
-		}
-		else {
-			return 0;
-		}
-	}
-
-	inline const char* GetCharPointerUnchecked(const u32 address) {
-		return (const char*)GetPointerUnchecked(address);
-	}
-
-	// NOTE: Unlike the similar IsValidRange/IsValidAddress functions, this one is linear cost vs the size of the string,
-	// for hopefully-obvious reasons.
-	inline bool IsValidNullTerminatedString(const u32 address) {
-		u32 max_size = MaxSizeAtAddress(address);
-		if (max_size == 0) {
-			return false;
-		}
-
-		const char* c = GetCharPointerUnchecked(address);
-		if (memchr(c, '\0', max_size)) {
-			return true;
-		}
+inline bool IsValidAddress(const u32 address) {
+	if ((address & 0x3E000000) == 0x08000000) {
+		return true;
+	} else if ((address & 0x3F800000) == 0x04000000) {
+		return true;
+	} else if ((address & 0xBFFFC000) == 0x00010000) {
+		return true;
+	} else if ((address & 0x3F000000) >= 0x08000000 && (address & 0x3F000000) < 0x08000000 + g_MemorySize) {
+		return true;
+	} else {
 		return false;
 	}
+}
 
-	inline u32 ValidSize(const u32 address, const u32 requested_size) {
-		u32 max_size = MaxSizeAtAddress(address);
-		if (requested_size > max_size) {
-			return max_size;
-		}
-		return requested_size;
+inline u32 ValidSize(const u32 address, const u32 requested_size) {
+	u32 max_size;
+	if ((address & 0x3E000000) == 0x08000000) {
+		max_size = 0x08000000 + g_MemorySize - (address & 0x3FFFFFFF);
+	} else if ((address & 0x3F800000) == 0x04000000) {
+		max_size = 0x04800000 - (address & 0x3FFFFFFF);
+	} else if ((address & 0xBFFFC000) == 0x00010000) {
+		max_size = 0x00014000 - (address & 0x3FFFFFFF);
+	} else if ((address & 0x3F000000) >= 0x08000000 && (address & 0x3F000000) < 0x08000000 + g_MemorySize) {
+		max_size = 0x08000000 + g_MemorySize - (address & 0x3FFFFFFF);
+	} else {
+		max_size = 0;
 	}
 
-	// NOTE: If size == 0, any address will be accepted. This may not be ideal for all cases.
-	inline bool IsValidRange(const u32 address, const u32 size) {
-		return ValidSize(address, size) == size;
+	if (requested_size > max_size) {
+		return max_size;
 	}
+	return requested_size;
+}
 
-	// Used for auto-converted char * parameters, which can sometimes legitimately be null -
-	// so we don't want to get caught in GetPointer's crash reporting
-	// TODO: This should use IsValidNullTerminatedString, but may be expensive since this is used so much - needs evaluation.
-	inline const char* GetCharPointer(const u32 address) {
-		if (address && IsValidAddress(address)) {
-			return GetCharPointerUnchecked(address);
-		}
-		else {
-			return nullptr;
-		}
-	}
+inline bool IsValidRange(const u32 address, const u32 size) {
+	return ValidSize(address, size) == size;
+}
 
 }  // namespace Memory
 
 // Avoiding a global include for NotifyMemInfo.
-void PSPPointerNotifyRW(int rw, uint32_t ptr, uint32_t bytes, const char* tag, size_t tagLen);
+void PSPPointerNotifyRW(int rw, uint32_t ptr, uint32_t bytes, const char *tag, size_t tagLen);
 
 template <typename T>
 struct PSPPointer
 {
 	u32_le ptr;
 
-	inline T& operator*() const
+	inline T &operator*() const
 	{
 #ifdef MASKED_PSP_MEMORY
-		return *(T*)(Memory::base + (ptr & Memory::MEMVIEW32_MASK));
+		return *(T *)(Memory::base + (ptr & Memory::MEMVIEW32_MASK));
 #else
-		return *(T*)(Memory::base + ptr);
+		return *(T *)(Memory::base + ptr);
 #endif
 	}
 
-	inline T& operator[](int i) const
+	inline T &operator[](int i) const
 	{
 #ifdef MASKED_PSP_MEMORY
-		return *((T*)(Memory::base + (ptr & Memory::MEMVIEW32_MASK)) + i);
+		return *((T *)(Memory::base + (ptr & Memory::MEMVIEW32_MASK)) + i);
 #else
-		return *((T*)(Memory::base + ptr) + i);
+		return *((T *)(Memory::base + ptr) + i);
 #endif
 	}
 
-	inline T* operator->() const
+	inline T *operator->() const
 	{
 #ifdef MASKED_PSP_MEMORY
-		return (T*)(Memory::base + (ptr & Memory::MEMVIEW32_MASK));
+		return (T *)(Memory::base + (ptr & Memory::MEMVIEW32_MASK));
 #else
-		return (T*)(Memory::base + ptr);
+		return (T *)(Memory::base + ptr);
 #endif
 	}
 
@@ -425,13 +378,13 @@ struct PSPPointer
 		return other;
 	}
 
-	inline PSPPointer<T>& operator=(u32 p)
+	inline PSPPointer<T> &operator=(u32 p)
 	{
 		ptr = p;
 		return *this;
 	}
 
-	inline PSPPointer<T>& operator+=(int i)
+	inline PSPPointer<T> &operator+=(int i)
 	{
 		ptr = ptr + i * sizeof(T);
 		return *this;
@@ -444,13 +397,13 @@ struct PSPPointer
 		return other;
 	}
 
-	inline PSPPointer<T>& operator-=(int i)
+	inline PSPPointer<T> &operator-=(int i)
 	{
 		ptr = ptr - i * sizeof(T);
 		return *this;
 	}
 
-	inline PSPPointer<T>& operator++()
+	inline PSPPointer<T> &operator++()
 	{
 		ptr += sizeof(T);
 		return *this;
@@ -464,7 +417,7 @@ struct PSPPointer
 		return other;
 	}
 
-	inline PSPPointer<T>& operator--()
+	inline PSPPointer<T> &operator--()
 	{
 		ptr -= sizeof(T);
 		return *this;
@@ -478,21 +431,21 @@ struct PSPPointer
 		return other;
 	}
 
-	inline operator T* ()
+	inline operator T*()
 	{
 #ifdef MASKED_PSP_MEMORY
-		return (T*)(Memory::base + (ptr & Memory::MEMVIEW32_MASK));
+		return (T *)(Memory::base + (ptr & Memory::MEMVIEW32_MASK));
 #else
-		return (T*)(Memory::base + ptr);
+		return (T *)(Memory::base + ptr);
 #endif
 	}
 
-	inline operator const T* () const
+	inline operator const T*() const
 	{
 #ifdef MASKED_PSP_MEMORY
-		return (const T*)(Memory::base + (ptr & Memory::MEMVIEW32_MASK));
+		return (const T *)(Memory::base + (ptr & Memory::MEMVIEW32_MASK));
 #else
-		return (const T*)(Memory::base + ptr);
+		return (const T *)(Memory::base + ptr);
 #endif
 	}
 
@@ -500,15 +453,15 @@ struct PSPPointer
 		return Memory::IsValidRange(ptr, (u32)sizeof(T));
 	}
 
-	T* PtrOrNull() {
+	T *PtrOrNull() {
 		if (IsValid())
-			return (T*)*this;
+			return (T *)*this;
 		return nullptr;
 	}
 
-	const T* PtrOrNull() const {
+	const T *PtrOrNull() const {
 		if (IsValid())
-			return (const T*)*this;
+			return (const T *)*this;
 		return nullptr;
 	}
 
@@ -535,12 +488,12 @@ struct PSPPointer
 };
 
 
-constexpr u32 PSP_GetScratchpadMemoryBase() { return 0x00010000; }
-constexpr u32 PSP_GetScratchpadMemoryEnd() { return 0x00014000; }
+constexpr u32 PSP_GetScratchpadMemoryBase() { return 0x00010000;}
+constexpr u32 PSP_GetScratchpadMemoryEnd() { return 0x00014000;}
 
-constexpr u32 PSP_GetKernelMemoryBase() { return 0x08000000; }
-inline u32 PSP_GetUserMemoryEnd() { return PSP_GetKernelMemoryBase() + Memory::g_MemorySize; }
-constexpr u32 PSP_GetKernelMemoryEnd() { return 0x08400000; }
+constexpr u32 PSP_GetKernelMemoryBase() { return 0x08000000;}
+inline u32 PSP_GetUserMemoryEnd() { return PSP_GetKernelMemoryBase() + Memory::g_MemorySize;}
+constexpr u32 PSP_GetKernelMemoryEnd() { return 0x08400000;}
 
 // "Volatile" RAM is between 0x08400000 and 0x08800000, can be requested by the
 // game through sceKernelVolatileMemTryLock.
@@ -553,31 +506,31 @@ constexpr u32 PSP_GetVidMemBase() { return 0x04000000; }
 constexpr u32 PSP_GetVidMemEnd() { return 0x04800000; }
 
 template <typename T>
-inline bool operator==(const PSPPointer<T>& lhs, const PSPPointer<T>& rhs) {
+inline bool operator==(const PSPPointer<T> &lhs, const PSPPointer<T> &rhs) {
 	return lhs.ptr == rhs.ptr;
 }
 
 template <typename T>
-inline bool operator!=(const PSPPointer<T>& lhs, const PSPPointer<T>& rhs) {
+inline bool operator!=(const PSPPointer<T> &lhs, const PSPPointer<T> &rhs) {
 	return lhs.ptr != rhs.ptr;
 }
 
 template <typename T>
-inline bool operator<(const PSPPointer<T>& lhs, const PSPPointer<T>& rhs) {
+inline bool operator<(const PSPPointer<T> &lhs, const PSPPointer<T> &rhs) {
 	return lhs.ptr < rhs.ptr;
 }
 
 template <typename T>
-inline bool operator>(const PSPPointer<T>& lhs, const PSPPointer<T>& rhs) {
+inline bool operator>(const PSPPointer<T> &lhs, const PSPPointer<T> &rhs) {
 	return lhs.ptr > rhs.ptr;
 }
 
 template <typename T>
-inline bool operator<=(const PSPPointer<T>& lhs, const PSPPointer<T>& rhs) {
+inline bool operator<=(const PSPPointer<T> &lhs, const PSPPointer<T> &rhs) {
 	return lhs.ptr <= rhs.ptr;
 }
 
 template <typename T>
-inline bool operator>=(const PSPPointer<T>& lhs, const PSPPointer<T>& rhs) {
+inline bool operator>=(const PSPPointer<T> &lhs, const PSPPointer<T> &rhs) {
 	return lhs.ptr >= rhs.ptr;
 }

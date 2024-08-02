@@ -170,16 +170,12 @@ bool DirectoryFileHandle::Open(const Path& basePath, std::string& fileName, File
 
 	// Let's do it!
 #if PPSSPP_PLATFORM(UWP)
-#if !defined(_M_ARM) && !defined(BUILD14393)
-	hFile = CreateFile2FromAppW(fullName.ToWString().c_str(), desired, sharemode, openmode, nullptr);
-#else
 	hFile = CreateFile2(fullName.ToWString().c_str(), desired, sharemode, openmode, nullptr);
-#endif
 #else
 	hFile = CreateFile(fullName.ToWString().c_str(), desired, sharemode, 0, openmode, 0, 0);
 #endif
 	bool success = hFile != INVALID_HANDLE_VALUE;
-#if PPSSPP_PLATFORM(UWP) && (defined(_M_ARM) || defined(BUILD14393))
+#if PPSSPP_PLATFORM(UWP)
 	if (!success) {
 		//Use UWP StorageManager to get handle
 		hFile = CreateFileUWP(fullName.ToString(), desired, sharemode, openmode);
@@ -193,17 +189,13 @@ bool DirectoryFileHandle::Open(const Path& basePath, std::string& fileName, File
 			// Sometimes, the file is locked for write, let's try again.
 			sharemode |= FILE_SHARE_WRITE;
 #if PPSSPP_PLATFORM(UWP)
-#if !defined(_M_ARM) && !defined(BUILD14393)
-			hFile = CreateFile2FromAppW(fullName.ToWString().c_str(), desired, sharemode, openmode, nullptr);
-#else
 			hFile = CreateFile2(fullName.ToWString().c_str(), desired, sharemode, openmode, nullptr);
-#endif
 #else
 			hFile = CreateFile(fullName.ToWString().c_str(), desired, sharemode, 0, openmode, 0, 0);
 #endif
 			success = hFile != INVALID_HANDLE_VALUE;
 
-#if PPSSPP_PLATFORM(UWP) && (defined(_M_ARM) || defined(BUILD14393))
+#if PPSSPP_PLATFORM(UWP) 
 			if (!success) {
 				//Use UWP StorageManager to get handle
 				hFile = CreateFileUWP(fullName.ToString(), desired, sharemode, openmode);

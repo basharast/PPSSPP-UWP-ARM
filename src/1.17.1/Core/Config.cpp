@@ -186,11 +186,7 @@ static bool DefaultVSync() {
 }
 
 static bool DefaultEnableStateUndo() {
-#if PPSSPP_PLATFORM(ANDROID) || PPSSPP_PLATFORM(IOS)
-	// Off on mobile to save disk space.
 	return false;
-#endif
-	return true;
 }
 
 static float DefaultUISaturation() {
@@ -200,7 +196,9 @@ static float DefaultUISaturation() {
 static const ConfigSetting generalSettings[] = {
 	ConfigSetting("FirstRun", &g_Config.bFirstRun, true, CfgFlag::DEFAULT),
 	ConfigSetting("RunCount", &g_Config.iRunCount, 0, CfgFlag::DEFAULT),
-	ConfigSetting("Enable Logging", &g_Config.bEnableLogging, true, CfgFlag::DEFAULT),
+	ConfigSetting("Enable Logging", &g_Config.bEnableLogging, false, CfgFlag::DEFAULT),
+	// I don't roll releases as it's out of my target interests, so this should be false if someone reinstall
+	ConfigSetting("Enable Logging2", &g_Config.bEnableLogging2, false, CfgFlag::DEFAULT),
 	ConfigSetting("AutoRun", &g_Config.bAutoRun, true, CfgFlag::DEFAULT),
 	ConfigSetting("Browse", &g_Config.bBrowse, false, CfgFlag::DEFAULT),
 	ConfigSetting("IgnoreBadMemAccess", &g_Config.bIgnoreBadMemAccess, true, CfgFlag::DEFAULT),
@@ -209,7 +207,8 @@ static const ConfigSetting generalSettings[] = {
 	ConfigSetting("CheckForNewVersion", &g_Config.bCheckForNewVersion, false, CfgFlag::DEFAULT),
 	ConfigSetting("Language", &g_Config.sLanguageIni, &DefaultLangRegion, CfgFlag::DEFAULT),
 	ConfigSetting("ForceLagSync2", &g_Config.bForceLagSync, false, CfgFlag::PER_GAME),
-	ConfigSetting("DiscordPresence", &g_Config.bDiscordPresence, true, CfgFlag::DEFAULT),  // Or maybe it makes sense to have it per-game? Race conditions abound...
+	ConfigSetting("DiscordPresence", &g_Config.bDiscordPresence, false, CfgFlag::DEFAULT),  // Or maybe it makes sense to have it per-game? Race conditions abound...
+	ConfigSetting("DiscordPresence2", &g_Config.bDiscordPresence2, false, CfgFlag::DEFAULT),  // Or maybe it makes sense to have it per-game? Race conditions abound...
 	ConfigSetting("UISound", &g_Config.bUISound, false, CfgFlag::DEFAULT),
 
 	ConfigSetting("DisableHTTPS", &g_Config.bDisableHTTPS, false, CfgFlag::DONT_SAVE),
@@ -229,6 +228,7 @@ static const ConfigSetting generalSettings[] = {
 	ConfigSetting("SaveLoadResetsAVdumping", &g_Config.bSaveLoadResetsAVdumping, false, CfgFlag::DEFAULT),
 	ConfigSetting("StateSlot", &g_Config.iCurrentStateSlot, 0, CfgFlag::PER_GAME),
 	ConfigSetting("EnableStateUndo", &g_Config.bEnableStateUndo, &DefaultEnableStateUndo, CfgFlag::PER_GAME),
+	ConfigSetting("EnableStateUndo2", &g_Config.bEnableStateUndo2, &DefaultEnableStateUndo, CfgFlag::PER_GAME),
 	ConfigSetting("StateLoadUndoGame", &g_Config.sStateLoadUndoGame, "NA", CfgFlag::DEFAULT),
 	ConfigSetting("StateUndoLastSaveGame", &g_Config.sStateUndoLastSaveGame, "NA", CfgFlag::DEFAULT),
 	ConfigSetting("StateUndoLastSaveSlot", &g_Config.iStateUndoLastSaveSlot, -5, CfgFlag::DEFAULT), // Start with an "invalid" value
@@ -278,6 +278,7 @@ static const ConfigSetting generalSettings[] = {
 	ConfigSetting("InternalScreenRotation", &g_Config.iInternalScreenRotation, ROTATION_LOCKED_HORIZONTAL, CfgFlag::PER_GAME),
 
 	ConfigSetting("BackgroundAnimation", &g_Config.iBackgroundAnimation, 0, CfgFlag::DEFAULT),
+	ConfigSetting("BackgroundAnimation2", &g_Config.iBackgroundAnimation2, 0, CfgFlag::DEFAULT),
 	ConfigSetting("TransparentBackground", &g_Config.bTransparentBackground, true, CfgFlag::DEFAULT),
 	ConfigSetting("UITint", &g_Config.fUITint, 0.0, CfgFlag::DEFAULT),
 	ConfigSetting("UISaturation", &g_Config.fUISaturation, &DefaultUISaturation, CfgFlag::DEFAULT),
@@ -656,7 +657,22 @@ static const ConfigSetting graphicsSettings[] = {
 	ConfigSetting("TexScalingType", &g_Config.iTexScalingType, 0, CfgFlag::PER_GAME | CfgFlag::REPORT),
 	ConfigSetting("TexDeposterize", &g_Config.bTexDeposterize, false, CfgFlag::PER_GAME | CfgFlag::REPORT),
 	ConfigSetting("TexHardwareScaling", &g_Config.bTexHardwareScaling, false, CfgFlag::PER_GAME | CfgFlag::REPORT),
+	ConfigSetting("DPIBoost", &g_Config.bDPIBoost, 96.0, CfgFlag::DEFAULT),
+	ConfigSetting("QualityControl", &g_Config.bQualityControl, 1.5, CfgFlag::DEFAULT),
 	ConfigSetting("VSync", &g_Config.bVSync, &DefaultVSync, CfgFlag::PER_GAME),
+	ConfigSetting("UseDepalShader", &g_Config.bUseDepalShader, true, CfgFlag::PER_GAME),
+	ConfigSetting("ForceFloatShader", &g_Config.bforceFloatShader, false, CfgFlag::PER_GAME),
+	ConfigSetting("ForceLowPrecision", &g_Config.bForceLowPrecision, true, CfgFlag::PER_GAME),
+	ConfigSetting("bShaderDiskCache", &g_Config.bShaderDiskCache, true, CfgFlag::PER_GAME),
+	ConfigSetting("bShowShaderOptions", &g_Config.bShowShaderOptions, false, CfgFlag::DEFAULT),
+	ConfigSetting("EnableLights", &g_Config.bEnableLights, true, CfgFlag::PER_GAME),
+	ConfigSetting("FogState", &g_Config.bFogState, true, CfgFlag::PER_GAME),
+	ConfigSetting("SensorsMove", &g_Config.bSensorsMove, true, CfgFlag::PER_GAME),
+	ConfigSetting("bSensorsMoveX", &g_Config.bSensorsMoveX, true, CfgFlag::PER_GAME),
+	ConfigSetting("bSensorsMoveY", &g_Config.bSensorsMoveY, false, CfgFlag::PER_GAME),
+	ConfigSetting("bSensorsMoveZ", &g_Config.bSensorsMoveZ, false, CfgFlag::PER_GAME),
+	ConfigSetting("bBackButtonHandle", &g_Config.bBackButtonHandle, true, CfgFlag::PER_GAME),
+	ConfigSetting("ShaderLanguage", &g_Config.sShaderLanguage, "Auto", CfgFlag::DEFAULT),
 	ConfigSetting("BloomHack", &g_Config.iBloomHack, 0, CfgFlag::PER_GAME | CfgFlag::REPORT),
 
 	// Not really a graphics setting...
@@ -841,6 +857,7 @@ static const ConfigSetting controlSettings[] = {
 	ConfigSetting("LeftStickHeadScale", &g_Config.fLeftStickHeadScale, 1.0f, CfgFlag::PER_GAME),
 	ConfigSetting("RightStickHeadScale", &g_Config.fRightStickHeadScale, 1.0f, CfgFlag::PER_GAME),
 	ConfigSetting("HideStickBackground", &g_Config.bHideStickBackground, true, CfgFlag::PER_GAME),
+	ConfigSetting("HideStickBackground2", &g_Config.bHideStickBackground2, true, CfgFlag::PER_GAME),
 
 	ConfigSetting("UseMouse", &g_Config.bMouseControl, false, CfgFlag::PER_GAME),
 	ConfigSetting("MapMouse", &g_Config.bMapMouse, false, CfgFlag::PER_GAME),
@@ -1284,7 +1301,11 @@ void Config::Load(const char *iniFileName, const char *controllerIniFilename) {
 	INFO_LOG(Log::Loader, "Config loaded: '%s' (%0.1f ms)", iniFilename_.c_str(), (time_now_d() - startTime) * 1000.0);
 }
 
+extern bool appSuspended;
 bool Config::Save(const char *saveReason) {
+	if (appSuspended) {
+		return false;
+	}
 	double startTime = time_now_d();
 	if (!IsFirstInstance()) {
 		// TODO: Should we allow saving config if started from a different directory?

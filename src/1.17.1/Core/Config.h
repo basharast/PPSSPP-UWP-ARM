@@ -84,6 +84,7 @@ public:
 	bool bDumpAudio;
 	bool bSaveLoadResetsAVdumping;
 	bool bEnableLogging;
+	bool bEnableLogging2;
 	bool bDumpDecryptedEboot;
 	bool bFullscreenOnDoubleclick;
 
@@ -146,6 +147,7 @@ public:
 	std::string sIgnoreCompatSettings;
 
 	bool bDiscordPresence;  // Enables setting the Discord presence to the current game (or menu)
+	bool bDiscordPresence2;  // Enables setting the Discord presence to the current game (or menu)
 
 	// GFX
 	int iGPUBackend;
@@ -188,7 +190,23 @@ public:
 	bool bImmersiveMode;  // Mode on Android Kitkat 4.4 and later that hides the back button etc.
 	bool bSustainedPerformanceMode;  // Android: Slows clocks down to avoid overheating/speed fluctuations.
 	bool bIgnoreScreenInsets;  // Android: Center screen disregarding insets if this is enabled.
+	float bDPIBoost;
+	float bQualityControl;
 	bool bVSync;
+	bool bforceFloatShader;
+	bool bForceLowPrecision;
+	bool bUseDepalShader;
+	bool bEnableLights;
+	bool bFogState;
+	bool bSensorsMove;
+	bool bSensorsMoveX;
+	bool bSensorsMoveY;
+	bool bSensorsMoveZ;
+	bool bBackButtonHandle;
+	bool bShaderDiskCache;
+	bool bShowShaderOptions;
+	std::string sShaderLanguage;
+	std::string sShaderLanguageTemp;
 
 	int iFrameSkip;
 	int iFrameSkipType;
@@ -234,6 +252,7 @@ public:
 	int iRewindSnapshotInterval;
 	bool bUISound;
 	bool bEnableStateUndo;
+	bool bEnableStateUndo2;
 	std::string sStateLoadUndoGame;
 	std::string sStateUndoLastSaveGame;
 	int iStateUndoLastSaveSlot;
@@ -294,6 +313,7 @@ public:
 	float fGameGridScale;
 	bool bShowOnScreenMessages;
 	int iBackgroundAnimation;  // enum BackgroundAnimation
+	int iBackgroundAnimation2;  // enum BackgroundAnimation
 	bool bTransparentBackground;
 
 	std::string sThemeName;
@@ -386,6 +406,7 @@ public:
 	float fLeftStickHeadScale;
 	float fRightStickHeadScale;
 	bool bHideStickBackground;
+	bool bHideStickBackground2;
 
 	// Controls Visibility
 	bool bShowTouchControls;

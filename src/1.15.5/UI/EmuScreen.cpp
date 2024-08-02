@@ -462,9 +462,10 @@ static void AfterStateBoot(SaveState::Status status, const std::string &message,
 }
 
 extern void InitPadLayout(float xres, float yres, float globalScale);
+extern bool NotInGame;
 void EmuScreen::sendMessage(const char *message, const char *value) {
 	// External commands, like from the Windows UI.
-	if (!strcmp(message, "resetdpad")) {
+	if (!strcmp(message, "resetdpad") && !NotInGame) {
 		g_Config.ResetControlLayout();
 		const Bounds& bounds = screenManager()->getUIContext()->GetBounds();
 		InitPadLayout(bounds.w, bounds.h, 1.15f);

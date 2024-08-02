@@ -83,8 +83,11 @@ DX::DeviceResources::DeviceResources() :
 	m_deviceNotify(nullptr)
 {
 	CreateDeviceIndependentResources();
-	CreateDeviceResources();
+	CreateDeviceResources(nullptr, 0);
 }
+
+bool isLevel93 = false;
+float scaleAmount = 1.5f;
 
 // Configures resources that don't depend on the Direct3D device.
 void DX::DeviceResources::CreateDeviceIndependentResources()
@@ -129,7 +132,7 @@ void DX::DeviceResources::CreateDeviceIndependentResources()
 }
 
 // Configures the Direct3D device, and stores handles to it and the device context.
-void DX::DeviceResources::CreateDeviceResources(IDXGIAdapter* vAdapter)
+void DX::DeviceResources::CreateDeviceResources(IDXGIAdapter* vAdapter, int forceAutoLange)
 {
 	// This flag adds support for surfaces with a different color channel ordering
 	// than the API default. It is required for compatibility with Direct2D.
@@ -143,16 +146,72 @@ void DX::DeviceResources::CreateDeviceResources(IDXGIAdapter* vAdapter)
 	}
 #endif
 
+	scaleAmount = g_Config.bQualityControl;
+	if (scaleAmount < 1.0f || scaleAmount > 10.0f) {
+		scaleAmount = 1.5f;
+	}
+	SetQuality(scaleAmount, true);
+
 	// This array defines the set of DirectX hardware feature levels this app will support.
 	// Note the ordering should be preserved.
 	// Don't forget to declare your application's minimum required feature level in its
 	// description.  All applications are assumed to support 9.1 unless otherwise stated.
-	D3D_FEATURE_LEVEL featureLevels[] =
-	{
-		D3D_FEATURE_LEVEL_9_3,
-		D3D_FEATURE_LEVEL_9_2,
-		D3D_FEATURE_LEVEL_9_1
+	std::vector<D3D_FEATURE_LEVEL>  featureLevels = {
+			D3D_FEATURE_LEVEL_11_1,
+			D3D_FEATURE_LEVEL_11_0,
+			D3D_FEATURE_LEVEL_10_1,
+			D3D_FEATURE_LEVEL_10_0,
+			D3D_FEATURE_LEVEL_9_3,
+			D3D_FEATURE_LEVEL_9_2,
+			D3D_FEATURE_LEVEL_9_1
 	};
+
+	if (!forceAutoLange) {
+		if (g_Config.sShaderLanguage == "Level 9.1")
+		{
+			featureLevels =
+			{
+				D3D_FEATURE_LEVEL_9_1
+			};
+		}
+		else
+			if (g_Config.sShaderLanguage == "Level 9.3")
+			{
+				featureLevels =
+				{
+					D3D_FEATURE_LEVEL_9_3,
+					D3D_FEATURE_LEVEL_9_2,
+					D3D_FEATURE_LEVEL_9_1
+				};
+			}
+			else
+				if (g_Config.sShaderLanguage == "Level 10")
+				{
+					featureLevels =
+					{
+						D3D_FEATURE_LEVEL_10_1,
+						D3D_FEATURE_LEVEL_10_0,
+					};
+				}
+				else
+					if (g_Config.sShaderLanguage == "Level 11")
+					{
+						featureLevels =
+						{
+							D3D_FEATURE_LEVEL_11_1,
+							D3D_FEATURE_LEVEL_11_0,
+						};
+					}
+					else
+						if (g_Config.sShaderLanguage == "Level 12")
+						{
+							featureLevels =
+							{
+								D3D_FEATURE_LEVEL_12_1,
+								D3D_FEATURE_LEVEL_12_0,
+							};
+						}
+	}
 
 	// Create the Direct3D 11 API device object and a corresponding context.
 	ComPtr<ID3D11Device> device;
@@ -163,8 +222,8 @@ void DX::DeviceResources::CreateDeviceResources(IDXGIAdapter* vAdapter)
 		hardwareType,				// Create a device using the hardware graphics driver.
 		0,							// Should be 0 unless the driver is D3D_DRIVER_TYPE_SOFTWARE.
 		creationFlags,				// Set debug and Direct2D compatibility flags.
-		featureLevels,				// List of feature levels this app can support.
-		ARRAYSIZE(featureLevels),	// Size of the list above.
+		featureLevels.data(),		// List of feature levels this app can support.
+		featureLevels.size(),		// Size of the list above.
 		D3D11_SDK_VERSION,			// Always set this to D3D11_SDK_VERSION for Windows Store apps.
 		&device,					// Returns the Direct3D device created.
 		&m_d3dFeatureLevel,			// Returns feature level of device created.
@@ -182,8 +241,8 @@ void DX::DeviceResources::CreateDeviceResources(IDXGIAdapter* vAdapter)
 				D3D_DRIVER_TYPE_WARP, // Create a WARP device instead of a hardware device.
 				0,
 				creationFlags,
-				featureLevels,
-				ARRAYSIZE(featureLevels),
+				featureLevels.data(),		// List of feature levels this app can support.
+				featureLevels.size(),		// Size of the list above.
 				D3D11_SDK_VERSION,
 				&device,
 				&m_d3dFeatureLevel,
@@ -192,13 +251,34 @@ void DX::DeviceResources::CreateDeviceResources(IDXGIAdapter* vAdapter)
 			);
 	}
 
-	if (!vAdapter && CreateAdaptersList(device)) {
+	if (!vAdapter && CreateAdaptersList(device, forceAutoLange)) {
 		// While fetching the adapters list
 		// we will check if the configs has custom adapter
 		// then will recall this function to create device with custom adapter
 		// so we have to stop here, if the `CreateAdaptersList` return true
 		return;
 	}
+
+	if (FAILED(hr)) {
+		if (!forceAutoLange) {
+			CreateDeviceResources(vAdapter, 1);
+			return;
+		}
+		else {
+			DX::ThrowIfFailed(hr);
+		}
+		return;
+	}
+	else {
+		if (forceAutoLange) {
+			g_Config.sShaderLanguage = "Auto";
+		}
+	}
+
+	isLevel93 = m_d3dFeatureLevel <= D3D_FEATURE_LEVEL_9_3;
+	g_Config.bforceFloatShader = isLevel93;
+	g_Config.bFogState = !isLevel93;
+	g_Config.bUseDepalShader = !isLevel93;
 
 	// Store pointers to the Direct3D 11.3 API device and immediate context.
 	DX::ThrowIfFailed(
@@ -238,7 +318,7 @@ void DX::DeviceResources::CreateDeviceResources(IDXGIAdapter* vAdapter)
 		);
 }
 
-bool DX::DeviceResources::CreateAdaptersList(ComPtr<ID3D11Device> device) {
+bool DX::DeviceResources::CreateAdaptersList(ComPtr<ID3D11Device> device, int forceAutoLange) {
 	ComPtr<IDXGIDevice3> dxgi_device;
 	DX::ThrowIfFailed(
 		device.As(&dxgi_device)
@@ -289,7 +369,7 @@ bool DX::DeviceResources::CreateAdaptersList(ComPtr<ID3D11Device> device) {
 	if (customAdapter) {
 		reCreateDevice = true;
 		// Recreate device with custom adapter
-		CreateDeviceResources(customAdapter);
+		CreateDeviceResources(customAdapter, forceAutoLange);
 	}
 
 	return reCreateDevice;
@@ -487,7 +567,7 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 // Determine the dimensions of the render target and whether it will be scaled down.
 void DX::DeviceResources::UpdateRenderTargetSize()
 {
-	m_effectiveDpi = m_dpi / 2.f;
+	m_effectiveDpi = m_dpi / m_scaleAmount;
 	
 	// Calculate the necessary render target size in pixels.
 	m_outputSize.Width = DX::ConvertDipsToPixels(m_logicalSize.Width, m_effectiveDpi);
@@ -533,6 +613,18 @@ void DX::DeviceResources::SetDpi(float dpi)
 		// When the display DPI changes, the logical size of the window (measured in Dips) 
 		// also changes and needs to be updated.
 		CreateWindowSizeDependentResources();
+	}
+}
+
+void DX::DeviceResources::SetQuality(float quality, bool initial)
+{
+	if (quality != m_scaleAmount)
+	{
+		if (quality < 1.0f || quality > 10.0f) {
+			quality = 1.5f;
+		}
+		m_scaleAmount = quality;
+		if (!initial)CreateWindowSizeDependentResources();
 	}
 }
 
@@ -595,7 +687,7 @@ void DX::DeviceResources::HandleDeviceLost()
 		m_deviceNotify->OnDeviceLost();
 	}
 
-	CreateDeviceResources();
+	CreateDeviceResources(nullptr, 0);
 	m_d2dContext->SetDpi(m_dpi, m_dpi);
 	CreateWindowSizeDependentResources();
 

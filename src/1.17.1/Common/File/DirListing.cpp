@@ -68,16 +68,10 @@ bool GetFileInfo(const Path& path, FileInfo* fileInfo) {
 #if PPSSPP_PLATFORM(WINDOWS)
 	WIN32_FILE_ATTRIBUTE_DATA attrs;
 #if PPSSPP_PLATFORM(UWP)
-#if !defined(_M_ARM) && !defined(BUILD14393)
-	if (!GetFileAttributesExFromAppW(path.ToWString().c_str(), GetFileExInfoStandard, &attrs)) {
-#else
 	if (!GetFileAttributesExW(path.ToWString().c_str(), GetFileExInfoStandard, &attrs)) {
-#endif
-#if defined(_M_ARM) || defined(BUILD14393)
 		if (GetFileInfoUWP(path.ToString(), fileInfo)) {
 			return true;
 		}
-#endif
 #else
 	if (!GetFileAttributesExW(path.ToWString().c_str(), GetFileExInfoStandard, &attrs)) {
 #endif
@@ -228,16 +222,12 @@ bool GetFilesInDir(const Path& directory, std::vector<FileInfo>* files, const ch
 	// Find the first file in the directory.
 	WIN32_FIND_DATA ffd;
 #if PPSSPP_PLATFORM(UWP)
-#if !defined(_M_ARM) && !defined(BUILD14393)
-	HANDLE hFind = FindFirstFileExFromAppW((directory.ToWString() + L"\\*").c_str(), FindExInfoStandard, &ffd, FindExSearchNameMatch, NULL, 0);
+	HANDLE hFind = FindFirstFileExW((directory.ToWString() + L"\\*").c_str(), FindExInfoStandard, &ffd, FindExSearchNameMatch, NULL, 0);
 #else
 	HANDLE hFind = FindFirstFileExW((directory.ToWString() + L"\\*").c_str(), FindExInfoStandard, &ffd, FindExSearchNameMatch, NULL, 0);
 #endif
-#else
-	HANDLE hFind = FindFirstFileEx((directory.ToWString() + L"\\*").c_str(), FindExInfoStandard, &ffd, FindExSearchNameMatch, NULL, 0);
-#endif
 	if (hFind == INVALID_HANDLE_VALUE) {
-#if PPSSPP_PLATFORM(UWP) && defined(_M_ARM) || defined(BUILD14393)
+#if PPSSPP_PLATFORM(UWP)
 		// Getting folder contents need extra work
 		// request must be done within StorageManager
 		auto contents = GetFolderContents(directory.ToString());
@@ -350,11 +340,7 @@ std::vector<std::string> GetWindowsDrives()
 			CHAR driveName[] = { (CHAR)(TEXT('A') + i), TEXT(':'), TEXT('\\'), TEXT('\0') };
 			std::string str(driveName);
 #if !defined(__LIBRETRO__)
-#if defined(_M_ARM) || defined(BUILD14393)
 			if (CheckDriveAccess(driveName, true)) {
-#else
-			if (CheckDriveAccess(driveName)) {
-#endif
 				drives.push_back(driveName);
 			}
 #else

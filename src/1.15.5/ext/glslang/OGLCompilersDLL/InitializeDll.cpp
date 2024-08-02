@@ -36,10 +36,10 @@
 
 #include <cassert>
 
-#include "InitializeDll.h"
 #include "../glslang/Include/InitializeGlobals.h"
-#include "../glslang/Public/ShaderLang.h"
 #include "../glslang/Include/PoolAlloc.h"
+#include "../glslang/Public/ShaderLang.h"
+#include "InitializeDll.h"
 
 namespace glslang {
 
@@ -51,7 +51,6 @@ OS_TLSIndex ThreadInitializeIndex = OS_INVALID_TLS_INDEX;
 // threads will need to do that explicitly.
 bool InitProcess()
 {
-    return false;
     glslang::GetGlobalLock();
 
     if (ThreadInitializeIndex != OS_INVALID_TLS_INDEX) {
@@ -72,14 +71,14 @@ bool InitProcess()
         return false;
     }
 
-    if (! InitializePoolIndex()) {
+    if (!InitializePoolIndex()) {
         assert(0 && "InitProcess(): Failed to initialize global pool");
 
         glslang::ReleaseGlobalLock();
         return false;
     }
 
-    if (! InitThread()) {
+    if (!InitThread()) {
         assert(0 && "InitProcess(): Failed to initialize thread");
 
         glslang::ReleaseGlobalLock();
@@ -106,7 +105,7 @@ bool InitThread()
     if (OS_GetTLSValue(ThreadInitializeIndex) != nullptr)
         return true;
 
-    if (! OS_SetTLSValue(ThreadInitializeIndex, (void *)1)) {
+    if (!OS_SetTLSValue(ThreadInitializeIndex, (void*)1)) {
         assert(0 && "InitThread(): Unable to set init flag.");
         return false;
     }

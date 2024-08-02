@@ -61,7 +61,7 @@ void GenerateDepalShader300(ShaderWriter &writer, const DepalConfig &config) {
 				writer.C(R"(
   int x = int((texcoord.x / scaleFactor) * texSize.x);
   int xclear = x % int(0x01F0);
-  int temp = (x - xclear) | ((x / 1) % 0xF0) | ((x * 4) % int(0x100));
+  int temp = (x - xclear) + ((x / 1) % 0xF0) + ((x * 4) % int(0x100));
   texcoord.x = (float(temp) / texSize.x) * scaleFactor;
 )");
 			}
@@ -99,11 +99,11 @@ void GenerateDepalShader300(ShaderWriter &writer, const DepalConfig &config) {
 	case GE_FORMAT_8888:
 		
 		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9 || writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL93) {
-			if (shiftedMask & 0xFF) writer.C("  uint r = uint(abs(color.r) * 255.99);\n"); else writer.C("  uint r = 0;\n");
-			if (shiftedMask & 0xFF00) writer.C("  uint g = uint(abs(color.g) * 255.99);\n"); else writer.C("  uint g = 0;\n");
-			if (shiftedMask & 0xFF0000) writer.C("  uint b = uint(abs(color.b) * 255.99);\n"); else writer.C("  uint b = 0;\n");
-			if (shiftedMask & 0xFF000000) writer.C("  uint a = uint(abs(color.a) * 255.99);\n"); else writer.C("  uint a = 0;\n");
-			writer.C("  uint index = (a * 16777216) + (b * 65536) + (g * 256) + (r);\n");
+			if (shiftedMask & 0xFF) writer.C("  float r = color.r * 255.99;\n"); else writer.C("  float r = 0.0;\n");
+			if (shiftedMask & 0xFF00) writer.C("  float g = color.g * 255.99;\n"); else writer.C("  float g = 0.0;\n");
+			if (shiftedMask & 0xFF0000) writer.C("  float b = color.b * 255.99;\n"); else writer.C("  float b = 0.0;\n");
+			if (shiftedMask & 0xFF000000) writer.C("  float a = color.a * 255.99;\n"); else writer.C("  float a = 0.0;\n");
+			writer.C("  int index = (int(a * 16777216) + int(b * 65536) + int(g * 256) + int(r));\n");
 		}
 		else {
 			if (shiftedMask & 0xFF) writer.C("  int r = int(color.r * 255.99);\n"); else writer.C("  int r = 0;\n");
@@ -116,11 +116,11 @@ void GenerateDepalShader300(ShaderWriter &writer, const DepalConfig &config) {
 	case GE_FORMAT_4444:
 		
 		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9 || writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL93) {
-			if (shiftedMask & 0xF) writer.C("  uint r = uint(abs(color.r) * 15.99);\n"); else writer.C("  uint r = 0;\n");
-			if (shiftedMask & 0xF0) writer.C("  uint g = uint(abs(color.g) * 15.99);\n"); else writer.C("  uint g = 0;\n");
-			if (shiftedMask & 0xF00) writer.C("  uint b = uint(abs(color.b) * 15.99);\n"); else writer.C("  uint b = 0;\n");
-			if (shiftedMask & 0xF000) writer.C("  uint a = uint(abs(color.a) * 15.99);\n"); else writer.C("  uint a = 0;\n");
-			writer.C("  uint index = (a * 4096) + (b * 256) + (g * 16) + (r);\n");
+			if (shiftedMask & 0xF) writer.C("  float r = color.r * 15.99;\n"); else writer.C("  float r = 0;\n");
+			if (shiftedMask & 0xF0) writer.C("  float g = color.g * 15.99;\n"); else writer.C("  float g = 0;\n");
+			if (shiftedMask & 0xF00) writer.C("  float b = color.b * 15.99;\n"); else writer.C("  float b = 0;\n");
+			if (shiftedMask & 0xF000) writer.C("  float a = color.a * 15.99;\n"); else writer.C("  float a = 0;\n");
+			writer.C("  int index = (int(a * 4096) + int(b * 256) + int(g * 16) + int(r));\n");
 		}
 		else {
 			if (shiftedMask & 0xF) writer.C("  int r = int(color.r * 15.99);\n"); else writer.C("  int r = 0;\n");
@@ -132,10 +132,10 @@ void GenerateDepalShader300(ShaderWriter &writer, const DepalConfig &config) {
 		break;
 	case GE_FORMAT_565:
 		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9 || writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL93) {
-			if (shiftedMask & 0x1F) writer.C("  uint r = uint(abs(color.r) * 31.99);\n"); else writer.C("  uint r = 0;\n");
-			if (shiftedMask & 0x7E0) writer.C("  uint g = uint(abs(color.g) * 63.99);\n"); else writer.C("  uint g = 0;\n");
-			if (shiftedMask & 0xF800) writer.C("  uint b = uint(abs(color.b) * 31.99);\n"); else writer.C("  uint b = 0;\n");
-			writer.C("  uint index = (b * 2048) + (g * 32) + (r);\n");
+			if (shiftedMask & 0x1F) writer.C("  float r = color.r * 31.99;\n"); else writer.C("  float r = 0;\n");
+			if (shiftedMask & 0x7E0) writer.C("  float g = color.g * 63.99;\n"); else writer.C("  float g = 0;\n");
+			if (shiftedMask & 0xF800) writer.C("  float b = color.b * 31.99;\n"); else writer.C("  float b = 0;\n");
+			writer.C("  int index = (int(b * 2048) + int(g * 32) + int(r));\n");
 		}
 		else {
 			if (shiftedMask & 0x1F) writer.C("  int r = int(color.r * 31.99);\n"); else writer.C("  int r = 0;\n");
@@ -151,11 +151,11 @@ void GenerateDepalShader300(ShaderWriter &writer, const DepalConfig &config) {
 		}
 		
 		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9 || writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL93) {
-			if (shiftedMask & 0x1F) writer.C("  uint r = uint(abs(color.r) * 31.99);\n"); else writer.C("  uint r = 0;\n");
-			if (shiftedMask & 0x3E0) writer.C("  uint g = uint(abs(color.g) * 31.99);\n"); else writer.C("  uint g = 0;\n");
-			if (shiftedMask & 0x7C00) writer.C("  uint b = uint(abs(color.b) * 31.99);\n"); else writer.C("  uint b = 0;\n");
-			if (shiftedMask & 0x8000) writer.C("  uint a = uint(abs(color.a));\n"); else writer.C("  uint a = 0;\n");
-			writer.C("  uint index = (a * 32768) + (b * 1024) + (g * 32) + (r);\n");
+			if (shiftedMask & 0x1F) writer.C("  float r = color.r * 31.99;\n"); else writer.C("  float r = 0;\n");
+			if (shiftedMask & 0x3E0) writer.C("  float g = color.g * 31.99;\n"); else writer.C("  float g = 0;\n");
+			if (shiftedMask & 0x7C00) writer.C("  float b = color.b * 31.99;\n"); else writer.C("  float b = 0;\n");
+			if (shiftedMask & 0x8000) writer.C("  float a = color.a;\n"); else writer.C("  float a = 0;\n");
+			writer.C("  int index = (int(a * 32768) + int(b * 1024) + int(g * 32) + int(r));\n");
 		}
 		else {
 			if (shiftedMask & 0x1F) writer.C("  int r = int(color.r * 31.99);\n"); else writer.C("  int r = 0;\n");
@@ -211,14 +211,14 @@ void GenerateDepalShader300(ShaderWriter &writer, const DepalConfig &config) {
 
 	if (shift) {
 		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9 || writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL93) {
-			writer.F("  index = (uint(index / uint(%d)) %% uint(0x%02x))", shift, mask);
+			writer.F("  index = (int(uint(abs(index)) / uint(%d)) %% 0x%02x)", shift, mask);
 		}
 		else {
 			writer.F("  index = (int(uint(index) >> uint(%d)) & 0x%02x)", shift, mask);
 		}
 	} else {
 		if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9 || writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL93) {
-			writer.F("  index = (index %% uint(0x%02x))", mask);
+			writer.F("  index = int(uint(abs(index)) %% 0x%02x)", mask);
 		}
 		else {
 			writer.F("  index = (index & 0x%02x)", mask);
@@ -235,8 +235,14 @@ void GenerateDepalShader300(ShaderWriter &writer, const DepalConfig &config) {
 		writer.F(";\n");
 	}
 
-	writer.F("  vec2 uv = vec2((float(index) + 0.5) * %f, 0.0);\n", 1.0f / texturePixels);
-	writer.C("  vec4 outColor = ").SampleTexture2D("pal", "uv").C(";\n");
+	if (writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL9 || writer.Lang().shaderLanguage == HLSL_D3D11_LEVEL93) {
+		writer.F("  vec2 uv = vec2((float(index) + 0.5) * %f, 0.0);\n", 1.0f / texturePixels);
+		writer.C("  vec4 outColor = ").SampleTexture2D("pal", "uv").C(";\n");
+	}
+	else {
+		writer.F("  vec2 uv = vec2((float(index) + 0.5) * %f, 0.0);\n", 1.0f / texturePixels);
+		writer.C("  vec4 outColor = ").SampleTexture2D("pal", "uv").C(";\n");
+	}
 }
 
 // FP only, to suit GL(ES) 2.0 and DX9
@@ -458,7 +464,7 @@ void GenerateDepalFs(ShaderWriter &writer, const DepalConfig &config) {
 			if ((config.bufferFormat == GE_FORMAT_5551 && config.textureFormat == GE_TFMT_CLUT8)) {
 				GenerateDepalShaderFloat(writer, config);
 			} else {
-				if (g_Config.bforceFloatShader) {
+				if (g_Config.bforceFloatShader2) {
 					GenerateDepalShaderFloat(writer, config);
 				}
 				else {

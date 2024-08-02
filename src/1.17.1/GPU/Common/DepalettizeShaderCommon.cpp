@@ -27,6 +27,9 @@
 #include "GPU/Common/GPUStateUtils.h"
 #include "GPU/Common/DepalettizeShaderCommon.h"
 #include "GPU/Common/Draw2D.h"
+#include "Core/Config.h"
+
+extern bool isLevel93;
 
 static const InputDef vsInputs[2] = {
 	{ "vec2", "a_position", Draw::SEM_POSITION, },
@@ -56,12 +59,22 @@ void GenerateDepalShader300(ShaderWriter &writer, const DepalConfig &config) {
 	// the bits around, but not sure how to handle 3x scaling. For now this is 1x-only (rough edges at higher resolutions).
 	if (config.bufferFormat == GE_FORMAT_DEPTH16) {
 		if (config.depthUpperBits == 0x2) {
-			writer.C(R"(
+			if (isLevel93) {
+				writer.C(R"(
   int x = int((texcoord.x / scaleFactor) * texSize.x);
   int xclear = x % int(0x01F0);
-  int temp = (x - xclear) | ((x / 1) % 0xF0) | ((x * 4) % int(0x100));
+  int temp = (x - xclear) + ((x / 1) % 0xF0) + ((x * 4) % int(0x100));
   texcoord.x = (float(temp) / texSize.x) * scaleFactor;
 )");
+			}
+			else {
+				writer.C(R"(
+  int x = int((texcoord.x / scaleFactor) * texSize.x);
+  int xclear = x & 0x01F0;
+  int temp = (x - xclear) | ((x >> 1) & 0xF0) | ((x << 4) & 0x100);
+  texcoord.x = (float(temp) / texSize.x) * scaleFactor;
+)");
+			}
 		}
 	}
 
@@ -86,40 +99,80 @@ void GenerateDepalShader300(ShaderWriter &writer, const DepalConfig &config) {
 		writer.C("  int index = int(color.r * 255.99);\n");
 		break;
 	case GE_FORMAT_8888:
-		if (shiftedMask & 0xFF) writer.C("  uint r = uint(abs(color.r) * 255.99);\n"); else writer.C("  uint r = 0;\n");
-		if (shiftedMask & 0xFF00) writer.C("  uint g = uint(abs(color.g) * 255.99);\n"); else writer.C("  uint g = 0;\n");
-		if (shiftedMask & 0xFF0000) writer.C("  uint b = uint(abs(color.b) * 255.99);\n"); else writer.C("  uint b = 0;\n");
-		if (shiftedMask & 0xFF000000) writer.C("  uint a = uint(abs(color.a) * 255.99);\n"); else writer.C("  uint a = 0;\n");
-		writer.C("  uint index = (a * 16777216) + (b * 65536) + (g * 256) + (r);\n");
+		if (isLevel93) {
+			if (shiftedMask & 0xFF) writer.C("  float r = color.r * 255.99;\n"); else writer.C("  float r = 0.0;\n");
+			if (shiftedMask & 0xFF00) writer.C("  float g = color.g * 255.99;\n"); else writer.C("  float g = 0.0;\n");
+			if (shiftedMask & 0xFF0000) writer.C("  float b = color.b * 255.99;\n"); else writer.C("  float b = 0.0;\n");
+			if (shiftedMask & 0xFF000000) writer.C("  float a = color.a * 255.99;\n"); else writer.C("  float a = 0.0;\n");
+			writer.C("  int index = (int(a * 16777216) + int(b * 65536) + int(g * 256) + int(r));\n");
+		}
+		else {
+			if (shiftedMask & 0xFF) writer.C("  int r = int(color.r * 255.99);\n"); else writer.C("  int r = 0;\n");
+			if (shiftedMask & 0xFF00) writer.C("  int g = int(color.g * 255.99);\n"); else writer.C("  int g = 0;\n");
+			if (shiftedMask & 0xFF0000) writer.C("  int b = int(color.b * 255.99);\n"); else writer.C("  int b = 0;\n");
+			if (shiftedMask & 0xFF000000) writer.C("  int a = int(color.a * 255.99);\n"); else writer.C("  int a = 0;\n");
+			writer.C("  int index = (a << 24) | (b << 16) | (g << 8) | (r);\n");
+		}
 		break;
 	case GE_FORMAT_4444:
-		if (shiftedMask & 0xF) writer.C("  uint r = uint(abs(color.r) * 15.99);\n"); else writer.C("  uint r = 0;\n");
-		if (shiftedMask & 0xF0) writer.C("  uint g = uint(abs(color.g) * 15.99);\n"); else writer.C("  uint g = 0;\n");
-		if (shiftedMask & 0xF00) writer.C("  uint b = uint(abs(color.b) * 15.99);\n"); else writer.C("  uint b = 0;\n");
-		if (shiftedMask & 0xF000) writer.C("  uint a = uint(abs(color.a) * 15.99);\n"); else writer.C("  uint a = 0;\n");
-		writer.C("  uint index = (a * 4096) + (b * 256) + (g * 16) + (r);\n");
+		if (isLevel93) {
+			if (shiftedMask & 0xF) writer.C("  float r = color.r * 15.99;\n"); else writer.C("  float r = 0;\n");
+			if (shiftedMask & 0xF0) writer.C("  float g = color.g * 15.99;\n"); else writer.C("  float g = 0;\n");
+			if (shiftedMask & 0xF00) writer.C("  float b = color.b * 15.99;\n"); else writer.C("  float b = 0;\n");
+			if (shiftedMask & 0xF000) writer.C("  float a = color.a * 15.99;\n"); else writer.C("  float a = 0;\n");
+			writer.C("  int index = (int(a * 4096) + int(b * 256) + int(g * 16) + int(r));\n");
+		}
+		else {
+			if (shiftedMask & 0xF) writer.C("  int r = int(color.r * 15.99);\n"); else writer.C("  int r = 0;\n");
+			if (shiftedMask & 0xF0) writer.C("  int g = int(color.g * 15.99);\n"); else writer.C("  int g = 0;\n");
+			if (shiftedMask & 0xF00) writer.C("  int b = int(color.b * 15.99);\n"); else writer.C("  int b = 0;\n");
+			if (shiftedMask & 0xF000) writer.C("  int a = int(color.a * 15.99);\n"); else writer.C("  int a = 0;\n");
+			writer.C("  int index = (a << 12) | (b << 8) | (g << 4) | (r);\n");
+		}
 		break;
 	case GE_FORMAT_565:
-		if (shiftedMask & 0x1F) writer.C("  uint r = uint(abs(color.r) * 31.99);\n"); else writer.C("  uint r = 0;\n");
-		if (shiftedMask & 0x7E0) writer.C("  uint g = uint(abs(color.g) * 63.99);\n"); else writer.C("  uint g = 0;\n");
-		if (shiftedMask & 0xF800) writer.C("  uint b = uint(abs(color.b) * 31.99);\n"); else writer.C("  uint b = 0;\n");
-		writer.C("  uint index = (b * 2048) + (g * 32) + (r);\n");
+		if (isLevel93) {
+			if (shiftedMask & 0x1F) writer.C("  float r = color.r * 31.99;\n"); else writer.C("  float r = 0;\n");
+			if (shiftedMask & 0x7E0) writer.C("  float g = color.g * 63.99;\n"); else writer.C("  float g = 0;\n");
+			if (shiftedMask & 0xF800) writer.C("  float b = color.b * 31.99;\n"); else writer.C("  float b = 0;\n");
+			writer.C("  int index = (int(b * 2048) + int(g * 32) + int(r));\n");
+		}
+		else {
+			if (shiftedMask & 0x1F) writer.C("  int r = int(color.r * 31.99);\n"); else writer.C("  int r = 0;\n");
+			if (shiftedMask & 0x7E0) writer.C("  int g = int(color.g * 63.99);\n"); else writer.C("  int g = 0;\n");
+			if (shiftedMask & 0xF800) writer.C("  int b = int(color.b * 31.99);\n"); else writer.C("  int b = 0;\n");
+			writer.C("  int index = (b << 11) | (g << 5) | (r);\n");
+		}
 		break;
 	case GE_FORMAT_5551:
 		if (config.textureFormat == GE_TFMT_CLUT8) {
 			// SOCOM case. We need to make sure the next few lines load the right bits, see below.
 			shiftedMask <<= 8;
 		}
-		if (shiftedMask & 0x1F) writer.C("  uint r = uint(abs(color.r) * 31.99);\n"); else writer.C("  uint r = 0;\n");
-		if (shiftedMask & 0x3E0) writer.C("  uint g = uint(abs(color.g) * 31.99);\n"); else writer.C("  uint g = 0;\n");
-		if (shiftedMask & 0x7C00) writer.C("  uint b = uint(abs(color.b) * 31.99);\n"); else writer.C("  uint b = 0;\n");
-		if (shiftedMask & 0x8000) writer.C("  uint a = uint(abs(color.a));\n"); else writer.C("  uint a = 0;\n");
-		writer.C("  uint index = (a * 32768) + (b * 1024) + (g * 32) + (r);\n");
+		if (isLevel93) {
+			if (shiftedMask & 0x1F) writer.C("  float r = color.r * 31.99;\n"); else writer.C("  float r = 0;\n");
+			if (shiftedMask & 0x3E0) writer.C("  float g = color.g * 31.99;\n"); else writer.C("  float g = 0;\n");
+			if (shiftedMask & 0x7C00) writer.C("  float b = color.b * 31.99;\n"); else writer.C("  float b = 0;\n");
+			if (shiftedMask & 0x8000) writer.C("  float a = color.a;\n"); else writer.C("  float a = 0;\n");
+			writer.C("  int index = (int(a * 32768) + int(b * 1024) + int(g * 32) + int(r));\n");
+		}
+		else {
+			if (shiftedMask & 0x1F) writer.C("  int r = int(color.r * 31.99);\n"); else writer.C("  int r = 0;\n");
+			if (shiftedMask & 0x3E0) writer.C("  int g = int(color.g * 31.99);\n"); else writer.C("  int g = 0;\n");
+			if (shiftedMask & 0x7C00) writer.C("  int b = int(color.b * 31.99);\n"); else writer.C("  int b = 0;\n");
+			if (shiftedMask & 0x8000) writer.C("  int a = int(color.a);\n"); else writer.C("  int a = 0;\n");
+			writer.C("  int index = (a << 15) | (b << 10) | (g << 5) | (r);\n");
+		}
 
 		if (config.textureFormat == GE_TFMT_CLUT8) {
 			// SOCOM case. #16210
 			// To debug the issue, remove this shift to see the texture (check for clamping etc).
-			writer.C("  index /= 256;\n");
+			if (isLevel93) {
+				writer.C("  index /= 256;\n");
+			}
+			else {
+				writer.C("  index >>= 8;\n");
+			}
 		}
 
 		break;
@@ -130,11 +183,20 @@ void GenerateDepalShader300(ShaderWriter &writer, const DepalConfig &config) {
 		if (config.bufferFormat == GE_FORMAT_DEPTH16 && config.textureFormat == GE_TFMT_5650) {
 			// Convert depth to 565, without going through a CLUT.
 			// TODO: Make "depal without a CLUT" a separate concept, to avoid redundantly creating a CLUT texture.
-			writer.C("  int idepth = int(clamp(depth, 0.0, 65535.0));\n");
-			writer.C("  float r = float(idepth % 32) / 31.0;\n");
-			writer.C("  float g = float((idepth / 32) % 64) / 63.0;\n");
-			writer.C("  float b = float((idepth / 2048) % 32) / 31.0;\n");
-			writer.C("  vec4 outColor = vec4(r, g, b, 1.0);\n");
+			if (isLevel93) {
+				writer.C("  int idepth = int(clamp(depth, 0.0, 65535.0));\n");
+				writer.C("  float r = float(idepth % 32) / 31.0;\n");
+				writer.C("  float g = float((idepth / 32) % 64) / 63.0;\n");
+				writer.C("  float b = float((idepth / 2048) % 32) / 31.0;\n");
+				writer.C("  vec4 outColor = vec4(r, g, b, 1.0);\n");
+			}
+			else {
+				writer.C("  int idepth = int(clamp(depth, 0.0, 65535.0));\n");
+				writer.C("  float r = float(idepth & 31) / 31.0;\n");
+				writer.C("  float g = float((idepth >> 5) & 63) / 63.0;\n");
+				writer.C("  float b = float((idepth >> 11) & 31) / 31.0;\n");
+				writer.C("  vec4 outColor = vec4(r, g, b, 1.0);\n");
+			}
 			return;
 		}
 
@@ -145,20 +207,43 @@ void GenerateDepalShader300(ShaderWriter &writer, const DepalConfig &config) {
 	}
 
 	float texturePixels = 512.0f;
-
-	if (shift) {
-		writer.F("  index = (uint(index / uint(%d)) %% uint(0x%02x))", shift, mask);
-	} else {
-		writer.F("  index = (index %% uint(0x%02x))", mask);
+	if (isLevel93) {
+		if (shift) {
+			writer.F("  index = (int(uint(abs(index)) / uint(%d)) %% 0x%02x)", shift, mask);
+		}
+		else {
+			writer.F("  index = int(uint(abs(index)) %% 0x%02x)", mask);
+		}
+		if (config.startPos) {
+			writer.F(" + %d;\n", config.startPos);  // '|' matches what we have in gstate.h
+		}
+		else {
+			writer.F(";\n");
+		}
 	}
-	if (config.startPos) {
-		writer.F(" + %d;\n", config.startPos);  // '|' matches what we have in gstate.h
-	} else {
-		writer.F(";\n");
+	else {
+		if (shift) {
+			writer.F("  index = (int(uint(index) >> uint(%d)) & 0x%02x)", shift, mask);
+		}
+		else {
+			writer.F("  index = (index & 0x%02x)", mask);
+		}
+		if (config.startPos) {
+			writer.F(" | %d;\n", config.startPos);  // '|' matches what we have in gstate.h
+		}
+		else {
+			writer.F(";\n");
+		}
 	}
 
-	writer.F("  vec2 uv = vec2((float(index) + 0.5) * %f, 0.0);\n", 1.0f / texturePixels);
-	writer.C("  vec4 outColor = ").SampleTexture2D("pal", "uv").C(";\n");
+	if (isLevel93) {
+		writer.F("  vec2 uv = vec2((float(index) + 0.5) * %f, 0.0);\n", 1.0f / texturePixels);
+		writer.C("  vec4 outColor = ").SampleTexture2D("pal", "uv").C(";\n");
+	}
+	else {
+		writer.F("  vec2 uv = vec2((float(index) + 0.5) * %f, 0.0);\n", 1.0f / texturePixels);
+		writer.C("  vec4 outColor = ").SampleTexture2D("pal", "uv").C(";\n");
+	}
 }
 
 // FP only, to suit GL(ES) 2.0 and DX9
@@ -378,7 +463,12 @@ void GenerateDepalFs(ShaderWriter &writer, const DepalConfig &config) {
 			if (config.bufferFormat == GE_FORMAT_5551 && config.textureFormat == GE_TFMT_CLUT8) {
 				GenerateDepalShaderFloat(writer, config);
 			} else {
-				GenerateDepalShaderFloat(writer, config);
+				if (g_Config.bforceFloatShader) {
+					GenerateDepalShaderFloat(writer, config);
+				}
+				else {
+					GenerateDepalShader300(writer, config);
+				}
 			}
 			break;
 		default:

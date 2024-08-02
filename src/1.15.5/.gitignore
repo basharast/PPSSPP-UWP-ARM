@@ -17,6 +17,7 @@
 *.suo
 *.aps
 *.exp
+*.bak
 *.qdact
 controls.ini
 desktop.ini
@@ -80,7 +81,6 @@ Memstick
 /memstick*
 Cheats
 
-/git-version.cpp
 /git-version-*.tmp
 
 .pspsh.hist

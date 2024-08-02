@@ -568,8 +568,13 @@ void NativeInit(int argc, const char* argv[], const char* savegame_dir, const ch
 
 	if (D3DFeatureLevelGlobal) {
 		g_Config.bFogState = false;
-		g_Config.bforceFloatShader = true;
+		g_Config.bforceFloatShader2 = true;
 	}
+	else {
+		g_Config.bFogState = true;
+		g_Config.bforceFloatShader2 = false;
+	}
+
 	g_Config.defaultCurrentDirectory = !g_Config.memStickDirectory.empty() ? g_Config.memStickDirectory : g_Config.internalDataDirectory;
 #if defined(_M_ARM)
 	SetWorkingFolder(g_Config.memStickDirectory.ToString());
@@ -1139,6 +1144,7 @@ static Matrix4x4 ComputeOrthoMatrix(float xres, float yres) {
 
 int tempW = g_display.pixel_xres;
 int tempH = g_display.pixel_yres;
+extern bool forceResize;
 void NativeFrame(GraphicsContext *graphicsContext) {
 	PROFILE_END_FRAME();
 
@@ -1225,7 +1231,8 @@ void NativeFrame(GraphicsContext *graphicsContext) {
 	if (resized) {
 		INFO_LOG(G3D, "Resized flag set - recalculating bounds");
 		resized = false;
-		if (tempW != g_display.pixel_xres || tempH != g_display.pixel_yres) {
+		if (tempW != g_display.pixel_xres || tempH != g_display.pixel_yres || forceResize) {
+			forceResize = false;
 			tempW = g_display.pixel_xres;
 			tempH = g_display.pixel_yres;
 

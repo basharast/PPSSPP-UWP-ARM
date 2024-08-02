@@ -134,6 +134,7 @@ StorageItemW GetStorageItemParent(PathUWP path) {
 	for (auto& fItem : FutureAccessItems) {
 		if (isChild(fItem.GetPath(), path.ToString())) {
 			if (fItem.IsDirectory()) {
+				VERBOSE_LOG(Log::FileSystem, "Parent folder found (%s)", fItem.GetName().c_str());
 				parent = fItem;
 				break;
 			}
@@ -149,6 +150,34 @@ StorageItemW GetStorageItem(PathUWP path, bool createIfNotExists = false, bool f
 
 	path = PathResolver(path);
 	StorageItemW item;
+	/*try {
+		StorageFile^ testFile;
+		std::string pathStr = path.ToString();
+		windowsPath(pathStr);
+		ExecuteTask(testFile, StorageFile::GetFileFromPathAsync(convert(pathStr)));
+		if (testFile != nullptr) {
+			item = StorageItemW(testFile);
+		}
+	}
+	catch (...) {
+
+	}
+
+	try {
+		if (!item.IsValid()) {
+			StorageFolder^ testFolder;
+			std::string pathStr = path.ToString();
+			windowsPath(pathStr);
+			ExecuteTask(testFolder, StorageFolder::GetFolderFromPathAsync(convert(pathStr)));
+			if (testFolder != nullptr) {
+				item = StorageItemW(testFolder);
+			}
+		}
+	}
+	catch (...) {
+
+	}*/
+	//if (!item.IsValid()) 
 	{
 		// Look for match in FutureAccessItems
 		for (auto& fItem : FutureAccessItems) {
@@ -172,6 +201,7 @@ StorageItemW GetStorageItem(PathUWP path, bool createIfNotExists = false, bool f
 		}
 
 		if (!item.IsValid() && createIfNotExists) {
+			VERBOSE_LOG(Log::FileSystem, "File not in our lists, creating new one");
 
 			// Create and return new folder
 			auto parent = GetStorageItemParent(path);
@@ -284,9 +314,11 @@ HANDLE CreateFileUWP(std::string path, int accessMode, int shareMode, int openMo
 
 	if (IsValidUWP(path)) {
 		bool createIfNotExists = CreateIfNotExists(openMode);
+		DEBUG_LOG(Log::FileSystem, "Getting handle (%s)", createIfNotExists ? "CreateIfNotExists" : "DontCreateIfNotExists");
 		auto storageItem = GetStorageItem(path, createIfNotExists);
 
 		if (storageItem.IsValid()) {
+			DEBUG_LOG(Log::FileSystem, "Getting handle (%s)", path.c_str());
 			HRESULT hr = storageItem.GetHandle(&handle, accessMode, shareMode);
 			if (hr == E_FAIL) {
 				handle = INVALID_HANDLE_VALUE;
@@ -294,6 +326,7 @@ HANDLE CreateFileUWP(std::string path, int accessMode, int shareMode, int openMo
 		}
 		else {
 			handle = INVALID_HANDLE_VALUE;
+			DEBUG_LOG(Log::FileSystem, "Couldn't find or access (%s)", path.c_str());
 		}
 	}
 	return handle;
@@ -354,6 +387,7 @@ bool IsValidUWP(std::string path, bool allowForAppData) {
 	//Check valid path
 	if (p.Type() == PathTypeUWP::UNDEFINED || !p.IsAbsolute()) {
 		// Nothing to do here
+		VERBOSE_LOG(Log::FileSystem, "File is not valid (%s)", p.ToString().c_str());
 		return false;
 	}
 
@@ -406,7 +440,7 @@ bool IsExistsUWP(std::string path) {
 			return true;
 		}
 	}
-	// ERROR_LOG(FILESYS, "Couldn't find or access (%s)", path.c_str());
+	// ERROR_LOG(Log::FileSystem, "Couldn't find or access (%s)", path.c_str());
 	return false;
 }
 
@@ -440,6 +474,8 @@ FILE* GetFileStream(std::string path, const char* mode) {
 					file = storageItem.GetFileStream(itemName, mode);
 				}
 				else {
+					ERROR_LOG(Log::FileSystem, "Couldn't find or access (%s)", rootPath.c_str());
+					ERROR_LOG(Log::FileSystem, "Couldn't find or access (%s)", path.c_str());
 				}
 			}
 		}
@@ -510,6 +546,7 @@ std::list<ItemInfoUWP> GetFolderContents(std::string path, bool deepScan) {
 			}
 		}
 		else {
+			DEBUG_LOG(Log::FileSystem, "Cannot get contents!, checking for other options.. (%s)", path.c_str());
 		}
 	}
 
@@ -518,11 +555,13 @@ std::list<ItemInfoUWP> GetFolderContents(std::string path, bool deepScan) {
 			// if not accessible, maybe some items inside it were selected before
 			// and they already in our accessible list
 		if (IsContainsAccessibleItems(path)) {
+			DEBUG_LOG(Log::FileSystem, "Folder contains accessible items (%s)", path.c_str());
 
 			// Check contents
 			auto cItems = GetStorageItemsByParent(path);
 			if (!cItems.empty()) {
 				for each (auto item in cItems) {
+					VERBOSE_LOG(Log::FileSystem, "Appending accessible item (%s)", item.GetPath().c_str());
 					contents.push_back(item.GetItemInfo());
 				}
 			}
@@ -533,14 +572,17 @@ std::list<ItemInfoUWP> GetFolderContents(std::string path, bool deepScan) {
 			// then add fake folder as sub root to avoid empty results
 			std::list<std::string> subRoot;
 			if (IsRootForAccessibleItems(path, subRoot)) {
+				DEBUG_LOG(Log::FileSystem, "Folder is root for accessible items (%s)", path.c_str());
 
 				if (!subRoot.empty()) {
 					for each (auto sItem in subRoot) {
+						VERBOSE_LOG(Log::FileSystem, "Appending fake folder (%s)", sItem.c_str());
 						contents.push_back(GetFakeFolderInfo(sItem));
 					}
 				}
 			}
 			else {
+				VERBOSE_LOG(Log::FileSystem, "Cannot get any content!.. (%s)", path.c_str());
 			}
 		}
 	}
@@ -561,6 +603,7 @@ ItemInfoUWP GetItemInfoUWP(std::string path) {
 			info = storageItem.GetItemInfo();
 		}
 		else {
+			ERROR_LOG(Log::FileSystem, "Couldn't find or access (%s)", path.c_str());
 		}
 	}
 	return info;
@@ -576,6 +619,7 @@ int64_t GetSizeUWP(std::string path) {
 			size = storageItem.GetSize();
 		}
 		else {
+			ERROR_LOG(Log::FileSystem, "Couldn't find or access (%s)", path.c_str());
 		}
 	}
 	return size;
@@ -586,9 +630,11 @@ bool DeleteUWP(std::string path) {
 	if (IsValidUWP(path)) {
 		auto storageItem = GetStorageItem(path);
 		if (storageItem.IsValid()) {
+			DEBUG_LOG(Log::FileSystem, "Delete (%s)", path.c_str());
 			state = storageItem.Delete();
 		}
 		else {
+			DEBUG_LOG(Log::FileSystem, "Couldn't find or access (%s)", path.c_str());
 		}
 	}
 
@@ -604,9 +650,11 @@ bool CreateDirectoryUWP(std::string path, bool replaceExisting) {
 	if (IsValidUWP(rootPath)) {
 		auto storageItem = GetStorageItem(rootPath);
 		if (storageItem.IsValid()) {
+			DEBUG_LOG(Log::FileSystem, "Create new folder (%s)", path.c_str());
 			state = storageItem.CreateFolder(itemName, replaceExisting);
 		}
 		else {
+			ERROR_LOG(Log::FileSystem, "Couldn't find or access (%s)", rootPath.c_str());
 		}
 	}
 
@@ -627,12 +675,15 @@ bool CopyUWP(std::string path, std::string dest) {
 			destDir = dstPath.GetDirectory();
 			auto dstStorageItem = GetStorageItem(destDir, true, true);
 			if (dstStorageItem.IsValid()) {
+				DEBUG_LOG(Log::FileSystem, "Copy (%s) to (%s)", path.c_str(), dest.c_str());
 				state = srcStorageItem.Copy(dstStorageItem, dstName);
 			}
 			else {
+				ERROR_LOG(Log::FileSystem, "Couldn't find or access (%s)", dest.c_str());
 			}
 		}
 		else {
+			ERROR_LOG(Log::FileSystem, "Couldn't find or access (%s)", path.c_str());
 		}
 	}
 
@@ -654,12 +705,15 @@ bool MoveUWP(std::string path, std::string dest) {
 			destDir = dstPath.GetDirectory();
 			auto dstStorageItem = GetStorageItem(destDir, true, true);
 			if (dstStorageItem.IsValid()) {
+				DEBUG_LOG(Log::FileSystem, "Move (%s) to (%s)", path.c_str(), dest.c_str());
 				state = srcStorageItem.Move(dstStorageItem, dstName);
 			}
 			else {
+				ERROR_LOG(Log::FileSystem, "Couldn't find or access (%s)", dest.c_str());
 			}
 		}
 		else {
+			ERROR_LOG(Log::FileSystem, "Couldn't find or access (%s)", path.c_str());
 		}
 	}
 
@@ -675,12 +729,15 @@ bool RenameUWP(std::string path, std::string name) {
 	if (iequals(srcRoot, dstRoot)) {
 		auto srcStorageItem = GetStorageItem(path);
 		if (srcStorageItem.IsValid()) {
+			DEBUG_LOG(Log::FileSystem, "Rename (%s) to (%s)", path.c_str(), name.c_str());
 			state = srcStorageItem.Rename(name);
 		}
 		else {
+			DEBUG_LOG(Log::FileSystem, "Couldn't find or access (%s)", path.c_str());
 		}
 	}
 	else {
+		DEBUG_LOG(Log::FileSystem, " Rename used as move -> call move (%s) to (%s)", path.c_str(), name.c_str());
 		state = MoveUWP(path, name);
 	}
 

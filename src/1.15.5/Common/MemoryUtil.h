@@ -38,7 +38,7 @@ bool PlatformIsWXExclusive();
 // AllocateMemoryPages is simpler and more generic.
 // Note that on W^X platforms, this will return writable memory that can later be changed to executable!
 void* AllocateExecutableMemory(size_t size);
-void FreeExecutableMemory(void* ptr, size_t size);
+void FreeExecutableMemory(void *ptr, size_t size);
 
 void* AllocateMemoryPages(size_t size, uint32_t memProtFlags);
 // Note that on platforms returning PlatformIsWXExclusive, you cannot set a page to be both readable and writable at the same time.
@@ -61,10 +61,10 @@ public:
 		resize(size);
 	}
 
-	AlignedVector(const AlignedVector& o) : buf_(o.buf_), size_(o.size_) {}
+	AlignedVector(const AlignedVector &o) : buf_(o.buf_), size_(o.size_) {}
 
 	// Move constructor
-	AlignedVector(AlignedVector&& o) noexcept : buf_(o.buf_), size_(o.size_) { o.buf_ = nullptr; o.size_ = 0; }
+	AlignedVector(AlignedVector &&o) noexcept : buf_(o.buf_), size_(o.size_) { o.buf_ = nullptr; o.size_ = 0; }
 
 	~AlignedVector() {
 		if (buf_ != 0) {
@@ -72,7 +72,7 @@ public:
 		}
 	}
 
-	inline T& operator[](size_t index) {
+	inline T &operator[](size_t index) {
 		return buf_[index];
 	}
 
@@ -82,12 +82,12 @@ public:
 			if (buf_ != 0) {
 				FreeAlignedMemory(buf_);
 			}
-			buf_ = (T*)AllocateAlignedMemory(size * sizeof(T), A);
+			buf_ = (T *)AllocateAlignedMemory(size * sizeof(T), A);
 			size_ = size;
 		}
 	}
 
-	T* data() {
+	T *data() {
 		return buf_;
 	}
 
@@ -96,6 +96,6 @@ public:
 	}
 
 private:
-	T* buf_;
+	T *buf_;
 	size_t size_;
 };

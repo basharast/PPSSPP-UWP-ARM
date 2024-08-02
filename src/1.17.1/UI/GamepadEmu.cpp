@@ -147,7 +147,7 @@ void MultiTouchButton::Draw(UIContext &dc) {
 			dc.Draw()->DrawImageRotated(bgDownImg_, bounds_.centerX(), bounds_.centerY(), scale, bgAngle_ * (M_PI * 2 / 360.0f), downBg, flipImageH_);
 	}
 
-	if (!g_Config.bHideStickBackground) {
+	if (!g_Config.bHideStickBackground2) {
 		dc.Draw()->DrawImageRotated(bgImg_, bounds_.centerX(), bounds_.centerY(), scale, bgAngle_ * (M_PI * 2 / 360.0f), colorBg, flipImageH_);
 	}
 
@@ -402,7 +402,7 @@ void PSPDpad::Draw(UIContext &dc) {
 		uint32_t colorBg = colorAlpha(GetButtonColor(), imgOpacity);
 		uint32_t color = colorAlpha(0xFFFFFF, imgOpacity);
 
-		if (!g_Config.bHideStickBackground) {
+		if (!g_Config.bHideStickBackground2) {
 			dc.Draw()->DrawImageRotated(arrowIndex_, x, y, imgScale, angle + PI, colorBg, false);
 		}
 
@@ -445,7 +445,7 @@ void PSPStick::Draw(UIContext &dc) {
 	float dx, dy;
 	__CtrlPeekAnalog(stick_, &dx, &dy);
 
-	if (!g_Config.bHideStickBackground)
+	if (!g_Config.bHideStickBackground2)
 		dc.Draw()->DrawImage(bgImg_, stickX, stickY, 1.0f * scale_, colorBg, ALIGN_CENTER);
 	float headScale = stick_ ? g_Config.fRightStickHeadScale : g_Config.fLeftStickHeadScale;
 	if (dragPointerId_ != -1 && g_Config.iTouchButtonStyle == 2 && stickDownImg_ != stickImageIndex_)
@@ -554,7 +554,7 @@ void PSPCustomStick::Draw(UIContext &dc) {
 	dx = posX_;
 	dy = -posY_;
 
-	if (!g_Config.bHideStickBackground)
+	if (!g_Config.bHideStickBackground2)
 		dc.Draw()->DrawImage(bgImg_, stickX, stickY, 1.0f * scale_, colorBg, ALIGN_CENTER);
 	if (dragPointerId_ != -1 && g_Config.iTouchButtonStyle == 2 && stickDownImg_ != stickImageIndex_)
 		dc.Draw()->DrawImage(stickDownImg_, stickX + dx * stick_size_ * scale_, stickY - dy * stick_size_ * scale_, 1.0f*scale_*g_Config.fRightStickHeadScale, downBg, ALIGN_CENTER);

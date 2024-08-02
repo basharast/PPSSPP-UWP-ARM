@@ -78,7 +78,6 @@ PPSSPP_UWPMain::PPSSPP_UWPMain(App^ app, const std::shared_ptr<DX::DeviceResourc
 	app_(app),
 	m_deviceResources(deviceResources)
 {
-
 	while (!appStarted) {
 		CoreWindow::GetForCurrentThread()->Dispatcher->ProcessEvents(CoreProcessEventsOption::ProcessAllIfPresent);
 	}
@@ -158,7 +157,7 @@ void PPSSPP_UWPMain::deviceLostMonitor() {
 					}));
 			break;
 		}
-	});
+		});
 }
 
 void PPSSPP_UWPMain::CompleteLoading() {
@@ -209,6 +208,7 @@ PPSSPP_UWPMain::~PPSSPP_UWPMain() {
 }
 
 // Updates application state when the window size changes (e.g. device orientation change)
+extern bool resizeInProgress;
 void PPSSPP_UWPMain::CreateWindowSizeDependentResources() {
 	ctx_->GetDrawContext()->HandleEvent(Draw::Event::LOST_BACKBUFFER, 0, 0, nullptr);
 
@@ -217,6 +217,18 @@ void PPSSPP_UWPMain::CreateWindowSizeDependentResources() {
 	int width = m_deviceResources->GetScreenViewport().Width;
 	int height = m_deviceResources->GetScreenViewport().Height;
 	ctx_->GetDrawContext()->HandleEvent(Draw::Event::GOT_BACKBUFFER, width, height, m_deviceResources->GetBackBufferRenderTargetView());
+
+	if (!resizeInProgress) {
+		Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(
+			CoreDispatcherPriority::Normal,
+			ref new Windows::UI::Core::DispatchedHandler([=]()
+				{
+					CoreWindow^ corewindow = CoreWindow::GetForCurrentThread();
+					if (corewindow) {
+						app_->OnWindowSizeChanged(corewindow, nullptr);
+					}
+				}));
+	}
 }
 
 bool startupDone = false;
@@ -924,4 +936,3 @@ std::string GetCPUBrandString() {
 		return "Unknown";
 	}
 }
-
