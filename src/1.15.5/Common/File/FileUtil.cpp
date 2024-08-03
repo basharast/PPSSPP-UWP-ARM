@@ -296,7 +296,9 @@ static bool ResolvePathVista(const std::wstring &path, wchar_t *buf, DWORD bufSi
 #endif
 #if defined(_M_ARM) || defined(BUILD14393)
 		//Use UWP StorageManager to get handle
-		hFile = CreateFileUWP(path, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
+		if (hFile == INVALID_HANDLE_VALUE) {
+			hFile = CreateFileUWP(path, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
+		}
 #endif
 #else
 		HANDLE hFile = CreateFile(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);

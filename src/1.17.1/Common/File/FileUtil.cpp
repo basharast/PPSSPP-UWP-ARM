@@ -218,7 +218,9 @@ namespace File {
 #if PPSSPP_PLATFORM(UWP)
 			HANDLE hFile = CreateFile2(path.c_str(), GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING, nullptr);
 			//Use UWP StorageManager to get handle
-			hFile = CreateFileUWP(path, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
+			if (hFile == INVALID_HANDLE_VALUE) {
+				hFile = CreateFileUWP(path, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
+			}
 #else
 			HANDLE hFile = CreateFile(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
 #endif
