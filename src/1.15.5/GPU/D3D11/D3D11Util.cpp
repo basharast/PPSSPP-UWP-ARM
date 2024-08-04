@@ -197,11 +197,11 @@ std::vector<uint8_t> CompileShaderToBytecodeD3D11(const char* code, size_t codeS
 
 ID3D11VertexShader* CreateVertexShaderD3D11(ID3D11Device* device, const char* code, size_t codeSize, std::vector<uint8_t>* byteCodeOut, D3D_FEATURE_LEVEL featureLevel, UINT flags) {
 #if defined(BUILD14393)
-	const char* profile = featureLevel <= D3D_FEATURE_LEVEL_9_3 ? "vs_4_0_level_9_1" : "vs_4_0";
+	const char* profile = featureLevel <= D3D_FEATURE_LEVEL_9_3 ? (featureLevel <= D3D_FEATURE_LEVEL_9_1 ? "vs_4_0_level_9_1" : "vs_4_0_level_9_3") : "vs_4_0";
 #else
 	char* profile = "vs_4_0";
 	if (g_Config.bBackwardCompatibility) {
-		profile = featureLevel <= D3D_FEATURE_LEVEL_9_3 ? "vs_4_0_level_9_1" : "vs_4_0";
+		profile = featureLevel <= D3D_FEATURE_LEVEL_9_3 ? (featureLevel <= D3D_FEATURE_LEVEL_9_1 ? "vs_4_0_level_9_1" : "vs_4_0_level_9_3") : "vs_4_0";
 	}
 #endif
 	std::vector<uint8_t> byteCode = CompileShaderToBytecodeD3D11(code, codeSize, profile, flags);
@@ -217,11 +217,11 @@ ID3D11VertexShader* CreateVertexShaderD3D11(ID3D11Device* device, const char* co
 
 ID3D11PixelShader* CreatePixelShaderD3D11(ID3D11Device* device, const char* code, size_t codeSize, D3D_FEATURE_LEVEL featureLevel, UINT flags) {
 #if defined(BUILD14393)
-	const char* profile = featureLevel <= D3D_FEATURE_LEVEL_9_3 ? "ps_4_0_level_9_1" : "ps_4_0";
+	const char* profile = featureLevel <= D3D_FEATURE_LEVEL_9_3 ? (featureLevel <= D3D_FEATURE_LEVEL_9_1 ? "ps_4_0_level_9_1" : "ps_4_0_level_9_3") : "ps_4_0";
 #else
 	char* profile = "ps_4_0";
 	if (g_Config.bBackwardCompatibility) {
-		profile = featureLevel <= D3D_FEATURE_LEVEL_9_3 ? "ps_4_0_level_9_1" : "ps_4_0";
+		profile = featureLevel <= D3D_FEATURE_LEVEL_9_3 ? (featureLevel <= D3D_FEATURE_LEVEL_9_1 ? "ps_4_0_level_9_1" : "ps_4_0_level_9_3") : "ps_4_0";
 	}
 #endif
 	std::vector<uint8_t> byteCode = CompileShaderToBytecodeD3D11(code, codeSize, profile, flags);
