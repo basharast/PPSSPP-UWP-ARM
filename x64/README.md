@@ -1,5 +1,5 @@
 ## XBOX (x64)
-Please visit [XBOX DevStore](https://xboxdevstore.github.io/), I host only ARM32 releases
+Please visit [XBOX DevStore](https://xbdev.store/), I host only ARM32 releases
 
 the major part of the UWP improvements were merged already into the official repo.
 
